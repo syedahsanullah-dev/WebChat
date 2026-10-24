@@ -1,0 +1,100 @@
+# WhatsApp Web Clone (Next.js & Fastify + ws) - Phased Implementation Checklist
+## Architecture: Hostinger Dual Node.js Servers ($0 Extra Cost) | Identity: @username & Email
+## Calling: High-Definition Audio Only | Mobile: Chrome PWA Installable | Full SDLC
+
+> Master Index & Agent Instructions: [phases/README.md](phases/README.md)  
+> Tech Stack, Dependencies & .env Config: [TECH_STACK_AND_ENV_CONFIG.md](TECH_STACK_AND_ENV_CONFIG.md)  
+> Full Blueprint: [PROJECT_SPECIFICATION_AND_PHASES.md](PROJECT_SPECIFICATION_AND_PHASES.md)
+
+---
+
+## Phase 1: [Workspace Scaffolding & WhatsApp Web Layout Shell](phases/01_WORKSPACE_AND_LAYOUT_SHELL.md)
+- [x] Initialize workspace structure: `web/` (Next.js 15 Standalone) and `socket-server/` (Fastify 4+ & Native ws)
+- [x] Configure WhatsApp Web dark & light color palette tokens in Tailwind CSS
+- [x] Build responsive 2-column layout (Sidebar + Chat Area) with collapsible mobile drawer
+- [x] Add sound assets (message sent, received, audio ringtone) and WhatsApp doodle background wallpaper
+- [x] Create UI primitives: Avatar with online dot, Dropdown menu, Search bar, and Modal dialogs
+
+## Phase 2: [Hostinger Database & Dual-Server Infrastructure Setup](phases/02_DATABASE_AND_DUAL_SERVER_SETUP.md)
+- [ ] Create MySQL / MariaDB database in Hostinger hPanel and configure `DATABASE_URL` with `connection_limit=10`
+- [ ] Configure Prisma ORM schema (Users, Contacts, Chats, Participants, Messages, Statuses, CallLogs)
+- [ ] Run Prisma migration and generate type-safe client
+- [ ] Initialize Server #2 (Fastify + Native ws) with RoomManager, JWT handshake authentication, and port config
+- [ ] Create `/public/uploads/` directory structure (`avatars/`, `images/`, `voice/`)
+
+## Phase 3: [Authentication & Profile System (Username & Email)](phases/03_AUTHENTICATION_AND_PROFILE.md)
+- [ ] User registration with Email, unique `@username`, Display Name, and Password
+- [ ] Real-time debounced username availability validation endpoint (`/api/auth/check-username`)
+- [ ] User login supporting either Email OR Username + Password
+- [ ] Secure session persistence via HTTP-only JWT cookies
+- [ ] User profile drawer: Upload avatar to local storage, edit Display Name, update About/Status
+
+## Phase 4: [Contact Discovery & Address Book](phases/04_CONTACT_DISCOVERY_AND_ADDRESS_BOOK.md)
+- [ ] Search users by `@username` prefix or exact `email` with debounced search bar
+- [ ] "New Chat / Add Contact" modal displaying matched user info, @handle, and avatar
+- [ ] Add contact with optional custom nickname
+- [ ] Alphabetically sorted contact drawer with quick filter
+- [ ] Block and unblock contact workflows
+
+## Phase 5: [Real-Time Presence & Status Engine (Server #2)](phases/05_REALTIME_PRESENCE_AND_STATUS_ENGINE.md)
+- [ ] Online / offline presence tracking via Server #2 native WebSocket connection lifecycle
+- [ ] Update and broadcast "Last seen" timestamp to MySQL when users disconnect
+- [ ] Active chat header: Show "online" in green or "last seen today at..."
+- [ ] Live typing indicators ("typing...") with 2.5-second throttling to protect server CPU
+
+## Phase 6: [1-on-1 Direct Messaging Engine](phases/06_ONE_TO_ONE_MESSAGING_ENGINE.md)
+- [ ] Create or open existing 1-on-1 chat with contact deduplication
+- [ ] Left sidebar conversation list sorted by `lastMessageAt DESC` with unread badges
+- [ ] Chat viewport with auto-scroll and WhatsApp doodle wallpaper
+- [ ] Send text messages with optimistic UI rendering
+- [ ] Delivery & Read receipts: Single grey tick (`✓`), double grey tick (`✓✓`), double blue tick (`✓✓`)
+
+## Phase 7: [Media Sharing (Images & Attachments)](phases/07_MEDIA_SHARING_AND_ATTACHMENTS.md)
+- [ ] Attachment menu popup (Photos & Videos, Documents)
+- [ ] Client-side WebP image compression before upload (max 15MB)
+- [ ] Next.js upload API saving files to `/public/uploads/images/` on Hostinger
+- [ ] Image message bubbles with captions and loading skeletons
+- [ ] Fullscreen lightbox viewer with zoom, pan, and download actions
+
+## Phase 8: [Voice Notes & Audio Messages](phases/08_VOICE_NOTES_AND_AUDIO_MESSAGING.md)
+- [ ] Browser MediaRecorder audio capture with recording timer
+- [ ] Lock-to-record and trash/cancel controls
+- [ ] Web Audio API amplitude peak calculation for waveform visualizer
+- [ ] WhatsApp voice note player with scrubbable waveform and speed toggle (`1x`, `1.5x`, `2x`)
+
+## Phase 9: [Group Chats & Community Administration](phases/09_GROUP_CHATS_AND_COMMUNITY_ADMIN.md)
+- [ ] "New Group" multi-step modal with multi-select contact picker
+- [ ] Set group title, group description, and group avatar upload
+- [ ] Group message view with sender name and colored badges
+- [ ] System event messages (user joined, left, group created)
+- [ ] Group info drawer with participant list and Admin controls (promote/remove)
+
+## Phase 10: [Advanced Chat Features (Replies, Reactions & Search)](phases/10_ADVANCED_MESSAGING_REPLIES_REACTIONS_SEARCH.md)
+- [ ] Quoted message replies with jump-to-original scroll
+- [ ] WhatsApp emoji reaction pill on message hover (👍, ❤️, 😂, 😮, 😢, 🙏)
+- [ ] In-chat message text search with match highlights
+- [ ] Message deletion ("Delete for me" and "Delete for everyone")
+
+## Phase 11: [Real-Time Audio Calling (WebRTC Voice via Server #2)](phases/11_AUDIO_CALLING_WEBRTC_VOICE.md)
+- [ ] Audio-only WebRTC call signaling over Server #2 WebSockets (`audio-call:invite`, `accept`, `ice-candidate`, `end`)
+- [ ] Google STUN (`stun:stun.l.google.com:19302`) + Metered.ca TURN relay configuration
+- [ ] Incoming voice call modal with ringtone, accept, and decline buttons
+- [ ] Audio call active bar: Mute microphone, speaker device selector, call duration timer, end call
+- [ ] Call history logged to `call_logs` table and inserted as in-feed message badges
+
+## Phase 12: [Progressive Web App (PWA) & Mobile Chrome Install Experience](phases/12_PWA_AND_MOBILE_CHROME_INSTALLATION.md)
+- [ ] Web App Manifest (`manifest.json`) with `standalone` display, theme color `#111b21`, and 192/512px icons
+- [ ] Service worker (`sw.js`) caching core UI assets and providing offline reconnection fallback
+- [ ] In-app "Install WebChat" banner / button capturing Mobile Chrome `beforeinstallprompt`
+- [ ] Mobile viewport optimization (`100dvh`, `viewport-fit=cover`, touch audio unlock)
+
+## Phase 13: [Automated Testing & Load Simulation (SDLC QA)](phases/13_AUTOMATED_TESTING_AND_LOAD_SIMULATION.md)
+- [ ] Unit & integration tests with Vitest for auth, token verification, and REST APIs
+- [ ] End-to-end browser chat test suite with Playwright (2-user registration and live messaging flow)
+- [ ] k6 load simulation script (`/scripts/load-test.js`) testing 100–500 concurrent simulated users
+
+## Phase 14: [Automated CI/CD, Zero-Cost Monitoring & Maintenance (SDLC Ops)](phases/14_AUTOMATED_CICD_DEPLOYMENT_AND_MONITORING.md)
+- [ ] GitHub Actions workflow for automated test, build, and SSH/FTPS deployment to Hostinger
+- [ ] Zero-cost Winston file error logger on Hostinger disk (`/logs/app-error.log`)
+- [ ] UptimeRobot 5-minute HTTP keep-alive pings preventing Node.js process idle sleep
+- [ ] Hostinger hPanel automated daily MySQL backup cron job (`mysqldump | gzip`)
