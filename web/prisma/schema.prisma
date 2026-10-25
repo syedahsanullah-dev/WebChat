@@ -1,0 +1,140 @@
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-3.0.x", "debian-openssl-1.1.x", "rhel-openssl-3.0.x"]
+}
+
+model User {
+  id           String   @id @default(uuid())
+  username     String   @unique(map: "idx_users_username") @db.VarChar(30)
+  email        String   @unique(map: "idx_users_email") @db.VarChar(255)
+  passwordHash String   @db.VarChar(255)
+  displayName  String   @db.VarChar(100)
+  avatarUrl    String?  @db.VarChar(500)
+  about        String   @default("Hey there! I am using WebChat.") @db.VarChar(255)
+  isOnline     Boolean  @default(false)
+  lastSeen     DateTime @default(now())
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  contacts         Contact[]         @relation("UserContacts")
+  addedByContacts  Contact[]         @relation("ContactAddedBy")
+  chatParticipants ChatParticipant[]
+  sentMessages     Message[]
+  messageStatuses  MessageStatus[]
+  adminOfGroups    Chat[]            @relation("GroupAdmin")
+  initiatedCalls   CallLog[]         @relation("CallerUser")
+  receivedCalls    CallLog[]         @relation("ReceiverUser")
+
+  @@map("users")
+}
+
+model Contact {
+  id            String   @id @default(uuid())
+  userId        String
+  contactUserId String
+  aliasName     String?  @db.VarChar(100)
+  createdAt     DateTime @default(now())
+
+  user        User @relation("UserContacts", fields: [userId], references: [id], onDelete: Cascade)
+  contactUser User @relation("ContactAddedBy", fields: [contactUserId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, contactUserId], map: "idx_user_contact_unique")
+  @@map("contacts")
+}
+
+model Chat {
+  id               String   @id @default(uuid())
+  isGroup          Boolean  @default(false)
+  groupTitle       String?  @db.VarChar(100)
+  groupDescription String?  @db.VarChar(500)
+  groupAvatarUrl   String?  @db.VarChar(500)
+  groupAdminId     String?
+  lastMessageId    String?
+  lastMessageAt    DateTime @default(now())
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  admin        User?             @relation("GroupAdmin", fields: [groupAdminId], references: [id], onDelete: SetNull)
+  participants ChatParticipant[]
+  messages     Message[]
+  callLogs     CallLog[]
+
+  @@index([lastMessageAt(sort: Desc)], map: "idx_chats_last_message_at")
+  @@map("chats")
+}
+
+model ChatParticipant {
+  id         String   @id @default(uuid())
+  chatId     String
+  userId     String
+  role       String   @default("member") @db.VarChar(20) // "admin" or "member"
+  joinedAt   DateTime @default(now())
+  lastReadAt DateTime @default(now())
+
+  chat Chat @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([chatId, userId], map: "idx_chat_user_unique")
+  @@map("chat_participants")
+}
+
+model Message {
+  id               String   @id @default(uuid())
+  chatId           String
+  senderId         String
+  messageType      String   @default("text") @db.VarChar(20) // "text", "image", "voice", "system"
+  content          String?  @db.Text
+  mediaUrl         String?  @db.VarChar(500)
+  mediaSize        Int?
+  mediaDuration    Float? // In seconds, for voice notes
+  replyToMessageId String?
+  isDeleted        Boolean  @default(false)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  chat     Chat            @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  sender   User            @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  statuses MessageStatus[]
+
+  @@index([chatId, createdAt(sort: Desc)], map: "idx_messages_chat_created")
+  @@map("messages")
+}
+
+model MessageStatus {
+  id        String   @id @default(uuid())
+  messageId String
+  userId    String // Recipient user
+  status    String   @default("sent") @db.VarChar(20) // "sent", "delivered", "read"
+  updatedAt DateTime @updatedAt
+
+  message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, userId], map: "idx_message_user_status_unique")
+  @@map("message_statuses")
+}
+
+model CallLog {
+  id         String    @id @default(uuid())
+  chatId     String
+  callerId   String
+  receiverId String
+  callType   String    @default("audio") @db.VarChar(20) // "audio" (video disabled)
+  status     String    @db.VarChar(20) // "missed", "completed", "rejected", "busy"
+  duration   Int       @default(0) // Seconds
+  startedAt  DateTime  @default(now())
+  endedAt    DateTime?
+
+  chat     Chat @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  caller   User @relation("CallerUser", fields: [callerId], references: [id], onDelete: Cascade)
+  receiver User @relation("ReceiverUser", fields: [receiverId], references: [id], onDelete: Cascade)
+
+  @@index([chatId, startedAt(sort: Desc)], map: "idx_call_logs_chat_started")
+  @@map("call_logs")
+}

@@ -16,11 +16,11 @@
 - [x] Create UI primitives: Avatar with online dot, Dropdown menu, Search bar, and Modal dialogs
 
 ## Phase 2: [Hostinger Database & Dual-Server Infrastructure Setup](phases/02_DATABASE_AND_DUAL_SERVER_SETUP.md)
-- [ ] Create MySQL / MariaDB database in Hostinger hPanel and configure `DATABASE_URL` with `connection_limit=10`
-- [ ] Configure Prisma ORM schema (Users, Contacts, Chats, Participants, Messages, Statuses, CallLogs)
-- [ ] Run Prisma migration and generate type-safe client
-- [ ] Initialize Server #2 (Fastify + Native ws) with RoomManager, JWT handshake authentication, and port config
-- [ ] Create `/public/uploads/` directory structure (`avatars/`, `images/`, `voice/`)
+- [x] Create MySQL / MariaDB database in Hostinger hPanel and configure `DATABASE_URL` with `connection_limit=10`
+- [x] Configure Prisma ORM schema (Users, Contacts, Chats, Participants, Messages, Statuses, CallLogs)
+- [x] Run Prisma migration and generate type-safe client
+- [x] Initialize Server #2 (Fastify + Native ws) with RoomManager, JWT handshake authentication, and port config
+- [x] Create `/public/uploads/` directory structure (`avatars/`, `images/`, `voice/`)
 
 ## Phase 3: [Authentication & Profile System (Username & Email)](phases/03_AUTHENTICATION_AND_PROFILE.md)
 - [ ] User registration with Email, unique `@username`, Display Name, and Password

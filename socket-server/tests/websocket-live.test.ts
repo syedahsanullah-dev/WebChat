@@ -42,10 +42,11 @@ describe('Empirical Challenger: Live Native WebSocket Wire Protocol Suite', () =
 
   it('rejects connection without authentication token (401)', async () => {
     let rejected = false;
+    let statusCode = 0;
     await new Promise<void>((resolve) => {
       const ws = new WebSocket(`ws://127.0.0.1:${TEST_PORT}`);
       ws.on('unexpected-response', (req, res) => {
-        expect(res.statusCode).toBe(401);
+        statusCode = res.statusCode;
         rejected = true;
         resolve();
       });
@@ -55,6 +56,64 @@ describe('Empirical Challenger: Live Native WebSocket Wire Protocol Suite', () =
       });
     });
     expect(rejected).toBe(true);
+    expect(statusCode).toBe(401);
+  });
+
+  it('rejects connection with expired JWT token (401)', async () => {
+    const expiredToken = jwt.sign({ userId: 'u-expired', username: 'ExpiredUser' }, JWT_SECRET, {
+      expiresIn: '-10s',
+    });
+    let rejected = false;
+    let statusCode = 0;
+    await new Promise<void>((resolve) => {
+      const ws = new WebSocket(`ws://127.0.0.1:${TEST_PORT}?token=${expiredToken}`);
+      ws.on('unexpected-response', (req, res) => {
+        statusCode = res.statusCode;
+        rejected = true;
+        resolve();
+      });
+      ws.on('error', () => {
+        resolve();
+      });
+    });
+    expect(rejected).toBe(true);
+    expect(statusCode).toBe(401);
+  });
+
+  it('rejects connection with invalid signature JWT token (401)', async () => {
+    const forgedToken = jwt.sign({ userId: 'u-hacker', username: 'Hacker' }, 'wrong_secret_key');
+    let rejected = false;
+    let statusCode = 0;
+    await new Promise<void>((resolve) => {
+      const ws = new WebSocket(`ws://127.0.0.1:${TEST_PORT}?token=${forgedToken}`);
+      ws.on('unexpected-response', (req, res) => {
+        statusCode = res.statusCode;
+        rejected = true;
+        resolve();
+      });
+      ws.on('error', () => {
+        resolve();
+      });
+    });
+    expect(rejected).toBe(true);
+    expect(statusCode).toBe(401);
+  });
+
+  it('authenticates via auth_token cookie header and confirms presence', async () => {
+    const token = createTestToken('user-cookie-1', 'CookieUser');
+    const ws = new WebSocket(`ws://127.0.0.1:${TEST_PORT}`, {
+      headers: {
+        Cookie: `auth_token=${token}; other_cookie=xyz`,
+      },
+    });
+
+    const welcomeMsg = await waitForMessage(ws);
+    expect(welcomeMsg.type).toBe('user:online');
+    expect(welcomeMsg.payload.userId).toBe('user-cookie-1');
+    expect(welcomeMsg.payload.username).toBe('CookieUser');
+
+    ws.close();
+    await new Promise((r) => setTimeout(r, 100));
   });
 
   it('authenticates via JWT query param, sends initial presence, and handles ping/pong', async () => {
@@ -103,9 +162,9 @@ describe('Empirical Challenger: Live Native WebSocket Wire Protocol Suite', () =
     expect(roomManager.getOnlineUserCount()).toBe(2);
 
     // 4. Join room chat:live-channel
-    // Retrieve AuthenticatedWebSocket instances from roomManager
-    const u1Sockets = (roomManager as any).userSockets.get('u-alice') as Set<any>;
-    const u2Sockets = (roomManager as any).userSockets.get('u-bob') as Set<any>;
+    // Retrieve AuthenticatedWebSocket instances using roomManager.getUserSockets
+    const u1Sockets = roomManager.getUserSockets('u-alice')!;
+    const u2Sockets = roomManager.getUserSockets('u-bob')!;
 
     const authU1Tab1 = Array.from(u1Sockets)[0];
     const authU2 = Array.from(u2Sockets)[0];

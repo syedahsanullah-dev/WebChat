@@ -9,10 +9,10 @@ const fastify_1 = __importDefault(require("fastify"));
 const cors_1 = __importDefault(require("@fastify/cors"));
 const cookie_1 = __importDefault(require("@fastify/cookie"));
 const ws_1 = require("ws");
-const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const dotenv_1 = __importDefault(require("dotenv"));
 const logger_js_1 = require("./lib/logger.js");
 const roomManager_js_1 = require("./lib/roomManager.js");
+const auth_js_1 = require("./middleware/auth.js");
 // Load environment variables
 dotenv_1.default.config();
 const PORT = parseInt(process.env.PORT || '4000', 10);
@@ -51,69 +51,14 @@ exports.fastify.get('/', async () => {
 });
 // Native ws WebSocketServer mounted with manual upgrade handling
 exports.wss = new ws_1.WebSocketServer({ noServer: true });
-function parseCookies(cookieHeader) {
-    const cookies = {};
-    if (!cookieHeader)
-        return cookies;
-    const items = cookieHeader.split(';');
-    for (const item of items) {
-        const idx = item.indexOf('=');
-        if (idx !== -1) {
-            const key = item.slice(0, idx).trim();
-            const val = item.slice(idx + 1).trim();
-            try {
-                cookies[key] = decodeURIComponent(val);
-            }
-            catch {
-                cookies[key] = val;
-            }
-        }
-    }
-    return cookies;
-}
 // Attach upgrade listener to fastify.server
 exports.fastify.server.on('upgrade', (request, socket, head) => {
-    try {
-        const url = new URL(request.url || '/', `http://${request.headers.host || 'localhost'}`);
-        const cookies = parseCookies(request.headers.cookie);
-        const token = cookies['auth_token'] || cookies['token'] || url.searchParams.get('token');
-        let userPayload = null;
-        if (token) {
-            try {
-                const decoded = jsonwebtoken_1.default.verify(token, JWT_SECRET);
-                userPayload = {
-                    userId: String(decoded.userId || decoded.id || decoded.sub),
-                    username: String(decoded.username || 'user'),
-                };
-            }
-            catch (err) {
-                logger_js_1.logger.warn(`WebSocket JWT verification failed: ${err.message}`);
-            }
-        }
-        else if (process.env.NODE_ENV !== 'production') {
-            // In development/test mode, allow query parameter authentication fallback
-            const devUserId = url.searchParams.get('userId');
-            if (devUserId) {
-                userPayload = {
-                    userId: devUserId,
-                    username: url.searchParams.get('username') || 'dev_user',
-                };
-            }
-        }
-        if (!userPayload) {
-            logger_js_1.logger.warn('WebSocket connection rejected: 401 Unauthorized');
-            socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n');
-            socket.destroy();
-            return;
-        }
-        exports.wss.handleUpgrade(request, socket, head, (ws) => {
-            exports.wss.emit('connection', ws, request, userPayload);
-        });
-    }
-    catch (err) {
-        logger_js_1.logger.error('Error handling WebSocket upgrade:', err);
-        socket.destroy();
-    }
+    const user = (0, auth_js_1.authenticateUpgrade)(request, socket, JWT_SECRET);
+    if (!user)
+        return;
+    exports.wss.handleUpgrade(request, socket, head, (ws) => {
+        exports.wss.emit('connection', ws, request, user);
+    });
 });
 function handleWebSocketMessage(socket, envelope) {
     switch (envelope.type) {

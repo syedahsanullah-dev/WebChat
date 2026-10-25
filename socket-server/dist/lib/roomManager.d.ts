@@ -19,6 +19,8 @@ export declare class RoomManager {
     getOnlineUserCount(): number;
     getRoomMemberCount(room: string): number;
     getUserSocketCount(userId: string): number;
+    getUserSockets(userId: string): Set<AuthenticatedWebSocket> | undefined;
+    getRoomMembers(room: string): Set<AuthenticatedWebSocket> | undefined;
 }
 export declare const roomManager: RoomManager;
 export default roomManager;

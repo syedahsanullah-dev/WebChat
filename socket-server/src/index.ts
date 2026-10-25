@@ -3,10 +3,10 @@ import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import cookie from '@fastify/cookie';
 import { WebSocketServer, WebSocket } from 'ws';
-import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
 import { logger } from './lib/logger.js';
 import { roomManager, AuthenticatedWebSocket } from './lib/roomManager.js';
+import { authenticateUpgrade } from './middleware/auth.js';
 import { WsEnvelope } from './types/index.js';
 
 // Load environment variables
@@ -55,69 +55,14 @@ fastify.get('/', async () => {
 // Native ws WebSocketServer mounted with manual upgrade handling
 export const wss = new WebSocketServer({ noServer: true });
 
-function parseCookies(cookieHeader?: string): Record<string, string> {
-  const cookies: Record<string, string> = {};
-  if (!cookieHeader) return cookies;
-  const items = cookieHeader.split(';');
-  for (const item of items) {
-    const idx = item.indexOf('=');
-    if (idx !== -1) {
-      const key = item.slice(0, idx).trim();
-      const val = item.slice(idx + 1).trim();
-      try {
-        cookies[key] = decodeURIComponent(val);
-      } catch {
-        cookies[key] = val;
-      }
-    }
-  }
-  return cookies;
-}
-
 // Attach upgrade listener to fastify.server
 fastify.server.on('upgrade', (request, socket, head) => {
-  try {
-    const url = new URL(request.url || '/', `http://${request.headers.host || 'localhost'}`);
-    const cookies = parseCookies(request.headers.cookie);
-    const token = cookies['auth_token'] || cookies['token'] || url.searchParams.get('token');
+  const user = authenticateUpgrade(request, socket, JWT_SECRET);
+  if (!user) return;
 
-    let userPayload: { userId: string; username: string } | null = null;
-
-    if (token) {
-      try {
-        const decoded = jwt.verify(token, JWT_SECRET) as any;
-        userPayload = {
-          userId: String(decoded.userId || decoded.id || decoded.sub),
-          username: String(decoded.username || 'user'),
-        };
-      } catch (err) {
-        logger.warn(`WebSocket JWT verification failed: ${(err as Error).message}`);
-      }
-    } else if (process.env.NODE_ENV !== 'production') {
-      // In development/test mode, allow query parameter authentication fallback
-      const devUserId = url.searchParams.get('userId');
-      if (devUserId) {
-        userPayload = {
-          userId: devUserId,
-          username: url.searchParams.get('username') || 'dev_user',
-        };
-      }
-    }
-
-    if (!userPayload) {
-      logger.warn('WebSocket connection rejected: 401 Unauthorized');
-      socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n');
-      socket.destroy();
-      return;
-    }
-
-    wss.handleUpgrade(request, socket, head, (ws) => {
-      wss.emit('connection', ws, request, userPayload);
-    });
-  } catch (err) {
-    logger.error('Error handling WebSocket upgrade:', err);
-    socket.destroy();
-  }
+  wss.handleUpgrade(request, socket, head, (ws) => {
+    wss.emit('connection', ws, request, user);
+  });
 });
 
 function handleWebSocketMessage(socket: AuthenticatedWebSocket, envelope: WsEnvelope): void {

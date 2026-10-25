@@ -78,6 +78,12 @@ class RoomManager {
     getUserSocketCount(userId) {
         return this.userSockets.get(userId)?.size ?? 0;
     }
+    getUserSockets(userId) {
+        return this.userSockets.get(userId);
+    }
+    getRoomMembers(room) {
+        return this.rooms.get(room);
+    }
 }
 exports.RoomManager = RoomManager;
 exports.roomManager = new RoomManager();

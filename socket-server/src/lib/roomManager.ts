@@ -92,6 +92,14 @@ export class RoomManager {
   getUserSocketCount(userId: string): number {
     return this.userSockets.get(userId)?.size ?? 0;
   }
+
+  getUserSockets(userId: string): Set<AuthenticatedWebSocket> | undefined {
+    return this.userSockets.get(userId);
+  }
+
+  getRoomMembers(room: string): Set<AuthenticatedWebSocket> | undefined {
+    return this.rooms.get(room);
+  }
 }
 
 export const roomManager = new RoomManager();
