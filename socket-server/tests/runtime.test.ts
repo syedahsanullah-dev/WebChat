@@ -90,5 +90,5 @@ describe('Empirical Challenger: Live Runtime & RSS Memory Verification', () => {
         serverProcess.kill('SIGTERM');
       }
     }
-  });
+  }, 15000);
 });

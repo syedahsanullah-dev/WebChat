@@ -23,11 +23,11 @@
 - [x] Create `/public/uploads/` directory structure (`avatars/`, `images/`, `voice/`)
 
 ## Phase 3: [Authentication & Profile System (Username & Email)](phases/03_AUTHENTICATION_AND_PROFILE.md)
-- [ ] User registration with Email, unique `@username`, Display Name, and Password
-- [ ] Real-time debounced username availability validation endpoint (`/api/auth/check-username`)
-- [ ] User login supporting either Email OR Username + Password
-- [ ] Secure session persistence via HTTP-only JWT cookies
-- [ ] User profile drawer: Upload avatar to local storage, edit Display Name, update About/Status
+- [x] User registration with Email, unique `@username`, Display Name, and Password
+- [x] Real-time debounced username availability validation endpoint (`/api/auth/check-username`)
+- [x] User login supporting either Email OR Username + Password
+- [x] Secure session persistence via HTTP-only JWT cookies
+- [x] User profile drawer: Upload avatar to local storage, edit Display Name, update About/Status
 
 ## Phase 4: [Contact Discovery & Address Book](phases/04_CONTACT_DISCOVERY_AND_ADDRESS_BOOK.md)
 - [ ] Search users by `@username` prefix or exact `email` with debounced search bar

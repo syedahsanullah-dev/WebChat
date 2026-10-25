@@ -6,7 +6,9 @@ import Avatar from '@/components/ui/Avatar';
 import SearchInput from '@/components/ui/SearchInput';
 import DropdownMenu, { DropdownMenuItem } from '@/components/ui/DropdownMenu';
 import Modal from '@/components/ui/Modal';
+import ProfileDrawer from '@/components/profile/ProfileDrawer';
 import { useTheme } from '@/context/ThemeContext';
+import { useAuth } from '@/context/AuthContext';
 import { cn } from '@/lib/utils';
 import {
   Sun,
@@ -93,9 +95,11 @@ export default function Sidebar({
   className,
 }: SidebarProps) {
   const { theme, toggleTheme } = useTheme();
+  const { user, logout } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState<'all' | 'unread' | 'groups'>('all');
-  const [activeModal, setActiveModal] = useState<'profile' | 'settings' | 'new-group' | null>(null);
+  const [activeModal, setActiveModal] = useState<'settings' | 'new-group' | null>(null);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   const menuItems: DropdownMenuItem[] = [
     {
@@ -108,7 +112,7 @@ export default function Sidebar({
       id: 'profile',
       label: 'Profile',
       icon: <User className="w-4 h-4 text-wa-light-text-secondary dark:text-wa-dark-text-secondary" />,
-      onClick: () => setActiveModal('profile'),
+      onClick: () => setIsProfileOpen(true),
     },
     {
       id: 'settings',
@@ -122,7 +126,7 @@ export default function Sidebar({
       icon: <LogOut className="w-4 h-4" />,
       danger: true,
       divider: true,
-      onClick: () => alert('Logged out'),
+      onClick: () => logout(),
     },
   ];
 
@@ -146,19 +150,26 @@ export default function Sidebar({
   return (
     <aside
       className={cn(
-        'h-full flex flex-col bg-wa-light-sidebar dark:bg-wa-dark-sidebar border-r border-wa-light-border dark:border-wa-dark-border select-none overflow-hidden transition-colors',
+        'relative h-full flex flex-col bg-wa-light-sidebar dark:bg-wa-dark-sidebar border-r border-wa-light-border dark:border-wa-dark-border select-none overflow-hidden transition-colors',
         className
       )}
     >
+      {/* Slide-over WhatsApp Profile Drawer */}
+      <ProfileDrawer
+        isOpen={isProfileOpen}
+        onClose={() => setIsProfileOpen(false)}
+      />
+
       {/* Sidebar Top Header */}
       <Header
         leftContent={
           <div className="flex items-center gap-3">
             <Avatar
-              name="My Profile"
+              src={user?.avatarUrl}
+              name={user?.displayName || 'My Profile'}
               size="md"
               isOnline={true}
-              onClick={() => setActiveModal('profile')}
+              onClick={() => setIsProfileOpen(true)}
             />
             <span className="font-semibold text-sm text-wa-light-text-primary dark:text-wa-dark-text-primary hidden sm:inline-block">
               Chats
@@ -318,24 +329,6 @@ export default function Sidebar({
       </div>
 
       {/* Modals for Sidebar Actions */}
-      <Modal
-        isOpen={activeModal === 'profile'}
-        onClose={() => setActiveModal(null)}
-        title="Profile"
-      >
-        <div className="flex flex-col items-center text-center space-y-4">
-          <Avatar name="My User" size="xl" isOnline={true} />
-          <div>
-            <h3 className="font-semibold text-lg text-wa-light-text-primary dark:text-wa-dark-text-primary">
-              Demo User
-            </h3>
-            <p className="text-sm text-wa-green font-medium">@demouser</p>
-          </div>
-          <p className="text-xs text-wa-light-text-muted dark:text-wa-dark-text-muted">
-            This identity is based on your unique @username and email. Zero SMS or phone numbers required.
-          </p>
-        </div>
-      </Modal>
 
       <Modal
         isOpen={activeModal === 'settings'}

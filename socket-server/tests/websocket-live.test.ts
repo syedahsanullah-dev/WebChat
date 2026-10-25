@@ -6,7 +6,7 @@ import { roomManager } from '../src/lib/roomManager.js';
 import { WsEnvelope } from '../src/types/index.js';
 
 const TEST_PORT = 4096;
-const JWT_SECRET = 'your_ultra_secure_256_bit_jwt_secret_key_change_in_production';
+const JWT_SECRET = process.env.JWT_SECRET || 'EPAzsE8JURfzZxKzyfOaY8tguziGHNWmB8N202AWCAwbRIUGGycrGXFixZJ';
 
 function createTestToken(userId: string, username: string): string {
   return jwt.sign({ userId, username }, JWT_SECRET, { expiresIn: '1h' });
