@@ -26,7 +26,7 @@ export function usePWAInstall() {
 
     const checkStandalone = () => {
       const isStandaloneMode =
-        window.matchMedia('(display-mode: standalone)').matches ||
+        (typeof window.matchMedia === 'function' && window.matchMedia('(display-mode: standalone)').matches) ||
         (window.navigator as any).standalone === true ||
         document.referrer.includes('android-app://');
 
@@ -35,13 +35,15 @@ export function usePWAInstall() {
 
     checkStandalone();
 
-    const media = window.matchMedia('(display-mode: standalone)');
-    const onChange = () => checkStandalone();
-    media.addEventListener?.('change', onChange);
+    if (typeof window.matchMedia === 'function') {
+      const media = window.matchMedia('(display-mode: standalone)');
+      const onChange = () => checkStandalone();
+      media.addEventListener?.('change', onChange);
 
-    return () => {
-      media.removeEventListener?.('change', onChange);
-    };
+      return () => {
+        media.removeEventListener?.('change', onChange);
+      };
+    }
   }, []);
 
   // Listen for Chrome beforeinstallprompt event

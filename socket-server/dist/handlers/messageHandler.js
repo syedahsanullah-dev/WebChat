@@ -23,9 +23,9 @@ async function handleMessageSend(socket, payload) {
     const messageType = (payload.messageType || payload.type || (mediaUrl ? 'image' : 'text')).toLowerCase();
     const tempId = payload.tempId;
     try {
-        // 1. Identify recipient if not provided in payload
+        // 1. Identify recipient if not provided in payload or if recipientId is a chatId
         let recipientId = payload.recipientId;
-        if (!recipientId) {
+        if (!recipientId || recipientId === payload.chatId || recipientId.startsWith('chat-')) {
             try {
                 const participant = await prisma_js_1.prisma.chatParticipant.findFirst({
                     where: {

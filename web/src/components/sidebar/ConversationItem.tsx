@@ -16,6 +16,12 @@ export interface ConversationItemData {
   unreadCount?: number;
   isOnline?: boolean;
   isGroup?: boolean;
+  otherUser?: {
+    id: string;
+    username: string;
+    displayName?: string | null;
+    avatarUrl?: string | null;
+  } | null;
 }
 
 export interface ConversationItemProps {

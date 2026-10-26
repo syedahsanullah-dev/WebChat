@@ -33,9 +33,9 @@ export async function handleMessageSend(
   const tempId = payload.tempId;
 
   try {
-    // 1. Identify recipient if not provided in payload
+    // 1. Identify recipient if not provided in payload or if recipientId is a chatId
     let recipientId = payload.recipientId;
-    if (!recipientId) {
+    if (!recipientId || recipientId === payload.chatId || recipientId.startsWith('chat-')) {
       try {
         const participant = await prisma.chatParticipant.findFirst({
           where: {

@@ -201,6 +201,7 @@ export default function Sidebar({
           name: otherUser?.displayName || 'Direct Chat',
           username: otherUser ? `@${otherUser.username}` : '',
           avatar: otherUser?.avatarUrl,
+          otherUser: otherUser,
           lastMessage: '',
           lastMessageAt: chat.lastMessageAt || new Date().toISOString(),
           unreadCount: 0,

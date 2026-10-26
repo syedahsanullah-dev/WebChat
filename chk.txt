@@ -89,9 +89,9 @@
 - [x] Mobile viewport optimization (`100dvh`, `viewport-fit=cover`, touch audio unlock)
 
 ## Phase 13: [Automated Testing & Load Simulation (SDLC QA)](phases/13_AUTOMATED_TESTING_AND_LOAD_SIMULATION.md)
-- [ ] Unit & integration tests with Vitest for auth, token verification, and REST APIs
-- [ ] End-to-end browser chat test suite with Playwright (2-user registration and live messaging flow)
-- [ ] k6 load simulation script (`/scripts/load-test.js`) testing 100–500 concurrent simulated users
+- [x] Unit & integration tests with Vitest for auth, token verification, and REST APIs
+- [x] End-to-end browser chat test suite with Playwright (2-user registration and live messaging flow)
+- [x] k6 load simulation script (`/scripts/load-test.js`) testing 100–500 concurrent simulated users
 
 ## Phase 14: [Automated CI/CD, Zero-Cost Monitoring & Maintenance (SDLC Ops)](phases/14_AUTOMATED_CICD_DEPLOYMENT_AND_MONITORING.md)
 - [ ] GitHub Actions workflow for automated test, build, and SSH/FTPS deployment to Hostinger

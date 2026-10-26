@@ -8,6 +8,21 @@ import Modal from '@/components/ui/Modal';
 import ChatLayout from '@/app/chat/layout';
 import { ThemeProvider } from '@/context/ThemeContext';
 
+vi.mock('@/context/CallContext', () => ({
+  useCall: () => ({
+    startCall: vi.fn(),
+    acceptCall: vi.fn(),
+    rejectCall: vi.fn(),
+    endCall: vi.fn(),
+    toggleMute: vi.fn(),
+    isMuted: false,
+    callState: 'idle',
+    callData: null,
+    callDuration: 0,
+  }),
+  CallProvider: ({ children }: any) => children,
+}));
+
 describe('Adversarial & Stress Tests: UI Primitives & Keyboard Shortcuts', () => {
   beforeEach(() => {
     vi.clearAllMocks();
