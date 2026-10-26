@@ -257,9 +257,10 @@ describe('Adversarial & Stress Tests: UI Primitives & Keyboard Shortcuts', () =>
       const rootDiv = container.querySelector('.h-\\[100dvh\\]') as HTMLElement;
       expect(rootDiv).not.toBeNull();
 
-      // Children 0 is sidebar panel, Children 1 is chat area panel
-      const sidebarContainer = rootDiv.children[0] as HTMLElement;
-      const chatAreaContainer = rootDiv.children[1] as HTMLElement;
+      // Target the inner flex container holding the sidebar and chat area
+      const flexContainer = (container.querySelector('.h-\\[100dvh\\] .flex-1') || rootDiv) as HTMLElement;
+      const sidebarContainer = flexContainer.children[0] as HTMLElement;
+      const chatAreaContainer = flexContainer.children[1] as HTMLElement;
 
       // In idle state:
       // Sidebar should have translate-x-0 relative

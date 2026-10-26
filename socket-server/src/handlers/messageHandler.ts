@@ -1,6 +1,7 @@
 import { AuthenticatedWebSocket, roomManager } from '../lib/roomManager.js';
 import { prisma } from '../lib/prisma.js';
 import { logger } from '../lib/logger.js';
+import { dlpScanner } from '../middleware/dlpScanner.js';
 import {
   WsEnvelope,
   MessageSendPayload,
@@ -24,15 +25,32 @@ export async function handleMessageSend(
   const mediaUrl = payload.mediaUrl || payload.fileUrl || null;
   const mediaSize = payload.mediaSize ?? payload.fileSize ?? null;
   const mediaDuration = payload.mediaDuration ?? payload.duration ?? null;
+  const isLocation =
+    (payload.messageType === 'location' || payload.type === 'location') ||
+    (payload.latitude !== undefined && payload.latitude !== null);
 
-  if (!payload?.chatId || (!payload.content && !mediaUrl)) {
+  if (!payload?.chatId || (!payload.content && !mediaUrl && !isLocation)) {
     return;
   }
 
-  const messageType = (payload.messageType || payload.type || (mediaUrl ? 'image' : 'text')).toLowerCase();
+  const messageType = isLocation
+    ? 'location'
+    : (payload.messageType || payload.type || (mediaUrl ? 'image' : 'text')).toLowerCase();
   const tempId = payload.tempId;
   const isE2EE = Boolean(payload.isE2EE);
   const e2eeIv = payload.e2eeIv || null;
+  const latitude = payload.latitude !== undefined && payload.latitude !== null ? Number(payload.latitude) : null;
+  const longitude = payload.longitude !== undefined && payload.longitude !== null ? Number(payload.longitude) : null;
+  const locationAddress = payload.locationAddress || null;
+
+  // 0. Preflight in-memory Data Loss Prevention (DLP) scan (< 1ms execution)
+  if (payload.content && !isE2EE) {
+    const dlpResult = await dlpScanner.evaluateMessage(payload.content);
+    if (dlpResult.isBlocked) {
+      await dlpScanner.handleViolation(socket, payload.content, dlpResult);
+      return;
+    }
+  }
 
   try {
     // 1. Identify all chat recipients (for both 1-on-1 and group chats)
@@ -72,6 +90,9 @@ export async function handleMessageSend(
           mediaSize,
           mediaDuration,
           replyToMessageId: payload.replyToMessageId || payload.replyToId || null,
+          latitude,
+          longitude,
+          locationAddress,
         },
         include: {
           sender: {
@@ -127,6 +148,9 @@ export async function handleMessageSend(
         replyToMessageId: payload.replyToMessageId || null,
         isE2EE,
         e2eeIv,
+        latitude,
+        longitude,
+        locationAddress,
         createdAt: new Date(),
         sender: {
           id: socket.userId,
@@ -154,6 +178,9 @@ export async function handleMessageSend(
         status: initialStatus,
         isE2EE,
         e2eeIv,
+        latitude: savedMessage.latitude,
+        longitude: savedMessage.longitude,
+        locationAddress: savedMessage.locationAddress,
       },
     };
     socket.send(JSON.stringify(ackEnvelope));
@@ -175,6 +202,9 @@ export async function handleMessageSend(
         replyToId: savedMessage.replyToMessageId,
         isE2EE,
         e2eeIv,
+        latitude: savedMessage.latitude,
+        longitude: savedMessage.longitude,
+        locationAddress: savedMessage.locationAddress,
         status: initialStatus,
         createdAt: createdAtIso,
         sender: savedMessage.sender,
@@ -185,9 +215,27 @@ export async function handleMessageSend(
     roomManager.broadcastToRoom(`chat:${payload.chatId}`, newMsgEnvelope, socket);
 
     // Direct delivery to all online participants (ensures delivery even without room join)
+    // And dispatch background Web Push to offline participants
     otherParticipantIds.forEach((targetUid) => {
       if (roomManager.isUserOnline(targetUid)) {
         roomManager.sendToUser(targetUid, newMsgEnvelope);
+      } else {
+        dispatchOfflinePush(targetUid, {
+          title: savedMessage.sender?.displayName || savedMessage.sender?.username || 'WebChat',
+          senderName: savedMessage.sender?.displayName || savedMessage.sender?.username || 'WebChat',
+          body: isE2EE
+            ? 'New encrypted message'
+            : savedMessage.messageType === 'image'
+            ? '📷 Photo'
+            : savedMessage.messageType === 'voice'
+            ? '🎤 Voice message'
+            : savedMessage.messageType === 'location'
+            ? '📍 Location'
+            : savedMessage.content || 'New message',
+          avatarUrl: savedMessage.sender?.avatarUrl || undefined,
+          chatId: payload.chatId,
+          url: `/chat/${payload.chatId}`,
+        }).catch((err) => logger.debug(`Push dispatch failed for offline user ${targetUid}: ${err.message}`));
       }
     });
 
@@ -268,3 +316,28 @@ export async function handleMessageRead(
     logger.error('Error in handleMessageRead:', error);
   }
 }
+
+/**
+ * Dispatches a background Web Push notification to an offline recipient via Server #1 Next.js API
+ */
+async function dispatchOfflinePush(recipientId: string, payload: any): Promise<void> {
+  const nextApiUrl = process.env.NEXT_API_URL || 'https://chat.vusigma.com';
+  const secret = process.env.INTERNAL_API_SECRET || process.env.JWT_SECRET || '';
+
+  try {
+    const res = await fetch(`${nextApiUrl}/api/push/internal-trigger`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${secret}`,
+      },
+      body: JSON.stringify({ recipientId, payload }),
+    });
+    if (!res.ok) {
+      logger.debug(`Internal push trigger returned status ${res.status}`);
+    }
+  } catch (err: any) {
+    logger.debug(`Offline push dispatch network error: ${err.message}`);
+  }
+}
+

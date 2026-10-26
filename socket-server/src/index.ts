@@ -50,6 +50,26 @@ fastify.get('/health', async () => {
   };
 });
 
+// Metrics telemetry endpoint (consumed by Server #1 Super Admin console)
+fastify.get('/metrics', async () => {
+  const memory = process.memoryUsage();
+  return {
+    status: 'HEALTHY',
+    uptime: Math.round(process.uptime()),
+    activeSockets: roomManager.getActiveSocketCount ? roomManager.getActiveSocketCount() : 0,
+    onlineUsers: roomManager.getOnlineUserCount ? roomManager.getOnlineUserCount() : 0,
+    activeRooms: roomManager.getActiveRoomCount ? roomManager.getActiveRoomCount() : 0,
+    memory: {
+      rssMB: Math.round(memory.rss / 1024 / 1024),
+      heapUsedMB: Math.round(memory.heapUsed / 1024 / 1024),
+      heapTotalMB: Math.round(memory.heapTotal / 1024 / 1024),
+      externalMB: Math.round(memory.external / 1024 / 1024),
+    },
+    nodeVersion: process.version,
+    timestamp: new Date().toISOString(),
+  };
+});
+
 // Root welcome endpoint
 fastify.get('/', async () => {
   return {
@@ -58,6 +78,50 @@ fastify.get('/', async () => {
     version: '1.0.0',
     documentation: '/health',
   };
+});
+
+// Phase 35: Internal Global Broadcast Dispatcher (triggered by Server #1)
+fastify.post('/internal/broadcast', async (request, reply) => {
+  const payload = request.body as any;
+  if (!payload || !payload.message) {
+    return reply.status(400).send({ error: 'Message payload is required' });
+  }
+
+  const broadcastEnvelope: WsEnvelope = {
+    type: 'system:broadcast',
+    payload: {
+      id: payload.id || `bcast-${Date.now()}`,
+      message: payload.message,
+      severity: payload.severity || 'INFO',
+      createdAt: payload.createdAt || new Date().toISOString(),
+      expiresAt: payload.expiresAt || null,
+      creatorName: payload.creatorName || 'System Administrator',
+    },
+  };
+
+  roomManager.broadcastAll(broadcastEnvelope);
+  logger.info(`📢 System broadcast dispatched to all connected clients: ${payload.message}`);
+
+  return {
+    success: true,
+    deliveredSockets: roomManager.getActiveSocketCount ? roomManager.getActiveSocketCount() : 0,
+  };
+});
+
+// Phase 35: Dismiss Global Broadcast Dispatcher
+fastify.post('/internal/broadcast/dismiss', async (request, reply) => {
+  const payload = request.body as any;
+  const dismissEnvelope: WsEnvelope = {
+    type: 'system:broadcast_dismiss',
+    payload: {
+      id: payload?.id,
+    },
+  };
+
+  roomManager.broadcastAll(dismissEnvelope);
+  logger.info(`📢 System broadcast dismiss dispatched: ${payload?.id}`);
+
+  return { success: true };
 });
 
 // Native ws WebSocketServer mounted with manual upgrade handling

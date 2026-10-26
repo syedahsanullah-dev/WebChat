@@ -12,6 +12,7 @@ export interface ChatInputProps {
   onSendMessage: (text: string) => void;
   onImageSelect?: (file: File) => void;
   onSendVoice?: (result: RecordedAudioResult) => void;
+  onSelectLocation?: () => void;
   onTyping?: () => void;
   replyingToMessage?: QuotedMessageData | null;
   onCancelReply?: () => void;
@@ -24,6 +25,7 @@ export default function ChatInput({
   onSendMessage,
   onImageSelect,
   onSendVoice,
+  onSelectLocation,
   onTyping,
   replyingToMessage,
   onCancelReply,
@@ -156,6 +158,7 @@ export default function ChatInput({
             isOpen={isAttachmentOpen}
             onClose={() => setIsAttachmentOpen(false)}
             onSelectPhoto={() => fileInputRef.current?.click()}
+            onSelectLocation={onSelectLocation}
           />
 
           {/* Emoji Button */}

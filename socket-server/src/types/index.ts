@@ -27,7 +27,10 @@ export type WsEventType =
   | 'audio-call:ice-candidate'
   | 'audio-call:end'
   | 'audio-call:ended'
-  | 'session:revoked';
+  | 'session:revoked'
+  | 'error'
+  | 'system:broadcast'
+  | 'system:broadcast_dismiss';
 
 export interface WsEnvelope<T = any> {
   type: WsEventType;
@@ -76,6 +79,9 @@ export interface MessageSendPayload {
   replyToMessageId?: string | null;
   isE2EE?: boolean;
   e2eeIv?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
+  locationAddress?: string | null;
 }
 
 export interface MessageAckPayload {
@@ -86,6 +92,9 @@ export interface MessageAckPayload {
   status: 'sent' | 'delivered' | 'read' | 'SENT' | 'DELIVERED' | 'READ';
   isE2EE?: boolean;
   e2eeIv?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
+  locationAddress?: string | null;
 }
 
 export interface MessageReadPayload {
@@ -252,4 +261,10 @@ export interface AudioCallEndedPayload {
 export interface SessionRevokedPayload {
   sessionId?: string;
   reason?: string;
+}
+
+export interface ErrorPayload {
+  code?: string;
+  message: string;
+  details?: any;
 }

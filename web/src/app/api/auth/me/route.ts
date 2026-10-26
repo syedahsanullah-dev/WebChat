@@ -21,6 +21,8 @@ export async function GET(request: NextRequest) {
         email: true,
         avatarUrl: true,
         about: true,
+        systemRole: true,
+        isSuspended: true,
         isOnline: true,
         lastSeen: true,
         createdAt: true,

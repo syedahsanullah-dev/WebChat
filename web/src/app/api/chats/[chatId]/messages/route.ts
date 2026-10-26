@@ -88,6 +88,9 @@ export async function GET(
         isDeleted: msg.isDeleted,
         isE2EE: Boolean(msg.isE2EE),
         e2eeIv: msg.e2eeIv || null,
+        latitude: msg.latitude ?? null,
+        longitude: msg.longitude ?? null,
+        locationAddress: msg.locationAddress ?? null,
         status: effectiveStatus,
         createdAt: msg.createdAt.toISOString(),
       };

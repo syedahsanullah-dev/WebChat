@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import Sidebar from '@/components/layout/Sidebar';
 import ChatArea from '@/components/layout/ChatArea';
+import GlobalBroadcastBanner from '@/components/layout/GlobalBroadcastBanner';
 import { ChatProvider } from '@/context/ChatContext';
 import { cn } from '@/lib/utils';
 
@@ -28,8 +29,10 @@ export default function ChatLayout({
 
   return (
     <ChatProvider>
-      <div className="flex h-[100dvh] w-full overflow-hidden bg-wa-light-bg dark:bg-wa-dark-bg text-wa-light-text-primary dark:text-wa-dark-text-primary overscroll-y-contain relative select-none">
-        {/* Left Sidebar Panel */}
+      <div className="flex flex-col h-[100dvh] w-full overflow-hidden bg-wa-light-bg dark:bg-wa-dark-bg text-wa-light-text-primary dark:text-wa-dark-text-primary overscroll-y-contain relative select-none">
+        <GlobalBroadcastBanner />
+        <div className="flex flex-1 w-full overflow-hidden relative">
+          {/* Left Sidebar Panel */}
         <div
           className={`h-full w-full md:w-[40%] md:min-w-[300px] md:max-w-[380px] lg:w-[33%] lg:min-w-[340px] lg:max-w-[450px] xl:w-[30%] xl:max-w-[500px] flex-shrink-0 transition-transform duration-300 ease-in-out md:translate-x-0 ${
             activeChatId
@@ -60,6 +63,7 @@ export default function ChatLayout({
             {children}
           </ChatArea>
         </div>
+      </div>
       </div>
     </ChatProvider>
   );

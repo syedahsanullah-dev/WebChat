@@ -7,6 +7,13 @@ import { useSound } from '@/hooks/useSound';
 import { getOrDeriveSharedKey } from '@/lib/crypto/keyExchange';
 import { encryptMessage, decryptMessage } from '@/lib/crypto/e2eeCipher';
 import {
+  cacheMessages,
+  cacheSingleMessage,
+  getCachedMessages,
+  updateCachedMessageStatus,
+} from '@/lib/db/messageStore';
+import { enqueueOutbox, dequeueOutbox } from '@/lib/db/outboxStore';
+import {
   MessageAckPayload,
   MessageNewPayload,
   MessageStatusUpdatePayload,
@@ -27,6 +34,9 @@ export interface MessageItem {
   isDeleted?: boolean;
   isE2EE?: boolean;
   e2eeIv?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
+  locationAddress?: string | null;
   status: 'pending' | 'sent' | 'delivered' | 'read' | string;
   createdAt: string;
 }
@@ -34,13 +44,16 @@ export interface MessageItem {
 export interface SendMessageOptions {
   content?: string;
   plaintextContent?: string;
-  messageType?: 'text' | 'image' | 'voice' | 'system' | string;
+  messageType?: 'text' | 'image' | 'voice' | 'system' | 'location' | string;
   mediaUrl?: string | null;
   mediaSize?: number | null;
   mediaDuration?: number | null;
   replyToId?: string | null;
   isE2EE?: boolean;
   e2eeIv?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
+  locationAddress?: string | null;
 }
 
 export interface UseMessagesOptions {
@@ -54,6 +67,7 @@ export function useMessages({ chatId, recipientId }: UseMessagesOptions) {
   const { playSent, playReceive } = useSound();
 
   const [messages, setMessages] = useState<MessageItem[]>([]);
+  const [dlpBlockedError, setDlpBlockedError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isLoadingOlder, setIsLoadingOlder] = useState<boolean>(false);
   const [hasMore, setHasMore] = useState<boolean>(false);
@@ -104,6 +118,15 @@ export function useMessages({ chatId, recipientId }: UseMessagesOptions) {
     let isSubscribed = true;
     setIsLoading(true);
 
+    // Instant 0ms cache rendering from IndexedDB
+    getCachedMessages(chatId)
+      .then((cached) => {
+        if (isSubscribed && cached && cached.length > 0) {
+          setMessages((prev) => (prev.length === 0 ? (cached as MessageItem[]) : prev));
+        }
+      })
+      .catch(() => {});
+
     const fetchMessages = async () => {
       try {
         const baseUrl = typeof window !== 'undefined' && window.location?.origin && window.location.origin !== 'null'
@@ -148,6 +171,9 @@ export function useMessages({ chatId, recipientId }: UseMessagesOptions) {
                 isDeleted: Boolean(m.isDeleted),
                 isE2EE,
                 e2eeIv,
+                latitude: m.latitude ?? null,
+                longitude: m.longitude ?? null,
+                locationAddress: m.locationAddress ?? null,
                 status: m.status || 'sent',
                 createdAt: m.createdAt,
               };
@@ -155,7 +181,9 @@ export function useMessages({ chatId, recipientId }: UseMessagesOptions) {
           );
 
           // Reverse from DESC to chronological ASC
-          setMessages(items.reverse());
+          const chronologicalItems = items.reverse();
+          setMessages(chronologicalItems);
+          cacheMessages(chronologicalItems as any).catch(() => {});
           setNextCursor(data.nextCursor || null);
           setHasMore(Boolean(data.nextCursor));
 
@@ -227,6 +255,9 @@ export function useMessages({ chatId, recipientId }: UseMessagesOptions) {
               isDeleted: Boolean(m.isDeleted),
               isE2EE,
               e2eeIv,
+              latitude: m.latitude ?? null,
+              longitude: m.longitude ?? null,
+              locationAddress: m.locationAddress ?? null,
               status: m.status || 'sent',
               createdAt: m.createdAt,
             };
@@ -261,11 +292,16 @@ export function useMessages({ chatId, recipientId }: UseMessagesOptions) {
       const replyToId = isOptions ? (input.replyToId || null) : null;
       const isE2EE = isOptions ? Boolean(input.isE2EE) : false;
       const e2eeIv = isOptions ? input.e2eeIv || null : null;
+      const latitude = isOptions && input.latitude !== undefined && input.latitude !== null ? Number(input.latitude) : null;
+      const longitude = isOptions && input.longitude !== undefined && input.longitude !== null ? Number(input.longitude) : null;
+      const locationAddress = isOptions && input.locationAddress ? input.locationAddress : null;
+      const hasCoordinates = latitude !== null && longitude !== null;
       const messageType = isOptions
-        ? input.messageType || (mediaUrl ? 'image' : 'text')
+        ? (input.messageType || (hasCoordinates ? 'location' : mediaUrl ? 'image' : 'text'))
         : 'text';
+      const isLocation = messageType === 'location' || hasCoordinates;
 
-      if (!content.trim() && !mediaUrl) return;
+      if (!content.trim() && !mediaUrl && !isLocation) return;
 
       const tempId = typeof crypto !== 'undefined' && crypto.randomUUID
         ? crypto.randomUUID()
@@ -288,11 +324,31 @@ export function useMessages({ chatId, recipientId }: UseMessagesOptions) {
         isDeleted: false,
         isE2EE,
         e2eeIv,
+        latitude,
+        longitude,
+        locationAddress,
         status: 'pending',
         createdAt: nowIso,
       };
 
       setMessages((prev) => [...prev, optimisticMessage]);
+
+      // Cache locally in IndexedDB and enqueue in outbox for offline sync
+      cacheSingleMessage(optimisticMessage as any).catch(() => {});
+      enqueueOutbox({
+        tempId,
+        chatId,
+        senderId: user.id,
+        content: content.trim(),
+        messageType,
+        mediaUrl: mediaUrl || undefined,
+        mediaSize: mediaSize || undefined,
+        mediaDuration: mediaDuration || undefined,
+        replyToMessageId: replyToId || undefined,
+        isE2EE,
+        e2eeIv: e2eeIv || undefined,
+        queuedAt: Date.now(),
+      }).catch(() => {});
 
       // Play sent sound immediately
       playSent();
@@ -316,6 +372,9 @@ export function useMessages({ chatId, recipientId }: UseMessagesOptions) {
           replyToMessageId: replyToId || undefined,
           isE2EE,
           e2eeIv: e2eeIv || undefined,
+          latitude: latitude || undefined,
+          longitude: longitude || undefined,
+          locationAddress: locationAddress || undefined,
         },
       });
     },
@@ -330,6 +389,12 @@ export function useMessages({ chatId, recipientId }: UseMessagesOptions) {
     const unsubAck = subscribe<MessageAckPayload>('message:ack', (payload) => {
       if (!payload || payload.chatId !== currentChatIdRef.current) return;
 
+      // Dequeue from offline outbox and update local cache
+      if (payload.tempId) {
+        dequeueOutbox(payload.tempId).catch(() => {});
+        updateCachedMessageStatus(payload.tempId, payload.status || 'sent', payload.messageId).catch(() => {});
+      }
+
       setMessages((prev) =>
         prev.map((msg) => {
           if (msg.tempId === payload.tempId || msg.id === payload.tempId) {
@@ -339,6 +404,9 @@ export function useMessages({ chatId, recipientId }: UseMessagesOptions) {
               status: payload.status || 'sent',
               isE2EE: payload.isE2EE ?? msg.isE2EE,
               e2eeIv: payload.e2eeIv ?? msg.e2eeIv,
+              latitude: (payload as any).latitude !== undefined ? (payload as any).latitude : msg.latitude,
+              longitude: (payload as any).longitude !== undefined ? (payload as any).longitude : msg.longitude,
+              locationAddress: (payload as any).locationAddress !== undefined ? (payload as any).locationAddress : msg.locationAddress,
               createdAt: payload.createdAt || msg.createdAt,
             };
           }
@@ -408,6 +476,9 @@ export function useMessages({ chatId, recipientId }: UseMessagesOptions) {
           isDeleted: Boolean((payload as any).isDeleted),
           isE2EE,
           e2eeIv,
+          latitude: (payload as any).latitude ?? null,
+          longitude: (payload as any).longitude ?? null,
+          locationAddress: (payload as any).locationAddress ?? null,
           status: payload.status || 'sent',
           createdAt:
             payload.createdAt instanceof Date
@@ -420,6 +491,9 @@ export function useMessages({ chatId, recipientId }: UseMessagesOptions) {
           playReceive();
           markAsRead(payload.chatId);
         }
+
+        // Cache incoming message in local IndexedDB
+        cacheSingleMessage(newMsgItem as any).catch(() => {});
 
         return [...prev, newMsgItem];
       });
@@ -472,11 +546,21 @@ export function useMessages({ chatId, recipientId }: UseMessagesOptions) {
       });
     });
 
+    // 5. error — e.g. DLP_BLOCKED interception
+    const unsubError = subscribe<any>('error', (payload) => {
+      if (payload?.code === 'DLP_BLOCKED') {
+        setDlpBlockedError(payload.message || 'Message blocked: Contains sensitive credential or financial data.');
+        // Remove pending optimistic messages that triggered violation
+        setMessages((prev) => prev.filter((m) => m.status !== 'pending'));
+      }
+    });
+
     return () => {
       unsubAck();
       unsubNew();
       unsubStatus();
       unsubDelete();
+      unsubError();
     };
   }, [chatId, user, subscribe, playReceive, markAsRead]);
 
@@ -519,6 +603,8 @@ export function useMessages({ chatId, recipientId }: UseMessagesOptions) {
     isLoading,
     isLoadingOlder,
     hasMore,
+    dlpBlockedError,
+    dismissDlpError: () => setDlpBlockedError(null),
     sendMessage,
     deleteMessage,
     fetchOlderMessages,

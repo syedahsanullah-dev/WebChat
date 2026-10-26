@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { initializeUserKeys, clearCryptoMemoryCache } from '@/lib/crypto/keyExchange';
+import { SystemRole } from '@shared/types';
 
 export interface UserProfile {
   id: string;
@@ -11,6 +12,8 @@ export interface UserProfile {
   email: string;
   avatarUrl?: string | null;
   about: string;
+  systemRole?: SystemRole;
+  isSuspended?: boolean;
   isOnline: boolean;
   lastSeen?: string;
   createdAt?: string;

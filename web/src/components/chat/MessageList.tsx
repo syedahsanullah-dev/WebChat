@@ -9,9 +9,11 @@ import CallLogBadge from '@/components/call/CallLogBadge';
 import Lightbox from './Lightbox';
 import DateDivider from './DateDivider';
 import E2EEHeaderBadge from './E2EEHeaderBadge';
+import StaticLocationBubble from '@/components/location/StaticLocationBubble';
+import MessageStatusTick from './MessageStatusTick';
 import { getAuthorColor } from './GroupMessageBubble';
 import { Lock, Loader2 } from 'lucide-react';
-import { isSameDay } from 'date-fns';
+import { isSameDay, format } from 'date-fns';
 import { cn } from '@/lib/utils';
 
 export interface MessageItem {
@@ -29,6 +31,9 @@ export interface MessageItem {
   isDeleted?: boolean;
   isE2EE?: boolean;
   e2eeIv?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
+  locationAddress?: string | null;
   status: string;
   createdAt: string;
 }
@@ -204,6 +209,10 @@ export default function MessageList({
 
         const isImage = !isVoice && (msg.messageType === 'image' || Boolean(msg.mediaUrl));
 
+        const isLocation =
+          msg.messageType === 'location' ||
+          (typeof msg.latitude === 'number' && typeof msg.longitude === 'number');
+
         let waveformPeaks: number[] | null = msg.waveform || null;
         if (!waveformPeaks && msg.content && msg.content.startsWith('[') && msg.content.endsWith(']')) {
           try {
@@ -273,6 +282,35 @@ export default function MessageList({
                 onJumpToOriginal={handleJumpToOriginal}
                 onOpenLightbox={(src, caption) => setLightboxData({ src, caption })}
               />
+            ) : isLocation && typeof msg.latitude === 'number' && typeof msg.longitude === 'number' ? (
+              <div
+                id={`msg-${msg.id}`}
+                className={cn(
+                  'flex w-full group relative select-text transition-colors duration-200',
+                  isMe ? 'justify-end' : 'justify-start'
+                )}
+              >
+                <div
+                  className={cn(
+                    'relative max-w-[85%] sm:max-w-[70%] rounded-2xl shadow-xs transition-shadow duration-150 overflow-hidden',
+                    isMe
+                      ? 'bg-wa-light-outgoing dark:bg-wa-dark-outgoing rounded-tr-xs'
+                      : 'bg-wa-light-incoming dark:bg-wa-dark-incoming rounded-tl-xs'
+                  )}
+                >
+                  <StaticLocationBubble
+                    latitude={msg.latitude}
+                    longitude={msg.longitude}
+                    locationAddress={msg.locationAddress || msg.content}
+                    timestamp={msg.createdAt}
+                    isOutgoing={isMe}
+                  />
+                  <div className="flex items-center justify-end gap-1 px-3 pb-1.5 pt-0.5 text-[10px] text-wa-light-text-secondary dark:text-wa-dark-text-secondary select-none">
+                    <span>{format(new Date(msg.createdAt), 'h:mm a')}</span>
+                    {isMe && <MessageStatusTick status={msg.status as any} />}
+                  </div>
+                </div>
+              </div>
             ) : (
               <MessageBubble
                 id={msg.id}

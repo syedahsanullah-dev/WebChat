@@ -133,3 +133,56 @@ self.addEventListener('fetch', (event) => {
     })
   );
 });
+
+// 4. Background Web Push Notification Handlers (Phase 23 VAPID)
+self.addEventListener('push', (event) => {
+  if (!event.data) return;
+
+  let data = {};
+  try {
+    data = event.data.json();
+  } catch (err) {
+    data = { title: 'WebChat', body: event.data.text() };
+  }
+
+  const title = data.title || data.senderName || 'WebChat';
+  const options = {
+    body: data.body || 'New message',
+    icon: data.avatarUrl || data.icon || '/icons/icon-192x192.png',
+    badge: data.badge || '/icons/badge-72x72.png',
+    vibrate: [100, 50, 100],
+    data: {
+      url: data.url || (data.chatId ? `/chat/${data.chatId}` : '/chat'),
+      chatId: data.chatId,
+    },
+    tag: data.tag || data.chatId || 'webchat-msg',
+    renotify: true,
+  };
+
+  event.waitUntil(self.registration.showNotification(title, options));
+});
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const targetUrl = event.notification.data?.url || '/chat';
+
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+      for (const client of clientList) {
+        if ('focus' in client) {
+          if (client.url.includes('/chat')) {
+            client.focus();
+            if (client.navigate && targetUrl) {
+              client.navigate(targetUrl);
+            }
+            return;
+          }
+        }
+      }
+      if (clients.openWindow) {
+        return clients.openWindow(targetUrl);
+      }
+    })
+  );
+});
+

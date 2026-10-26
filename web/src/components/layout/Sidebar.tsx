@@ -9,6 +9,8 @@ import Modal from '@/components/ui/Modal';
 import ProfileDrawer from '@/components/profile/ProfileDrawer';
 import LinkedDevicesDrawer from '@/components/settings/LinkedDevicesDrawer';
 import InstallAppBanner from '@/components/pwa/InstallAppBanner';
+import PushPermissionBanner from '@/components/ui/PushPermissionBanner';
+import NotificationSettings from '@/components/settings/NotificationSettings';
 import NewChatModal from '@/components/contacts/NewChatModal';
 import ContactDrawer from '@/components/contacts/ContactDrawer';
 import CreateGroupModal from '@/components/groups/CreateGroupModal';
@@ -30,6 +32,7 @@ import {
   ShieldCheck,
   BookUser,
   Laptop,
+  Bell,
 } from 'lucide-react';
 
 export interface ChatItemData {
@@ -74,6 +77,7 @@ export default function Sidebar({
   const [activeModal, setActiveModal] = useState<'settings' | 'new-group' | null>(null);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isLinkedDevicesOpen, setIsLinkedDevicesOpen] = useState(false);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isContactDrawerOpen, setIsContactDrawerOpen] = useState(false);
   const [isNewChatModalOpen, setIsNewChatModalOpen] = useState(false);
 
@@ -259,6 +263,12 @@ export default function Sidebar({
       onClick: () => setIsLinkedDevicesOpen(true),
     },
     {
+      id: 'notifications',
+      label: 'Notifications',
+      icon: <Bell className="w-4 h-4 text-wa-light-text-secondary dark:text-wa-dark-text-secondary" />,
+      onClick: () => setIsNotificationsOpen(true),
+    },
+    {
       id: 'settings',
       label: 'Settings',
       icon: <Settings className="w-4 h-4 text-wa-light-text-secondary dark:text-wa-dark-text-secondary" />,
@@ -308,6 +318,12 @@ export default function Sidebar({
       <LinkedDevicesDrawer
         isOpen={isLinkedDevicesOpen}
         onClose={() => setIsLinkedDevicesOpen(false)}
+      />
+
+      {/* Slide-over WhatsApp Notification Settings Drawer */}
+      <NotificationSettings
+        isOpen={isNotificationsOpen}
+        onClose={() => setIsNotificationsOpen(false)}
       />
 
       {/* Slide-over WhatsApp Contact Drawer */}
@@ -368,6 +384,9 @@ export default function Sidebar({
 
       {/* PWA Install Promotion Banner */}
       <InstallAppBanner />
+
+      {/* Web Push Notifications Permission Banner */}
+      <PushPermissionBanner />
 
       {/* Search Input Box */}
       <div className="px-3 py-2 border-b border-wa-light-border dark:border-wa-dark-border">

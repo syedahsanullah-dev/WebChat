@@ -48,6 +48,25 @@ exports.fastify.get('/health', async () => {
         timestamp: new Date().toISOString(),
     };
 });
+// Metrics telemetry endpoint (consumed by Server #1 Super Admin console)
+exports.fastify.get('/metrics', async () => {
+    const memory = process.memoryUsage();
+    return {
+        status: 'HEALTHY',
+        uptime: Math.round(process.uptime()),
+        activeSockets: roomManager_js_1.roomManager.getActiveSocketCount ? roomManager_js_1.roomManager.getActiveSocketCount() : 0,
+        onlineUsers: roomManager_js_1.roomManager.getOnlineUserCount ? roomManager_js_1.roomManager.getOnlineUserCount() : 0,
+        activeRooms: roomManager_js_1.roomManager.getActiveRoomCount ? roomManager_js_1.roomManager.getActiveRoomCount() : 0,
+        memory: {
+            rssMB: Math.round(memory.rss / 1024 / 1024),
+            heapUsedMB: Math.round(memory.heapUsed / 1024 / 1024),
+            heapTotalMB: Math.round(memory.heapTotal / 1024 / 1024),
+            externalMB: Math.round(memory.external / 1024 / 1024),
+        },
+        nodeVersion: process.version,
+        timestamp: new Date().toISOString(),
+    };
+});
 // Root welcome endpoint
 exports.fastify.get('/', async () => {
     return {

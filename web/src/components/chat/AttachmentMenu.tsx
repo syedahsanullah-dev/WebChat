@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useRef, useEffect } from 'react';
-import { Image, FileText, Camera } from 'lucide-react';
+import { Image, FileText, Camera, MapPin } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export interface AttachmentMenuProps {
@@ -9,6 +9,7 @@ export interface AttachmentMenuProps {
   onClose: () => void;
   onSelectPhoto: () => void;
   onSelectDocument?: () => void;
+  onSelectLocation?: () => void;
   className?: string;
 }
 
@@ -17,6 +18,7 @@ export default function AttachmentMenu({
   onClose,
   onSelectPhoto,
   onSelectDocument,
+  onSelectLocation,
   className,
 }: AttachmentMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null);
@@ -96,6 +98,30 @@ export default function AttachmentMenu({
             </p>
             <p className="text-xs text-wa-light-text-muted dark:text-wa-dark-text-muted">
               Share PDF or files
+            </p>
+          </div>
+        </button>
+      )}
+
+      {/* Location option */}
+      {onSelectLocation && (
+        <button
+          type="button"
+          onClick={() => {
+            onSelectLocation();
+            onClose();
+          }}
+          className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-wa-light-hover dark:hover:bg-wa-dark-hover transition-colors text-left group"
+        >
+          <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-emerald-500 to-teal-500 flex items-center justify-center text-white shadow-sm group-hover:scale-105 transition-transform">
+            <MapPin className="w-5 h-5" />
+          </div>
+          <div>
+            <p className="text-sm font-medium text-wa-light-text-primary dark:text-wa-dark-text-primary">
+              Location
+            </p>
+            <p className="text-xs text-wa-light-text-muted dark:text-wa-dark-text-muted">
+              Share current location
             </p>
           </div>
         </button>

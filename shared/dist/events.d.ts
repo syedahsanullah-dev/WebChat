@@ -1,5 +1,5 @@
 import { Message, MessageStatus, MessageType } from './types';
-export type WsEventType = 'ping' | 'pong' | 'presence:init' | 'user:online' | 'user:offline' | 'typing:start' | 'typing:stop' | 'message:send' | 'message:ack' | 'message:new' | 'message:read' | 'message:status' | 'message:reaction' | 'message:delete' | 'group:created' | 'group:member_update' | 'group:join' | 'group:leave' | 'audio-call:invite' | 'audio-call:incoming' | 'audio-call:ring' | 'audio-call:accept' | 'audio-call:accepted' | 'audio-call:reject' | 'audio-call:busy' | 'audio-call:ice-candidate' | 'audio-call:end' | 'audio-call:ended' | 'session:revoked';
+export type WsEventType = 'ping' | 'pong' | 'presence:init' | 'user:online' | 'user:offline' | 'typing:start' | 'typing:stop' | 'message:send' | 'message:ack' | 'message:new' | 'message:read' | 'message:status' | 'message:reaction' | 'message:delete' | 'group:created' | 'group:member_update' | 'group:join' | 'group:leave' | 'audio-call:invite' | 'audio-call:incoming' | 'audio-call:ring' | 'audio-call:accept' | 'audio-call:accepted' | 'audio-call:reject' | 'audio-call:busy' | 'audio-call:ice-candidate' | 'audio-call:end' | 'audio-call:ended' | 'session:revoked' | 'error' | 'system:broadcast' | 'system:broadcast_dismiss';
 export interface WsEnvelope<T = any> {
     type: WsEventType;
     payload: T;
@@ -55,6 +55,9 @@ export interface SendMessagePayload {
     replyToMessageId?: string | null;
     isE2EE?: boolean;
     e2eeIv?: string | null;
+    latitude?: number | null;
+    longitude?: number | null;
+    locationAddress?: string | null;
 }
 export interface MessageAckPayload {
     tempId?: string;
@@ -64,6 +67,9 @@ export interface MessageAckPayload {
     status: MessageStatus;
     isE2EE?: boolean;
     e2eeIv?: string | null;
+    latitude?: number | null;
+    longitude?: number | null;
+    locationAddress?: string | null;
 }
 export interface MessageReadPayload {
     chatId: string;
@@ -196,5 +202,21 @@ export interface AudioCallEndedPayload {
 export interface SessionRevokedPayload {
     sessionId?: string;
     reason?: string;
+}
+export interface ErrorPayload {
+    code: string;
+    message: string;
+    details?: any;
+}
+export interface SystemBroadcastPayload {
+    id: string;
+    message: string;
+    severity: 'INFO' | 'WARNING' | 'CRITICAL';
+    createdAt?: string;
+    expiresAt?: string | null;
+    creatorName?: string;
+}
+export interface SystemBroadcastDismissPayload {
+    id: string;
 }
 //# sourceMappingURL=events.d.ts.map

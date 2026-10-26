@@ -4,10 +4,15 @@ import React, { useState, useRef, useEffect } from 'react';
 import ChatHeader from '@/components/chat/ChatHeader';
 import MessageList, { MessageItem } from '@/components/chat/MessageList';
 import ChatInput from '@/components/chat/ChatInput';
+import DlpBlockedToast from '@/components/chat/DlpBlockedToast';
 import ImagePreviewModal from '@/components/chat/ImagePreviewModal';
 import GroupInfoDrawer from '@/components/groups/GroupInfoDrawer';
 import InChatSearchDrawer from '@/components/chat/InChatSearchDrawer';
 import SafetyNumberModal from '@/components/security/SafetyNumberModal';
+import LocationPickerModal from '@/components/location/LocationPickerModal';
+import OfflineStatusBar from '@/components/chat/OfflineStatusBar';
+import ConnectionToast from '@/components/ui/ConnectionToast';
+import { useOfflineSync } from '@/hooks/useOfflineSync';
 import { QuotedMessageData } from '@/components/chat/QuotedReplyPreview';
 import Avatar from '@/components/ui/Avatar';
 import Modal from '@/components/ui/Modal';
@@ -66,9 +71,13 @@ export default function ChatArea({
   const [isGroupInfoOpen, setIsGroupInfoOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isSafetyModalOpen, setIsSafetyModalOpen] = useState(false);
+  const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
   const [replyingToMessage, setReplyingToMessage] = useState<QuotedMessageData | null>(null);
   const [deletingMessage, setDeletingMessage] = useState<MessageItem | null>(null);
   const mainRef = useRef<HTMLElement>(null);
+
+  // Local-first offline sync hook
+  const { syncedCount, clearSyncedToast } = useOfflineSync();
 
   // Reset any unexpected scroll offset on main and window when switching chats
   useEffect(() => {
@@ -120,6 +129,8 @@ export default function ChatArea({
     messages,
     isLoadingOlder,
     hasMore,
+    dlpBlockedError,
+    dismissDlpError,
     sendMessage,
     deleteMessage,
     fetchOlderMessages,
@@ -309,6 +320,24 @@ export default function ChatArea({
     }
   };
 
+  const handleSendLocation = (loc: {
+    latitude: number;
+    longitude: number;
+    locationAddress?: string;
+  }) => {
+    if (!activeChatId) return;
+
+    sendMessage({
+      messageType: 'location',
+      latitude: loc.latitude,
+      longitude: loc.longitude,
+      locationAddress: loc.locationAddress,
+      content: loc.locationAddress || 'Shared location',
+      replyToId: replyingToMessage?.id || null,
+    });
+    setReplyingToMessage(null);
+  };
+
   const menuItems: DropdownMenuItem[] = [
     {
       id: 'info',
@@ -408,6 +437,9 @@ export default function ChatArea({
           menuItems={menuItems}
         />
 
+        {/* Offline Status Warning Bar */}
+        <OfflineStatusBar />
+
         {/* Messages Scroll Area with WhatsApp Doodle Wallpaper */}
         <MessageList
           messages={messages}
@@ -424,11 +456,20 @@ export default function ChatArea({
           onVerifySecurity={() => setIsSafetyModalOpen(true)}
         />
 
+        {/* DLP Violation Toast */}
+        {dlpBlockedError && (
+          <DlpBlockedToast
+            message={dlpBlockedError}
+            onDismiss={dismissDlpError}
+          />
+        )}
+
         {/* Bottom Message Input Bar */}
         <ChatInput
           onSendMessage={handleSendMessage}
           onImageSelect={handleImageSelect}
           onSendVoice={handleSendVoice}
+          onSelectLocation={() => setIsLocationModalOpen(true)}
           onTyping={emitTyping}
           replyingToMessage={replyingToMessage}
           onCancelReply={() => setReplyingToMessage(null)}
@@ -521,6 +562,18 @@ export default function ChatArea({
           myUserId={user?.id || ''}
           peerUserId={activeChat.otherUser?.id || recipientId || ''}
         />
+      )}
+
+      {/* Current Static Location Picker Modal */}
+      <LocationPickerModal
+        isOpen={isLocationModalOpen}
+        onClose={() => setIsLocationModalOpen(false)}
+        onSendLocation={handleSendLocation}
+      />
+
+      {/* Offline Sync Reconnection Toast */}
+      {syncedCount > 0 && (
+        <ConnectionToast messageCount={syncedCount} onDismiss={clearSyncedToast} />
       )}
     </div>
   );

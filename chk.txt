@@ -220,25 +220,25 @@
 ### Part V: Enterprise Administration & Operations (Phases 29 – 34)
 
 ## Phase 29: [Super Admin Console & Infrastructure Telemetry](phases/29_ADMIN_CONSOLE_AND_SYSTEM_METRICS.md)
-- [ ] Super Admin portal route (`/admin`) protected by `systemRole: "SUPER_ADMIN" | "ADMIN"`
-- [ ] Fastify Server #2 live RAM telemetry (RSS, Heap Used in MB) via internal `/metrics` endpoint
-- [ ] Active concurrent WebSocket connection counter from `roomManager`
-- [ ] Database stat counters (Total registered users, total chats, messages sent today)
-- [ ] Auto-refreshing admin overview dashboard with color-coded gauge bars
+- [x] Super Admin portal route (`/admin`) protected by `systemRole: "SUPER_ADMIN" | "ADMIN"`
+- [x] Fastify Server #2 live RAM telemetry (RSS, Heap Used in MB) via internal `/metrics` endpoint
+- [x] Active concurrent WebSocket connection counter from `roomManager`
+- [x] Database stat counters (Total registered users, total chats, messages sent today)
+- [x] Auto-refreshing admin overview dashboard with color-coded gauge bars
 
 ## Phase 30: [Storage Governance & Orphan Media Cleaner](phases/30_STORAGE_GOVERNANCE_AND_ORPHAN_CLEANER.md)
-- [ ] Hostinger NVMe storage analytics breakdown (Avatars, Images, Voice, Docs) with progress bar
-- [ ] Orphan file detection engine comparing files on disk against MySQL active media URLs
-- [ ] 15-minute in-flight safety buffer protecting newly uploaded media from purge
-- [ ] Safe orphan purge endpoint deleting unreferenced files and recording freed bytes in `audit_logs`
-- [ ] Storage management UI with orphan files table and confirmation modal
+- [x] Hostinger NVMe storage analytics breakdown (Avatars, Images, Voice, Docs) with progress bar
+- [x] Orphan file detection engine comparing files on disk against MySQL active media URLs
+- [x] 15-minute in-flight safety buffer protecting newly uploaded media from purge
+- [x] Safe orphan purge endpoint deleting unreferenced files and recording freed bytes in `audit_logs`
+- [x] Storage management UI with orphan files table and confirmation modal
 
 ## Phase 31: [User Administration & Role Delegation](phases/31_USER_ADMINISTRATION_AND_ROLE_DELEGATION.md)
-- [ ] Searchable, sortable, paginated User Directory data grid (`/admin/users`)
-- [ ] Multi-criteria filtering by username/email prefix, system role, and active/suspended status
-- [ ] Role hierarchy engine (`USER` ➔ `MODERATOR` ➔ `ADMIN` ➔ `SUPER_ADMIN`)
-- [ ] Role delegation modal with mandatory audit reason logging
-- [ ] User details drawer showing account stats, active sessions, and group memberships
+- [x] Searchable, sortable, paginated User Directory data grid (`/admin/users`)
+- [x] Multi-criteria filtering by username/email prefix, system role, and active/suspended status
+- [x] Role hierarchy engine (`USER` ➔ `MODERATOR` ➔ `ADMIN` ➔ `SUPER_ADMIN`)
+- [x] Role delegation modal with mandatory audit reason logging
+- [x] User details drawer showing account stats, active sessions, and group memberships
 
 ## Phase 32: [Account Moderation, Bans & Real-Time Socket Kicks](phases/32_ACCOUNT_MODERATION_BANS_AND_SOCKET_KICKS.md)
 - [ ] Account suspension and ban workflows with duration picker (24h, 7d, 30d, Permanent) and mandatory reason
@@ -255,22 +255,22 @@
 - [ ] Real-time WebSocket broadcast of message deletions and user mutes
 
 ## Phase 34: [Real-Time Data Loss Prevention (DLP) Regex Scanner](phases/34_REALTIME_DLP_REGEX_SCANNER.md)
-- [ ] In-memory Fastify WebSocket preflight scanner evaluating messages in < 1ms before broadcast
-- [ ] Pre-configured regex library: AWS Access Keys, SSH/RSA Private Keys, Credit Cards (Luhn check), SSNs
-- [ ] Immediate block of leaking message with client error banner and retained input text
-- [ ] Background incident recording into `audit_logs` table (`DLP_VIOLATION_BLOCKED`)
-- [ ] Admin DLP Rules Manager (`/admin/dlp`) with interactive regex test sandbox
+- [x] In-memory Fastify WebSocket preflight scanner evaluating messages in < 1ms before broadcast
+- [x] Pre-configured regex library: AWS Access Keys, SSH/RSA Private Keys, Credit Cards (Luhn check), SSNs
+- [x] Immediate block of leaking message with client error banner and retained input text
+- [x] Background incident recording into `audit_logs` table (`DLP_VIOLATION_BLOCKED`)
+- [x] Admin DLP Rules Manager (`/admin/dlp`) with interactive regex test sandbox
 
 ---
 
 ### Part VI: Platform Reliability & Emergency Operations (Phases 35 – 36)
 
 ## Phase 35: [Real-Time Global Broadcasts](phases/35_REALTIME_GLOBAL_BROADCASTS.md)
-- [ ] Global broadcast composer with severity levels (INFO, WARNING, CRITICAL) and duration
-- [ ] Real-time WebSocket dispatch via `roomManager.broadcastAll({ type: 'system:broadcast' })` in < 50ms
-- [ ] Responsive in-app sliding top banner with severity styling, icon, and dismiss button
-- [ ] Web Audio API synthesizer chime (520Hz ➔ 660Hz) alert
-- [ ] Active broadcast API for newly connected users and broadcast history manager
+- [x] Global broadcast composer with severity levels (INFO, WARNING, CRITICAL) and duration
+- [x] Real-time WebSocket dispatch via `roomManager.broadcastAll({ type: 'system:broadcast' })` in < 50ms
+- [x] Responsive in-app sliding top banner with severity styling, icon, and dismiss button
+- [x] Web Audio API synthesizer chime (520Hz ➔ 660Hz) alert
+- [x] Active broadcast API for newly connected users and broadcast history manager
 
 ## Phase 36: [Maintenance Mode & Emergency Database Backups](phases/36_MAINTENANCE_MODE_AND_EMERGENCY_BACKUPS.md)
 - [ ] Maintenance Mode toggle with administrative bypass in Next.js `middleware.ts`
@@ -284,11 +284,11 @@
 ### Part VII: Advanced Geolocation & Mobility (Phases 37 – 38)
 
 ## Phase 37: [Current Static GPS Location Sharing](phases/37_CURRENT_STATIC_LOCATION_SHARING.md)
-- [ ] Browser Geolocation API wrapper hook (`useGeolocation.ts`) with high-accuracy positioning
-- [ ] Reverse-geocoding API route (`/api/location/reverse-geocode`) with OpenStreetMap Nominatim and server LRU cache
-- [ ] Location picker modal (`LocationPickerModal.tsx`) with interactive Leaflet map and "Send Current" action
-- [ ] Static location message bubble (`StaticLocationBubble.tsx`) with street name, coordinates, and Google/OSM navigation links
-- [ ] Zero paid Google Maps / Mapbox APIs ($0.00 / mo)
+- [x] Browser Geolocation API wrapper hook (`useGeolocation.ts`) with high-accuracy positioning
+- [x] Reverse-geocoding API route (`/api/location/reverse-geocode`) with OpenStreetMap Nominatim and server LRU cache
+- [x] Location picker modal (`LocationPickerModal.tsx`) with interactive Leaflet map and "Send Current" action
+- [x] Static location message bubble (`StaticLocationBubble.tsx`) with street name, coordinates, and Google/OSM navigation links
+- [x] Zero paid Google Maps / Mapbox APIs ($0.00 / mo)
 
 ## Phase 38: [Real-Time Live Location Tracking & Collaborative Maps](phases/38_REALTIME_LIVE_LOCATION_TRACKING.md)
 - [ ] Live duration selector (15 Minutes, 1 Hour, 8 Hours) with optional commentary
