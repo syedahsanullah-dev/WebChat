@@ -69,9 +69,9 @@ export async function GET(
     }
 
     // Map messages with simplified status for the sender
-    const formattedMessages = results.map((msg) => {
+    const formattedMessages = results.map((msg: any) => {
       // Find recipient status
-      const recipientStatusRecord = msg.statuses.find((s) => s.userId !== msg.senderId);
+      const recipientStatusRecord = msg.statuses?.find((s: any) => s.userId !== msg.senderId);
       const effectiveStatus = recipientStatusRecord?.status || 'sent';
 
       return {
