@@ -83,7 +83,7 @@ export default function ChatHeader({
           <button
             type="button"
             onClick={onBack}
-            className="inline-flex md:hidden p-1.5 rounded-full hover:bg-black/5 dark:hover:bg-white/5 text-wa-light-text-secondary dark:text-wa-dark-text-secondary focus:outline-none"
+            className="inline-flex md:hidden p-1.5 rounded-full hover:bg-black/5 dark:hover:bg-white/5 text-wa-light-text-secondary dark:text-wa-dark-text-secondary focus:outline-none flex-shrink-0"
             aria-label="Back to conversations list"
           >
             <ArrowLeft className="w-5 h-5" />

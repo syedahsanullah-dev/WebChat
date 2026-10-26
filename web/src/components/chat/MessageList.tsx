@@ -68,16 +68,20 @@ export default function MessageList({
 
   // Auto-scroll to bottom on initial load and when new messages arrive at the bottom
   useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
     if (isInitialLoadRef.current && messages.length > 0) {
-      bottomRef.current?.scrollIntoView({ behavior: 'auto' });
+      container.scrollTop = container.scrollHeight;
       isInitialLoadRef.current = false;
     } else {
-      const container = containerRef.current;
-      if (container) {
-        const isNearBottom =
-          container.scrollHeight - container.scrollTop - container.clientHeight < 150;
-        if (isNearBottom) {
-          bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+      const isNearBottom =
+        container.scrollHeight - container.scrollTop - container.clientHeight < 150;
+      if (isNearBottom) {
+        if (typeof container.scrollTo === 'function') {
+          container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' });
+        } else {
+          container.scrollTop = container.scrollHeight;
         }
       }
     }
@@ -123,8 +127,20 @@ export default function MessageList({
   const handleJumpToOriginal = (targetId: string) => {
     if (!targetId || typeof window === 'undefined') return;
     const el = document.getElementById(`msg-${targetId}`);
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    const container = containerRef.current;
+    if (el && container) {
+      const containerRect = container.getBoundingClientRect();
+      const elRect = el.getBoundingClientRect();
+      const relativeTop = elRect.top - containerRect.top + container.scrollTop;
+      const targetTop = Math.max(0, relativeTop - container.clientHeight / 2);
+      if (typeof container.scrollTo === 'function') {
+        container.scrollTo({
+          top: targetTop,
+          behavior: 'smooth',
+        });
+      } else {
+        container.scrollTop = targetTop;
+      }
       el.classList.add('wa-search-highlight-flash');
       setTimeout(() => el.classList.remove('wa-search-highlight-flash'), 1200);
     }
@@ -134,7 +150,7 @@ export default function MessageList({
     <div
       ref={containerRef}
       onScroll={handleScroll}
-      className="flex-1 wa-chat-bg overflow-y-auto p-4 sm:p-6 space-y-2 z-0 relative select-text"
+      className="flex-1 min-h-0 min-w-0 wa-chat-bg overflow-y-auto p-4 sm:p-6 space-y-2 z-0 relative select-text"
     >
       {/* Loading older messages indicator */}
       {isLoadingOlder && (

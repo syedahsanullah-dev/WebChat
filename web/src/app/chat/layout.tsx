@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import Sidebar from '@/components/layout/Sidebar';
 import ChatArea from '@/components/layout/ChatArea';
 import { ChatProvider } from '@/context/ChatContext';
+import { cn } from '@/lib/utils';
 
 export default function ChatLayout({
   children,
@@ -31,7 +32,9 @@ export default function ChatLayout({
         {/* Left Sidebar Panel */}
         <div
           className={`h-full w-full md:w-[35%] lg:w-[30%] min-w-[320px] max-w-[500px] flex-shrink-0 transition-transform duration-300 ease-in-out md:translate-x-0 ${
-            activeChatId ? '-translate-x-full absolute md:relative' : 'translate-x-0 relative'
+            activeChatId
+              ? '-translate-x-full absolute top-0 left-0 md:relative md:top-auto md:left-auto'
+              : 'translate-x-0 relative'
           }`}
         >
           <Sidebar
@@ -43,8 +46,10 @@ export default function ChatLayout({
 
         {/* Right Chat Area Panel */}
         <div
-          className={`h-full flex-1 min-w-0 flex flex-col transition-transform duration-300 ease-in-out md:translate-x-0 ${
-            activeChatId ? 'translate-x-0 relative w-full' : 'translate-x-full absolute md:relative w-full'
+          className={`h-full flex-1 min-w-0 min-h-0 flex flex-col transition-transform duration-300 ease-in-out md:translate-x-0 ${
+            activeChatId
+              ? 'translate-x-0 relative w-full'
+              : 'translate-x-full absolute top-0 left-0 md:relative md:top-auto md:left-auto w-full'
           }`}
         >
           <ChatArea

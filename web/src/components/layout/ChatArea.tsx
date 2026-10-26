@@ -64,6 +64,21 @@ export default function ChatArea({
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [replyingToMessage, setReplyingToMessage] = useState<QuotedMessageData | null>(null);
   const [deletingMessage, setDeletingMessage] = useState<MessageItem | null>(null);
+  const mainRef = useRef<HTMLElement>(null);
+
+  // Reset any unexpected scroll offset on main and window when switching chats
+  useEffect(() => {
+    if (activeChatId) {
+      if (mainRef.current) mainRef.current.scrollTop = 0;
+      if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') {
+        try {
+          window.scrollTo(0, 0);
+        } catch {
+          // JSDOM safe fallback
+        }
+      }
+    }
+  }, [activeChatId]);
 
   // Active chat metadata
   const fallbackChat = MOCK_CHATS.find((c) => c.id === activeChatId) || null;
@@ -319,8 +334,11 @@ export default function ChatArea({
 
   // 2. Active Chat View
   return (
-    <div className="h-full w-full flex overflow-hidden relative">
-      <main className="flex-1 flex flex-col bg-wa-light-bg dark:bg-wa-dark-bg overflow-hidden relative transition-colors h-full">
+    <div className="h-full w-full flex flex-col overflow-hidden relative min-h-0 min-w-0">
+      <main
+        ref={mainRef}
+        className="flex-1 min-h-0 min-w-0 flex flex-col bg-wa-light-bg dark:bg-wa-dark-bg overflow-hidden relative transition-colors h-full"
+      >
         {/* Top Header */}
         <ChatHeader
           name={activeChat.name}
