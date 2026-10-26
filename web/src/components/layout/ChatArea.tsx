@@ -7,6 +7,7 @@ import ChatInput from '@/components/chat/ChatInput';
 import ImagePreviewModal from '@/components/chat/ImagePreviewModal';
 import GroupInfoDrawer from '@/components/groups/GroupInfoDrawer';
 import InChatSearchDrawer from '@/components/chat/InChatSearchDrawer';
+import SafetyNumberModal from '@/components/security/SafetyNumberModal';
 import { QuotedMessageData } from '@/components/chat/QuotedReplyPreview';
 import Avatar from '@/components/ui/Avatar';
 import Modal from '@/components/ui/Modal';
@@ -22,6 +23,8 @@ import { useReactions } from '@/hooks/useReactions';
 import { useInChatSearch } from '@/hooks/useInChatSearch';
 import { useAuth } from '@/context/AuthContext';
 import { useCall } from '@/context/CallContext';
+import { getOrDeriveSharedKey } from '@/lib/crypto/keyExchange';
+import { encryptMessage } from '@/lib/crypto/e2eeCipher';
 import { Lock, Laptop, Trash2 } from 'lucide-react';
 
 export interface ActiveChatInfo {
@@ -62,6 +65,7 @@ export default function ChatArea({
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [isGroupInfoOpen, setIsGroupInfoOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isSafetyModalOpen, setIsSafetyModalOpen] = useState(false);
   const [replyingToMessage, setReplyingToMessage] = useState<QuotedMessageData | null>(null);
   const [deletingMessage, setDeletingMessage] = useState<MessageItem | null>(null);
   const mainRef = useRef<HTMLElement>(null);
@@ -151,12 +155,37 @@ export default function ChatArea({
     });
   };
 
-  const handleSendMessage = (text: string) => {
+  const handleSendMessage = async (text: string) => {
     stopTyping();
+    const trimmed = text.trim();
+    if (!trimmed) return;
+
+    let isE2EE = false;
+    let e2eeIv: string | null = null;
+    let payloadContent = trimmed;
+
+    // In 1-on-1 private chat, encrypt if peer has key
+    if (!activeChat?.isGroup && recipientUserId && user?.id) {
+      try {
+        const sharedKey = await getOrDeriveSharedKey(user.id, recipientUserId);
+        if (sharedKey) {
+          const enc = await encryptMessage(trimmed, sharedKey);
+          isE2EE = true;
+          e2eeIv = enc.iv;
+          payloadContent = enc.ciphertext;
+        }
+      } catch (err) {
+        console.warn('[ChatArea] E2EE encryption error:', err);
+      }
+    }
+
     sendMessage({
-      content: text,
+      content: payloadContent,
+      plaintextContent: trimmed,
       replyToId: replyingToMessage?.id || null,
       messageType: 'text',
+      isE2EE,
+      e2eeIv,
     });
     setReplyingToMessage(null);
   };
@@ -295,6 +324,15 @@ export default function ChatArea({
       label: 'Search messages',
       onClick: () => setIsSearchOpen(true),
     },
+    ...(!activeChat?.isGroup
+      ? [
+          {
+            id: 'verify-security',
+            label: 'Verify security code',
+            onClick: () => setIsSafetyModalOpen(true),
+          },
+        ]
+      : []),
     {
       id: 'close-chat',
       label: 'Close chat',
@@ -358,6 +396,7 @@ export default function ChatArea({
           }
           isTyping={isTyping}
           typingUsername={typingUsername}
+          isE2EE={!activeChat.isGroup}
           onBack={onBack}
           onStartCall={handleStartCall}
           onSearch={() => setIsSearchOpen(true)}
@@ -382,6 +421,7 @@ export default function ChatArea({
           onReply={handleReplyMessage}
           onReact={toggleReaction}
           onDelete={(msg) => setDeletingMessage(msg)}
+          onVerifySecurity={() => setIsSafetyModalOpen(true)}
         />
 
         {/* Bottom Message Input Bar */}
@@ -467,6 +507,19 @@ export default function ChatArea({
           totalMatches={inChatSearch.totalMatches}
           onNextMatch={inChatSearch.nextMatch}
           onPrevMatch={inChatSearch.prevMatch}
+        />
+      )}
+
+      {/* Safety Number E2EE Verification Modal */}
+      {activeChat && !activeChat.isGroup && (
+        <SafetyNumberModal
+          isOpen={isSafetyModalOpen}
+          onClose={() => setIsSafetyModalOpen(false)}
+          contactName={activeChat.name}
+          contactUsername={activeChat.username || activeChat.otherUser?.username}
+          contactAvatar={activeChat.avatar}
+          myUserId={user?.id || ''}
+          peerUserId={activeChat.otherUser?.id || recipientId || ''}
         />
       )}
     </div>

@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import MessageStatusTick, { MessageStatusType } from './MessageStatusTick';
+import E2EEBubbleIndicator from './E2EEBubbleIndicator';
 import QuotedMessageSnippet from './QuotedMessageSnippet';
 import ReactionHoverBar from './ReactionHoverBar';
 import EmojiReactionPill from './EmojiReactionPill';
@@ -22,6 +23,7 @@ export interface ImageBubbleProps {
   replyToMessage?: QuotedMessageInfo | null;
   reactions?: Record<string, string[]> | null;
   isDeleted?: boolean;
+  isE2EE?: boolean;
   searchQuery?: string;
   currentUserId?: string;
   onReply?: () => void;
@@ -43,6 +45,7 @@ export default function ImageBubble({
   replyToMessage,
   reactions,
   isDeleted = false,
+  isE2EE = false,
   searchQuery,
   currentUserId = '',
   onReply,
@@ -185,6 +188,7 @@ export default function ImageBubble({
           {/* Dark gradient overlay with time and tick when there is no caption */}
           {!caption && (
             <div className="absolute inset-x-0 bottom-0 p-2 bg-gradient-to-t from-black/60 to-transparent flex items-center justify-end gap-1 text-[10px] text-white select-none">
+              {isE2EE && !isDeleted && <E2EEBubbleIndicator className="text-white" />}
               <span>{timeFormatted}</span>
               {isMe && <MessageStatusTick status={status} className="text-white" />}
             </div>
@@ -198,6 +202,7 @@ export default function ImageBubble({
               {renderHighlightedContent(caption, searchQuery)}
             </p>
             <div className="flex items-center gap-1 text-[10px] text-wa-light-text-muted dark:text-wa-dark-text-muted select-none flex-shrink-0">
+              {isE2EE && !isDeleted && <E2EEBubbleIndicator />}
               <span>{timeFormatted}</span>
               {isMe && <MessageStatusTick status={status} />}
             </div>

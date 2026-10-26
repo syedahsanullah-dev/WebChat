@@ -6,7 +6,7 @@ import Avatar from '@/components/ui/Avatar';
 import DropdownMenu, { DropdownMenuItem } from '@/components/ui/DropdownMenu';
 import TypingDots from './TypingDots';
 import { formatLastSeen } from '@/hooks/usePresence';
-import { ArrowLeft, Phone, Search } from 'lucide-react';
+import { ArrowLeft, Phone, Search, Lock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export interface ChatHeaderProps {
@@ -17,6 +17,7 @@ export interface ChatHeaderProps {
   subtitle?: string | null;
   isTyping?: boolean;
   typingUsername?: string | null;
+  isE2EE?: boolean;
   onBack: () => void;
   onStartCall: () => void;
   onSearch?: () => void;
@@ -32,6 +33,7 @@ export default function ChatHeader({
   subtitle,
   isTyping = false,
   typingUsername,
+  isE2EE = true,
   onBack,
   onStartCall,
   onSearch,
@@ -96,9 +98,16 @@ export default function ChatHeader({
             <Avatar name={name} src={avatar} size="md" isOnline={isOnline} />
 
             <div className="min-w-0 flex flex-col justify-center">
-              <h2 className="font-medium text-sm sm:text-[15px] text-wa-light-text-primary dark:text-wa-dark-text-primary truncate leading-tight">
-                {name}
-              </h2>
+              <div className="flex items-center gap-1.5 min-w-0">
+                <h2 className="font-medium text-sm sm:text-[15px] text-wa-light-text-primary dark:text-wa-dark-text-primary truncate leading-tight">
+                  {name}
+                </h2>
+                {isE2EE && (
+                  <span title="End-to-end encrypted" className="text-wa-green flex-shrink-0">
+                    <Lock className="w-3.5 h-3.5" />
+                  </span>
+                )}
+              </div>
               <div className="h-4 flex items-center leading-none mt-0.5">{renderStatus()}</div>
             </div>
           </div>

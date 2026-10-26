@@ -199,8 +199,9 @@ export default function SafetyNumberModal({
           <Avatar
             src={contactAvatar}
             alt={contactName}
+            name={contactName}
             size="md"
-            status="offline"
+            isOnline={false}
           />
           <h3 className="font-medium text-base text-wa-light-text-primary dark:text-wa-dark-text-primary">
             {contactName}

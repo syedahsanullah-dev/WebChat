@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { initializeUserKeys, clearCryptoMemoryCache } from '@/lib/crypto/keyExchange';
 
 export interface UserProfile {
   id: string;
@@ -69,6 +70,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     refreshUser();
   }, [refreshUser]);
 
+  useEffect(() => {
+    if (user?.id) {
+      initializeUserKeys(user.id).catch((err) => {
+        console.warn('[AuthContext] E2EE key initialization error (non-fatal):', err);
+      });
+    }
+  }, [user?.id]);
+
   const login = async (identifier: string, password: string) => {
     try {
       const res = await fetch('/api/auth/login', {
@@ -122,6 +131,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       await fetch('/api/auth/logout', { method: 'POST' });
     } finally {
+      clearCryptoMemoryCache();
       setUser(null);
       router.push('/login');
     }

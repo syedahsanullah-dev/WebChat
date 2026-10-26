@@ -176,7 +176,7 @@ export async function fetchPeerPublicKey(peerId: string): Promise<string | null>
     const res = await fetch(`${baseUrl}/api/users/${peerId}/key`, {
       headers: { 'Cache-Control': 'no-cache' },
     });
-    if (!res.ok) return null;
+    if (!res || !res.ok) return null;
 
     const data = await res.json();
     if (data.publicKey) {

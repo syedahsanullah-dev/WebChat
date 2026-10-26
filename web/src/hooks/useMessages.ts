@@ -33,6 +33,7 @@ export interface MessageItem {
 
 export interface SendMessageOptions {
   content?: string;
+  plaintextContent?: string;
   messageType?: 'text' | 'image' | 'voice' | 'system' | string;
   mediaUrl?: string | null;
   mediaSize?: number | null;
@@ -248,20 +249,23 @@ export function useMessages({ chatId, recipientId }: UseMessagesOptions) {
 
   // Send an optimistic text or media message
   const sendMessage = useCallback(
-    async (input: string | SendMessageOptions) => {
+    (input: string | SendMessageOptions) => {
       if (!chatId || !user) return;
 
       const isOptions = typeof input === 'object' && input !== null;
-      const rawContent = isOptions ? (input.content || '') : input;
+      const content = isOptions ? (input.content || '') : input;
+      const plaintextContent = isOptions && input.plaintextContent ? input.plaintextContent : content;
       const mediaUrl = isOptions ? (input.mediaUrl || null) : null;
       const mediaSize = isOptions ? (input.mediaSize || null) : null;
       const mediaDuration = isOptions ? (input.mediaDuration || null) : null;
       const replyToId = isOptions ? (input.replyToId || null) : null;
+      const isE2EE = isOptions ? Boolean(input.isE2EE) : false;
+      const e2eeIv = isOptions ? input.e2eeIv || null : null;
       const messageType = isOptions
         ? input.messageType || (mediaUrl ? 'image' : 'text')
         : 'text';
 
-      if (!rawContent.trim() && !mediaUrl) return;
+      if (!content.trim() && !mediaUrl) return;
 
       const tempId = typeof crypto !== 'undefined' && crypto.randomUUID
         ? crypto.randomUUID()
@@ -269,32 +273,13 @@ export function useMessages({ chatId, recipientId }: UseMessagesOptions) {
 
       const nowIso = new Date().toISOString();
 
-      // Check if 1-on-1 E2EE encryption should be applied
-      let isE2EE = false;
-      let e2eeIv: string | null = null;
-      let payloadContent = rawContent.trim();
-
-      if (recipientId && user.id && rawContent.trim()) {
-        try {
-          const sharedKey = await getOrDeriveSharedKey(user.id, recipientId);
-          if (sharedKey) {
-            const encrypted = await encryptMessage(rawContent.trim(), sharedKey);
-            isE2EE = true;
-            e2eeIv = encrypted.iv;
-            payloadContent = encrypted.ciphertext;
-          }
-        } catch (encErr) {
-          console.warn('[useMessages] E2EE encryption fallback to plaintext:', encErr);
-        }
-      }
-
-      // Optimistic message item with pending clock (displays readable plaintext locally)
+      // Synchronous optimistic message item with pending clock (displays readable plaintext immediately)
       const optimisticMessage: MessageItem = {
         id: tempId,
         tempId,
         senderId: user.id,
         senderName: user.displayName || `@${user.username}`,
-        content: rawContent.trim(),
+        content: plaintextContent.trim(),
         messageType,
         mediaUrl,
         mediaSize,
@@ -312,14 +297,14 @@ export function useMessages({ chatId, recipientId }: UseMessagesOptions) {
       // Play sent sound immediately
       playSent();
 
-      // Dispatch over WebSocket
+      // Dispatch synchronously over WebSocket
       send({
         type: 'message:send',
         payload: {
           tempId,
           chatId,
           recipientId: recipientId || undefined,
-          content: payloadContent,
+          content: content.trim(),
           messageType,
           mediaUrl: mediaUrl || undefined,
           fileUrl: mediaUrl || undefined,
@@ -352,6 +337,8 @@ export function useMessages({ chatId, recipientId }: UseMessagesOptions) {
               ...msg,
               id: payload.messageId,
               status: payload.status || 'sent',
+              isE2EE: payload.isE2EE ?? msg.isE2EE,
+              e2eeIv: payload.e2eeIv ?? msg.e2eeIv,
               createdAt: payload.createdAt || msg.createdAt,
             };
           }
@@ -361,8 +348,25 @@ export function useMessages({ chatId, recipientId }: UseMessagesOptions) {
     });
 
     // 2. message:new — incoming message
-    const unsubNew = subscribe<MessageNewPayload>('message:new', (payload) => {
+    const unsubNew = subscribe<MessageNewPayload>('message:new', async (payload) => {
       if (!payload || payload.chatId !== currentChatIdRef.current) return;
+
+      let displayContent = payload.content || '';
+      const isE2EE = Boolean(payload.isE2EE);
+      const e2eeIv = payload.e2eeIv || null;
+
+      // Decrypt incoming E2EE message
+      if (isE2EE && e2eeIv && user?.id && payload.senderId !== user.id) {
+        try {
+          const peerId = payload.senderId;
+          const sharedKey = await getOrDeriveSharedKey(user.id, peerId);
+          if (sharedKey) {
+            displayContent = await decryptMessage(displayContent, e2eeIv, sharedKey);
+          }
+        } catch (decErr) {
+          console.debug('[useMessages] Error decrypting incoming live message:', decErr);
+        }
+      }
 
       setMessages((prev) => {
         // Prevent duplicate appending
@@ -378,6 +382,8 @@ export function useMessages({ chatId, recipientId }: UseMessagesOptions) {
                   ...m,
                   id: payload.id,
                   status: payload.status || m.status,
+                  isE2EE,
+                  e2eeIv,
                   mediaUrl: (payload as any).mediaUrl || (payload as any).fileUrl || m.mediaUrl,
                   messageType: (payload as any).messageType || payload.type || m.messageType,
                 }
@@ -393,13 +399,15 @@ export function useMessages({ chatId, recipientId }: UseMessagesOptions) {
             (payload as any).sender?.displayName ||
             (payload as any).sender?.username ||
             (payload as any).senderName,
-          content: payload.content || '',
+          content: displayContent,
           messageType: (payload as any).messageType || payload.type || 'text',
           mediaUrl: (payload as any).mediaUrl || (payload as any).fileUrl || null,
           mediaSize: (payload as any).mediaSize || (payload as any).fileSize || null,
           mediaDuration: (payload as any).mediaDuration || (payload as any).duration || null,
           replyToId: (payload as any).replyToId || (payload as any).replyToMessageId || null,
           isDeleted: Boolean((payload as any).isDeleted),
+          isE2EE,
+          e2eeIv,
           status: payload.status || 'sent',
           createdAt:
             payload.createdAt instanceof Date
