@@ -114,12 +114,12 @@
 - [x] Zero OTP / verification codes guardrail enforced
 
 ## Phase 16: [Client-Side End-to-End Encryption (E2EE)](phases/16_CLIENT_SIDE_END_TO_END_ENCRYPTION_E2EE.md)
-- [ ] Web Cryptography API (`window.crypto.subtle`) ECDH P-256 key agreement and AES-GCM-256 payload cipher
-- [ ] Browser IndexedDB private key store (`webchat_crypto`), ensuring private keys never leave device
-- [ ] Public key exchange API (`POST /api/users/keys`, `GET /api/users/:id/key`)
-- [ ] Unique 96-bit random IV generation per message with ciphertext payload encapsulation
-- [ ] 60-digit Safety Number calculation (SHA-256 formatted) and QR comparison verification modal
-- [ ] Visual E2EE green padlock badges on chat header and message cards
+- [x] Web Cryptography API (`window.crypto.subtle`) ECDH P-256 key agreement and AES-GCM-256 payload cipher
+- [x] Browser IndexedDB private key store (`webchat_crypto`), ensuring private keys never leave device
+- [x] Public key exchange API (`POST /api/users/keys`, `GET /api/users/:id/key`)
+- [x] Unique 96-bit random IV generation per message with ciphertext payload encapsulation
+- [x] 60-digit Safety Number calculation (SHA-256 formatted) and QR comparison verification modal
+- [x] Visual E2EE green padlock badges on chat header and message cards
 
 ## Phase 17: [Broadcast Announcement Channels & Channel Governance](phases/17_BROADCAST_ANNOUNCEMENT_CHANNELS.md)
 - [ ] One-way broadcast announcement channels with `ChannelMetadata` (slug, description, verified badge)
