@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import MessageStatusTick, { MessageStatusType } from './MessageStatusTick';
+import E2EEBubbleIndicator from './E2EEBubbleIndicator';
 import QuotedMessageSnippet from './QuotedMessageSnippet';
 import ReactionHoverBar from './ReactionHoverBar';
 import EmojiReactionPill from './EmojiReactionPill';
@@ -26,6 +27,7 @@ export interface MessageBubbleProps {
   replyToMessage?: QuotedMessageInfo | null;
   reactions?: Record<string, string[]> | null;
   isDeleted?: boolean;
+  isE2EE?: boolean;
   searchQuery?: string;
   currentUserId?: string;
   onReply?: () => void;
@@ -45,6 +47,7 @@ export default function MessageBubble({
   replyToMessage,
   reactions,
   isDeleted = false,
+  isE2EE = false,
   searchQuery,
   currentUserId = '',
   onReply,
@@ -136,6 +139,7 @@ export default function MessageBubble({
 
         {/* Timestamp and Delivery Tick */}
         <div className="flex items-center justify-end gap-1 mt-1 text-[10px] text-wa-light-text-muted dark:text-wa-dark-text-muted float-right ml-3 -mb-0.5 select-none">
+          {isE2EE && !isDeleted && <E2EEBubbleIndicator />}
           <span>{timeFormatted}</span>
           {isMe && !isDeleted && <MessageStatusTick status={status} />}
         </div>

@@ -9,7 +9,7 @@ description: >-
 
 # WebChat Requirements & Architecture Skill
 
-This skill acts as the system architect and technical authority for the WebChat project. It ensures that every requirement, database modification, and architectural decision strictly respects the Hostinger dual-server constraints and maintains an additional monthly cost of **$0.00** across all 25 phases.
+This skill acts as the system architect and technical authority for the WebChat project. It ensures that every requirement, database modification, and architectural decision strictly respects the Hostinger dual-server constraints and maintains an additional monthly cost of **$0.00** across all 38 phases.
 
 ## Core Non-Negotiable Rules
 
@@ -18,7 +18,7 @@ This skill acts as the system architect and technical authority for the WebChat 
    - **No paid external storage** (No AWS S3, No Cloudinary) — use Hostinger NVMe `/public/uploads/` (`avatars/`, `images/`, `voice/`, `docs/`).
    - **No paid WebRTC media servers** (No Twilio, Agora, or paid LiveKit) — use free Google STUN and free Metered.ca TURN (50 GB/mo).
    - **Audio-Only Calling**: Video calling is strictly disabled. Only audio calling via WebRTC Opus codec is allowed.
-   - **Enterprise & Admin Tools at $0 Cost**: 2FA via `otplib` (RFC 6238 TOTP), E2EE via native browser `window.crypto.subtle`, push notifications via W3C VAPID protocol (`web-push`), Admin metrics and DLP via in-memory regex.
+   - **Enterprise & Admin Tools at $0 Cost**: Multi-device session security (`user_sessions`), E2EE via native browser `window.crypto.subtle`, push notifications via W3C VAPID protocol (`web-push`), Admin metrics and DLP via in-memory regex.
    - **Geolocation & Mapping at $0 Cost**: Leaflet.js with free OpenStreetMap tiles and cached Nominatim reverse geocoding. Strictly no Google Maps or Mapbox API keys.
 
 2. **Dual-Server Subdomain Isolation & High-Performance Daemon**:
@@ -27,9 +27,9 @@ This skill acts as the system architect and technical authority for the WebChat 
    - **Memory Target**: Fastify + `ws` must maintain an idle memory footprint of **~25–35 MB RAM** (60%+ lower than Express + Socket.io), preventing out-of-memory restarts within Hostinger CloudLinux container limits.
    - **Cross-Origin Security**: Server #2 must allow CORS strictly from Server #1.
 
-3. **Identity System Guardrail**:
-   - **No phone numbers anywhere**: Registration and login only use `@username`, verified `email`, and `password`.
-   - Never introduce phone number fields, SMS gateways, or OTP services requiring paid telephony.
+3. **Identity System Guardrail (Zero Verification Friction)**:
+   - **No phone numbers, No SMS gateways, No OTP codes, and No email verification codes**: Registration and login only use `@username`, `email`, and `password`.
+   - Never introduce phone number fields, SMS gateways, or OTP verification services requiring paid telephony or verification friction.
 
 4. **Database Connection Safety**:
    - Hostinger MySQL databases impose connection limits (typically 50–100 max user connections).
@@ -41,12 +41,15 @@ This skill acts as the system architect and technical authority for the WebChat 
 - When extending or inspecting the Prisma schema in `PROJECT_SPECIFICATION_AND_PHASES.md`:
   - All foreign keys must have explicit indexes (`map: "idx_..."`) to prevent slow table scans on Hostinger shared MySQL.
   - Text content must use appropriate column types (`@db.VarChar(255)`, `@db.Text` for long messages).
-  - The 24 Prisma models across the 25-phase blueprint are: `User`, `UserSecurity`, `UserSession`, `Contact`, `Chat`, `ChannelMetadata`, `ChatParticipant`, `Message`, `MessageStatus`, `PinnedMessage`, `StarredMessage`, `Poll`, `PollOption`, `PollVote`, `CallLog`, `UserPushSubscription`, `Webhook`, `ScheduledReminder`, `AuditLog`, `SystemSetting`, `InviteCode`, `AbuseReport`, `DlpRule`, `SystemBroadcast`, and `LiveLocation`.
+  - The 24 Prisma models across the 38-phase blueprint are: `User`, `UserPublicKey`, `UserSession`, `Contact`, `Chat`, `ChannelMetadata`, `ChatParticipant`, `Message`, `MessageStatus`, `PinnedMessage`, `StarredMessage`, `Poll`, `PollOption`, `PollVote`, `CallLog`, `UserPushSubscription`, `Webhook`, `ScheduledReminder`, `AuditLog`, `SystemSetting`, `AbuseReport`, `DlpRule`, `SystemBroadcast`, and `LiveLocation`.
 
 ## SDLC Phase Tracking
 
-Always cross-reference user requests against the 25-phase roadmap in `phases/` and `chk.txt`:
+Always cross-reference user requests against the 38-phase roadmap in `phases/` and `chk.txt`:
 - **Part I: Core Production Platform (Phases 01 – 14)**
-- **Part II: Enterprise Suite & Compliance (Phases 15 – 20)**
-- **Part III: Enterprise Administration & Operations (Phases 21 – 24)**
-- **Part IV: Advanced Geolocation & Mobility (Phase 25)**
+- **Part II: Enterprise Security, Data & Communications (Phases 15 – 22)**
+- **Part III: Offline Resilience & Developer Integrations (Phases 23 – 26)**
+- **Part IV: Enterprise Compliance & Governance (Phases 27 – 28)**
+- **Part V: Enterprise Administration & Operations (Phases 29 – 34)**
+- **Part VI: Platform Reliability & Emergency Operations (Phases 35 – 36)**
+- **Part VII: Advanced Geolocation & Mobility (Phases 37 – 38)**

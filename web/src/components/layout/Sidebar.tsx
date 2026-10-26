@@ -7,6 +7,7 @@ import SearchInput from '@/components/ui/SearchInput';
 import DropdownMenu, { DropdownMenuItem } from '@/components/ui/DropdownMenu';
 import Modal from '@/components/ui/Modal';
 import ProfileDrawer from '@/components/profile/ProfileDrawer';
+import LinkedDevicesDrawer from '@/components/settings/LinkedDevicesDrawer';
 import InstallAppBanner from '@/components/pwa/InstallAppBanner';
 import NewChatModal from '@/components/contacts/NewChatModal';
 import ContactDrawer from '@/components/contacts/ContactDrawer';
@@ -28,6 +29,7 @@ import {
   User,
   ShieldCheck,
   BookUser,
+  Laptop,
 } from 'lucide-react';
 
 export interface ChatItemData {
@@ -71,6 +73,7 @@ export default function Sidebar({
   const [filterType, setFilterType] = useState<'all' | 'unread' | 'groups'>('all');
   const [activeModal, setActiveModal] = useState<'settings' | 'new-group' | null>(null);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isLinkedDevicesOpen, setIsLinkedDevicesOpen] = useState(false);
   const [isContactDrawerOpen, setIsContactDrawerOpen] = useState(false);
   const [isNewChatModalOpen, setIsNewChatModalOpen] = useState(false);
 
@@ -179,7 +182,8 @@ export default function Sidebar({
   // Handle open direct 1-on-1 chat
   const handleOpenDirectChat = async (targetUserId: string, existingChatId?: string | null) => {
     if (existingChatId) {
-      onSelectChat(existingChatId);
+      const existing = chats.find((c) => c.id === existingChatId);
+      onSelectChat(existingChatId, existing || null);
       return;
     }
 
@@ -249,6 +253,12 @@ export default function Sidebar({
       onClick: () => setIsProfileOpen(true),
     },
     {
+      id: 'linked-devices',
+      label: 'Linked devices',
+      icon: <Laptop className="w-4 h-4 text-wa-light-text-secondary dark:text-wa-dark-text-secondary" />,
+      onClick: () => setIsLinkedDevicesOpen(true),
+    },
+    {
       id: 'settings',
       label: 'Settings',
       icon: <Settings className="w-4 h-4 text-wa-light-text-secondary dark:text-wa-dark-text-secondary" />,
@@ -292,6 +302,12 @@ export default function Sidebar({
       <ProfileDrawer
         isOpen={isProfileOpen}
         onClose={() => setIsProfileOpen(false)}
+      />
+
+      {/* Slide-over WhatsApp Linked Devices Drawer */}
+      <LinkedDevicesDrawer
+        isOpen={isLinkedDevicesOpen}
+        onClose={() => setIsLinkedDevicesOpen(false)}
       />
 
       {/* Slide-over WhatsApp Contact Drawer */}
@@ -411,10 +427,12 @@ export default function Sidebar({
         ) : (
           filteredChats.map((chat) => {
             const isSelected = activeChatId === chat.id;
-            const isChatOnline =
-              isUserOnline(chat.username?.replace('@', '') || '') ||
-              isUserOnline(chat.id) ||
-              chat.isOnline;
+            const isChatOnline = chat.isGroup
+              ? false
+              : Boolean(
+                  (chat.otherUser?.id && isUserOnline(chat.otherUser.id)) ||
+                  isUserOnline(chat.username?.replace('@', '') || '')
+                );
             const isTyping = Boolean(typingChats[chat.id]?.isTyping);
             const typingUsername = typingChats[chat.id]?.username;
 

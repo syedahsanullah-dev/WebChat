@@ -30,6 +30,8 @@ model User {
   adminOfGroups    Chat[]            @relation("GroupAdmin")
   initiatedCalls   CallLog[]         @relation("CallerUser")
   receivedCalls    CallLog[]         @relation("ReceiverUser")
+  sessions         UserSession[]
+  publicKey        UserPublicKey?
 
   @@map("users")
 }
@@ -95,6 +97,8 @@ model Message {
   mediaDuration    Float? // In seconds, for voice notes
   replyToMessageId String?
   isDeleted        Boolean  @default(false)
+  isE2EE           Boolean  @default(false)
+  e2eeIv           String?  @db.VarChar(50) // Base64 encoded 12-byte IV for AES-GCM
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
@@ -137,4 +141,35 @@ model CallLog {
 
   @@index([chatId, startedAt(sort: Desc)], map: "idx_call_logs_chat_started")
   @@map("call_logs")
+}
+
+model UserSession {
+  id           String    @id @default(uuid())
+  userId       String
+  sessionToken String    @unique(map: "idx_sessions_token") @db.VarChar(255)
+  ipAddress    String?   @db.VarChar(45)
+  userAgent    String?   @db.Text
+  deviceType   String    @default("DESKTOP") @db.VarChar(20) // "DESKTOP", "MOBILE", "TABLET", "UNKNOWN"
+  browser      String?   @db.VarChar(50)                    // "Chrome", "Firefox", "Safari", "Edge"
+  os           String?   @db.VarChar(50)                    // "Windows", "macOS", "Linux", "Android", "iOS"
+  lastActiveAt DateTime  @default(now())
+  createdAt    DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, lastActiveAt(sort: Desc)], map: "idx_sessions_user_active")
+  @@map("user_sessions")
+}
+
+model UserPublicKey {
+  id        String   @id @default(uuid())
+  userId    String   @unique(map: "idx_user_public_key")
+  publicKey String   @db.Text // Base64 encoded exported SPKI public key
+  algorithm String   @default("ECDH-P256") @db.VarChar(50)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_public_keys")
 }

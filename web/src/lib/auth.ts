@@ -5,6 +5,8 @@ export interface AuthTokenPayload {
   userId: string;
   username: string;
   email: string;
+  sessionToken?: string;
+  sessionId?: string;
 }
 
 export const AUTH_COOKIE_NAME = 'auth_token';

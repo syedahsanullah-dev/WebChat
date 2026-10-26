@@ -123,6 +123,9 @@ export function useCallSignaling() {
   // Clean transition to ended then idle
   const transitionToEnded = useCallback((delayMs = 1200) => {
     stopRingtoneSound();
+    if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+      try { navigator.vibrate(0); } catch {}
+    }
     webRTC.cleanup();
     if (callTimeoutRef.current) {
       clearTimeout(callTimeoutRef.current);
@@ -148,6 +151,12 @@ export function useCallSignaling() {
     }) => {
       if (!user) return;
       if (callStateRef.current !== 'idle') return;
+
+      // Unlock mobile audio element on user tap
+      if (typeof document !== 'undefined') {
+        const el = document.getElementById('webchat-remote-audio') as HTMLAudioElement;
+        if (el) el.play().catch(() => {});
+      }
 
       const callId = typeof crypto !== 'undefined' && crypto.randomUUID
         ? crypto.randomUUID()
@@ -218,6 +227,16 @@ export function useCallSignaling() {
     if (!active || !user) return;
 
     stopRingtoneSound();
+    if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+      try { navigator.vibrate(0); } catch {}
+    }
+
+    // Unlock mobile audio element on user gesture
+    if (typeof document !== 'undefined') {
+      const el = document.getElementById('webchat-remote-audio') as HTMLAudioElement;
+      if (el) el.play().catch(() => {});
+    }
+
     setCallState('connecting');
 
     try {
@@ -348,8 +367,11 @@ export function useCallSignaling() {
         },
       });
 
-      // Play ringtone loop
+      // Play ringtone loop & vibrate on mobile devices
       ringtoneStopRef.current = startRingtone();
+      if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+        try { navigator.vibrate([400, 250, 400, 250]); } catch {}
+      }
     });
 
     // 2. audio-call:ring — caller receives acknowledgment that peer is ringing

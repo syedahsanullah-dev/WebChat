@@ -96,6 +96,10 @@ export class RoomManager {
     return this.userSockets.size;
   }
 
+  getOnlineUserIds(): string[] {
+    return Array.from(this.userSockets.keys());
+  }
+
   getActiveSocketCount(): number {
     let count = 0;
     for (const sockets of this.userSockets.values()) {

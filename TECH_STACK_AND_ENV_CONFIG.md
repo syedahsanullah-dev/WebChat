@@ -1,5 +1,5 @@
 # WebChat Technical Architecture, Dependencies & Environment Reference
-## Dual-Server Node.js Setup: Next.js 15 Standalone + Fastify & Native `ws` (25-Phase Master Enterprise Blueprint)
+## Dual-Server Node.js Setup: Next.js 15 Standalone + Fastify & Native `ws` (38-Phase Master Enterprise Blueprint)
 
 > This document is the single source of truth for all npm packages, package scripts, environment variables, and runtime configurations for both Server #1 (Frontend/REST) and Server #2 (WebSocket Daemon).
 
@@ -54,8 +54,6 @@
     "tailwind-merge": "^2.5.5",
     "date-fns": "^4.1.0",
     "winston": "^3.17.0",
-    "otplib": "^12.0.1",
-    "qrcode": "^1.5.4",
     "web-push": "^3.6.7",
     "idb": "^8.0.0",
     "prismjs": "^1.29.0",
@@ -69,7 +67,6 @@
     "@types/react-dom": "^19.0.1",
     "@types/jsonwebtoken": "^9.0.7",
     "@types/bcryptjs": "^2.4.6",
-    "@types/qrcode": "^1.5.5",
     "@types/web-push": "^3.6.4",
     "@types/prismjs": "^1.26.5",
     "@types/archiver": "^6.0.3",
@@ -113,9 +110,6 @@ DATABASE_URL="mysql://u123456789_webchat:YourSecurePassword123@127.0.0.1:3306/u1
 # JSON Web Token Secret
 JWT_SECRET="your_ultra_secure_256_bit_jwt_secret_key_change_in_production"
 JWT_EXPIRES_IN="7d"
-
-# 2FA Secret Encryption Key (For encrypting TOTP secrets in DB)
-TOTP_ENCRYPTION_KEY="your_32_byte_aes_key_for_totp_secret_storage"
 
 # VAPID Web Push Keys (Generate with: npx web-push generate-vapid-keys)
 NEXT_PUBLIC_VAPID_PUBLIC_KEY="your_vapid_public_key_base64"
@@ -328,13 +322,17 @@ export interface WsEnvelope<T = any> {
     | 'typing:start'
     | 'typing:stop'
     | 'message:send'
+    | 'message:ack'
     | 'message:new'
     | 'message:status'
     | 'message:reaction'
     | 'message:delete'
+    | 'session:revoked'
     | 'poll:vote'
     | 'poll:update'
     | 'chat:pin'
+    | 'chat:pin_updated'
+    | 'chat:ephemeral_updated'
     | 'audio-call:invite'
     | 'audio-call:ring'
     | 'audio-call:accept'
@@ -349,7 +347,9 @@ export interface WsEnvelope<T = any> {
     | 'location:live_stopped'
     | 'location:live_ended'
     | 'system:broadcast'
-    | 'user:kick';
+    | 'system:broadcast_dismiss'
+    | 'user:kick'
+    | 'user:mute';
   payload: T;
 }
 ```

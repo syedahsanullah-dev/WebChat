@@ -84,22 +84,26 @@ export default function ChatArea({
   const fallbackChat = MOCK_CHATS.find((c) => c.id === activeChatId) || null;
   const activeChat = activeChatData || fallbackChat;
 
-  const recipientId =
-    activeChat?.otherUser?.id || activeChat?.username || activeChat?.id || null;
+  const recipientUserId = activeChat?.otherUser?.id || null;
+  const recipientId = recipientUserId || activeChat?.username?.replace(/^@/, '') || null;
 
   // Real-time presence
   const { isUserOnline, getUserLastSeen } = usePresence();
-  const isContactOnline = activeChat
-    ? isUserOnline(activeChat.otherUser?.id || activeChat.id) ||
-      isUserOnline(activeChat.username || '') ||
-      Boolean(activeChat.isOnline)
-    : false;
+  const isContactOnline =
+    activeChat && !activeChat.isGroup
+      ? Boolean(
+          (recipientUserId && isUserOnline(recipientUserId)) ||
+          isUserOnline(activeChat.username?.replace(/^@/, '') || '')
+        )
+      : false;
 
-  const contactLastSeen = activeChat
-    ? getUserLastSeen(activeChat.otherUser?.id || activeChat.id) ||
-      getUserLastSeen(activeChat.username || '') ||
-      ('lastSeen' in activeChat ? activeChat.lastSeen : undefined)
-    : undefined;
+  const contactLastSeen =
+    activeChat && !activeChat.isGroup
+      ? (recipientUserId && getUserLastSeen(recipientUserId)) ||
+        getUserLastSeen(activeChat.username?.replace(/^@/, '') || '') ||
+        activeChat.otherUser?.lastSeen ||
+        (activeChat as any).lastSeen
+      : undefined;
 
   // Real-time typing
   const { isTyping, typingUsername, emitTyping, stopTyping } = useTyping({

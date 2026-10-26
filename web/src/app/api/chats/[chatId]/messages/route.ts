@@ -86,6 +86,8 @@ export async function GET(
         mediaDuration: msg.mediaDuration,
         replyToMessageId: msg.replyToMessageId,
         isDeleted: msg.isDeleted,
+        isE2EE: Boolean(msg.isE2EE),
+        e2eeIv: msg.e2eeIv || null,
         status: effectiveStatus,
         createdAt: msg.createdAt.toISOString(),
       };

@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs';
 import { prisma } from '@/lib/prisma';
 import { LoginSchema } from '@/lib/validations';
 import { signToken, setAuthCookie } from '@/lib/auth';
+import { createSession } from '@/lib/sessionManager';
 
 export async function POST(request: NextRequest) {
   try {
@@ -51,11 +52,24 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Create new active device session record in MySQL
+    let sessionToken: string | undefined;
+    let sessionId: string | undefined;
+    try {
+      const sessionResult = await createSession(user.id, request);
+      sessionToken = sessionResult.sessionToken;
+      sessionId = sessionResult.session.id;
+    } catch (sessionErr) {
+      console.warn('Session tracking non-fatal error:', sessionErr);
+    }
+
     // Sign JWT token
     const token = signToken({
       userId: user.id,
       username: user.username,
       email: user.email,
+      sessionToken,
+      sessionId,
     });
 
     // Sanitized user object

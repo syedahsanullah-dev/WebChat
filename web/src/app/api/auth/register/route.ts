@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs';
 import { prisma } from '@/lib/prisma';
 import { RegisterSchema } from '@/lib/validations';
 import { signToken, setAuthCookie } from '@/lib/auth';
+import { createSession } from '@/lib/sessionManager';
 
 export async function POST(request: NextRequest) {
   try {
@@ -78,11 +79,24 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    // Create initial active session in MySQL
+    let sessionToken: string | undefined;
+    let sessionId: string | undefined;
+    try {
+      const sessionResult = await createSession(newUser.id, request);
+      sessionToken = sessionResult.sessionToken;
+      sessionId = sessionResult.session.id;
+    } catch (sessionErr) {
+      console.warn('Session tracking non-fatal error:', sessionErr);
+    }
+
     // Generate JWT token
     const token = signToken({
       userId: newUser.id,
       username: newUser.username,
       email: newUser.email,
+      sessionToken,
+      sessionId,
     });
 
     // Prepare response with HTTP-only cookie

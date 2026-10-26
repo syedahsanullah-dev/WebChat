@@ -103,89 +103,197 @@
 
 ---
 
-### Part II: Enterprise Suite & Compliance (Phases 15 – 20)
+### Part II: Enterprise Security, Data & Communications (Phases 15 – 22)
 
-## Phase 15: [Enterprise Security, 2FA (TOTP) & End-to-End Encryption (E2EE)](phases/15_ENTERPRISE_SECURITY_2FA_AND_E2EE.md)
-- [ ] RFC 6238 TOTP Two-Factor Authentication setup with QR code and 10 backup recovery codes
-- [ ] Login 2FA challenge workflow for accounts with 2FA enabled
-- [ ] Active device session tracking with IP, User-Agent, and one-click remote session revocation
-- [ ] Client-side E2EE using Web Cryptography API (`SubtleCrypto` ECDH P-256 + AES-GCM-256)
-- [ ] 60-digit safety number fingerprint comparison modal for verified encryption
-- [ ] Rate-limiting middleware on Server #1 and Server #2 against brute-force attacks
+## Phase 15: [Device Session Management & Multi-Device Security](phases/15_DEVICE_SESSIONS_AND_MULTI_DEVICE_SECURITY.md)
+- [x] Active device session tracking with IP, User-Agent, browser, OS, and relative last active timestamps
+- [x] WhatsApp Web style "Linked Devices" drawer with device type icons and "This device" indicator
+- [x] Remote session revocation API (`DELETE /api/auth/sessions/:id` and "Log out from all other devices")
+- [x] Real-time WebSocket session drop upon revocation (`session:revoked` code 4001)
+- [x] Automatic invalidation of all other active sessions upon password change
+- [x] Zero OTP / verification codes guardrail enforced
 
-## Phase 16: [Enterprise Channels, Polls & Message Governance](phases/16_ENTERPRISE_CHANNELS_POLLS_AND_GOVERNANCE.md)
-- [ ] One-way broadcast / announcement channels where only Owner/Admin post and members react
-- [ ] Interactive multi-choice polls with live animated progress bars and real-time voting tallies
-- [ ] Pinned messages banner strip (up to 5 pinned messages per chat with jump-to navigation)
-- [ ] Personal starred / bookmarked messages slide-over drawer with direct conversation links
+## Phase 16: [Client-Side End-to-End Encryption (E2EE)](phases/16_CLIENT_SIDE_END_TO_END_ENCRYPTION_E2EE.md)
+- [ ] Web Cryptography API (`window.crypto.subtle`) ECDH P-256 key agreement and AES-GCM-256 payload cipher
+- [ ] Browser IndexedDB private key store (`webchat_crypto`), ensuring private keys never leave device
+- [ ] Public key exchange API (`POST /api/users/keys`, `GET /api/users/:id/key`)
+- [ ] Unique 96-bit random IV generation per message with ciphertext payload encapsulation
+- [ ] 60-digit Safety Number calculation (SHA-256 formatted) and QR comparison verification modal
+- [ ] Visual E2EE green padlock badges on chat header and message cards
 
-## Phase 17: [Enterprise Document Sharing, Code Blocks & Ephemeral Messages](phases/17_DOCUMENT_SHARING_CODE_BLOCKS_AND_EPHEMERAL.md)
-- [ ] Document sharing for `.pdf`, `.docx`, `.xlsx`, `.zip` up to 25MB on Hostinger NVMe storage
-- [ ] Color-coded document message cards (PDF red, Excel green, Word blue, Zip orange) with in-app PDF preview
-- [ ] Markdown fenced code blocks with syntax highlighting and one-click "Copy Code" button
-- [ ] Disappearing / ephemeral messages (24h, 7d, 90d) with automated disk cleanup cron
+## Phase 17: [Broadcast Announcement Channels & Channel Governance](phases/17_BROADCAST_ANNOUNCEMENT_CHANNELS.md)
+- [ ] One-way broadcast announcement channels with `ChannelMetadata` (slug, description, verified badge)
+- [ ] Channel creation modal with custom URL slug generation (`/channel/:slug`)
+- [ ] Granular publisher permissions: Admin rich composer vs subscriber read-only bottom bar
+- [ ] Channel directory and subscription management (subscribe, unsubscribe, follower count)
+- [ ] Optimized Fastify WebSocket channel broadcasting with zero read receipt / typing overhead
 
-## Phase 18: [Background Web Push Notifications & Local-First Offline Sync](phases/18_BACKGROUND_WEB_PUSH_AND_OFFLINE_SYNC.md)
-- [ ] W3C Web Push Protocol (VAPID) delivering background push notifications when browser tabs are closed
-- [ ] In-app notification permission prompt and service worker notification click navigation
-- [ ] Local-first IndexedDB storage (`idb`) caching messages and offline outgoing queue
-- [ ] Automatic FIFO offline queue flush and status reconciliation upon network reconnection
+## Phase 18: [Interactive Real-Time Polls & Live Voting](phases/18_INTERACTIVE_REALTIME_POLLS.md)
+- [ ] Poll creation modal via chat attachment menu (Question, 2–12 options, "Allow multiple answers" toggle)
+- [ ] WhatsApp-style interactive poll message bubble with radio/checkbox options
+- [ ] Real-time WebSocket voting engine (`poll:vote` -> `poll:update`)
+- [ ] Animated CSS percentage progress bars updating dynamically for all participants
+- [ ] Voter roster breakdown drawer ("View votes") showing voter identities and timestamps
 
-## Phase 19: [Enterprise Automations: Inbound/Outbound Webhooks & Bot System](phases/19_WEBHOOKS_BOTS_AND_EXTERNAL_INTEGRATIONS.md)
-- [ ] Inbound webhooks allowing CI/CD (GitHub Actions, Jira) to post automated alerts into channels
-- [ ] Verified purple `[BOT]` badge on bot messages to prevent impersonation
-- [ ] Slash commands parser for `/poll`, `/remind [duration] [message]`, `/announce [message]`, `/help`
-- [ ] Fastify background reminder job delivering scheduled bot reminders
+## Phase 19: [Pinned Messages Strip & Starred Message Bookmarks](phases/19_PINNED_AND_STARRED_MESSAGES.md)
+- [ ] Message context menu actions for "Pin message" (24h, 7d, 30d) and "Star message"
+- [ ] Pinned message banner strip beneath ChatHeader with multi-pin carousel
+- [ ] Smooth-scroll jump to pinned/starred message with temporary flashing highlight pulse
+- [ ] Starred message badge on bubbles and global searchable "Starred Messages" drawer
+- [ ] Fastify WebSocket broadcast for pin updates (`chat:pin_updated`)
 
-## Phase 20: [Enterprise Audit Logging, Compliance Data Export & Legal Hold](phases/20_AUDIT_LOGGING_COMPLIANCE_AND_DATA_EXPORT.md)
-- [ ] Immutable security audit log table capturing authentication, governance, and data modifications
-- [ ] Searchable Audit Log Console for enterprise compliance officers with CSV export
-- [ ] Legal Hold governance lock preventing message deletion and suspending ephemeral expiration
-- [ ] Compliance chat export generating standalone, styled offline HTML and JSON `.zip` archives
-- [ ] GDPR self-service "Download My Data" and account deletion workflows
+## Phase 20: [Enterprise Document Sharing & File Attachments](phases/20_ENTERPRISE_DOCUMENT_SHARING.md)
+- [ ] Document sharing for PDF, Excel (`.xlsx`, `.xls`), Word (`.docx`, `.doc`), and Zip archives up to 25MB
+- [ ] Local Hostinger NVMe storage pipeline (`/public/uploads/docs/`) with UUID filenames
+- [ ] Mime-type whitelist validation and drag-and-drop viewport upload listener
+- [ ] Color-coded document message cards (PDF red, Excel green, Word blue, Zip orange) with file size
+- [ ] In-app PDF preview modal using native browser rendering without external plugins
+
+## Phase 21: [Markdown Code Blocks & Syntax Highlighting](phases/21_MARKDOWN_CODE_BLOCKS_AND_SYNTAX_HIGHLIGHTING.md)
+- [ ] Markdown fenced code block parser (` ```language ... ``` `) and inline backtick handler
+- [ ] Prism.js syntax highlighting with dark theme matching WhatsApp dark design tokens
+- [ ] Language badge pill (TypeScript, Python, SQL, HTML, JSON, Bash, Go, Rust, Java, C++)
+- [ ] Monospaced code card with line numbers and horizontal scrolling viewport
+- [ ] One-click "Copy Code" button with checkmark animation
+
+## Phase 22: [Ephemeral & Disappearing Messages](phases/22_EPHEMERAL_AND_DISAPPEARING_MESSAGES.md)
+- [ ] Disappearing messages duration picker per chat (Off, 24 Hours, 7 Days, 90 Days)
+- [ ] In-chat system announcement pills and clock badge indicator on avatars and timestamps
+- [ ] Message creation timestamp hook calculating `expiresAt = NOW() + duration`
+- [ ] Fastify 24/7 background cleanup daemon running every 15 minutes purging expired rows
+- [ ] Automated safe disk unlinking (`fs.unlinkSync`) of expired images, voice notes, and documents
+- [ ] Legal hold bypass respecting active compliance holds
 
 ---
 
-### Part III: Enterprise Administration & Operations (Phases 21 – 24)
+### Part III: Offline Resilience & Developer Integrations (Phases 23 – 26)
 
-## Phase 21: [Super Admin Console, System Metrics & Storage Governance](phases/21_ADMIN_CONSOLE_AND_SYSTEM_METRICS.md)
+## Phase 23: [Background Web Push Notifications (VAPID)](phases/23_BACKGROUND_WEB_PUSH_NOTIFICATIONS.md)
+- [ ] W3C Web Push protocol implementation via `web-push` library and VAPID keypairs ($0 cost)
+- [ ] Service worker background push event listener displaying system notifications when browser is closed
+- [ ] Notification click handler focusing or opening chat window directly (`clients.openWindow`)
+- [ ] Client push subscription manager and user notification preferences toggle
+- [ ] Fastify Server #2 offline interceptor triggering push only when recipient is offline
+
+## Phase 24: [Local-First Offline Sync & IndexedDB Message Queue](phases/24_LOCAL_FIRST_OFFLINE_SYNC_AND_INDEXEDDB.md)
+- [ ] Browser IndexedDB storage engine via `idb` with `messages`, `chats`, and `outbox` stores
+- [ ] Instant 0ms cache rendering on initial conversation load from IndexedDB
+- [ ] Online/offline network connectivity listener with yellow warning banner
+- [ ] Offline message enqueueing with temporary client IDs and clock icon (`🕒`)
+- [ ] Automatic FIFO reconciliation queue flushing upon socket reconnection and updating ticks
+
+## Phase 25: [Inbound & Outbound Webhooks Engine](phases/25_INBOUND_AND_OUTBOUND_WEBHOOKS.md)
+- [ ] Webhook management API and drawer for group admins with HMAC SHA-256 secret tokens
+- [ ] Public inbound webhook endpoint (`POST /api/webhooks/incoming/:token`) for CI/CD alerts (GitHub, Jira)
+- [ ] Distinct purple `[BOT]` badge and Markdown formatting for webhook messages
+- [ ] Outbound event webhook dispatcher notifying external URLs on new messages
+- [ ] Webhook test trigger and delivery logging
+
+## Phase 26: [Chatbots & Slash Commands Engine](phases/26_CHATBOTS_AND_SLASH_COMMANDS.md)
+- [ ] In-chat slash command popover autocomplete triggered by typing `/` in `ChatInput`
+- [ ] Built-in commands: `/poll`, `/remind`, `/announce`, `/help` with argument parser
+- [ ] Natural language time parser converting `10m`, `2h`, `tomorrow 9am` into UTC timestamps
+- [ ] `ScheduledReminder` database model and reminder message bubble with alarm clock icon
+- [ ] Fastify 24/7 background scheduler (every 30s) dispatching due reminders into chat with audio chime
+
+---
+
+### Part IV: Enterprise Compliance & Governance (Phases 27 – 28)
+
+## Phase 27: [Immutable Security Audit Logging](phases/27_IMMUTABLE_SECURITY_AUDIT_LOGGING.md)
+- [ ] Immutable, append-only `AuditLog` table capturing auth, session, governance, and moderation events
+- [ ] Standardized event action enums (`AUTH_LOGIN`, `SESSION_REVOKED`, `USER_SUSPENDED`, `DLP_VIOLATION`)
+- [ ] Event interceptors across Next.js REST routes and Fastify WebSocket handlers
+- [ ] Searchable Admin Audit Log Console (`/admin/audit`) with multi-filter toolbar and JSON inspector
+- [ ] Compliance CSV export streaming filtered audit records
+
+## Phase 28: [Compliance Data Export & Legal Hold Governance](phases/28_COMPLIANCE_DATA_EXPORT_AND_LEGAL_HOLD.md)
+- [ ] Legal Hold switch (`Chat.isLegalHold`) suspending message deletion and ephemeral cleanup
+- [ ] Yellow "Legal Hold Active" security banner in chat header
+- [ ] Standalone styled offline HTML transcript generator (`transcript.html`) replicating WhatsApp Web UI
+- [ ] Machine-readable JSON transcript generator (`transcript.json`)
+- [ ] Compliant `.zip` archive packager using `archiver` bundling HTML, JSON, and media attachments
+- [ ] GDPR "Download My Data" self-service user export workflow
+
+---
+
+### Part V: Enterprise Administration & Operations (Phases 29 – 34)
+
+## Phase 29: [Super Admin Console & Infrastructure Telemetry](phases/29_ADMIN_CONSOLE_AND_SYSTEM_METRICS.md)
 - [ ] Super Admin portal route (`/admin`) protected by `systemRole: "SUPER_ADMIN" | "ADMIN"`
-- [ ] Live Fastify memory telemetry (RAM MB) and active WebSocket connection count
-- [ ] Hostinger NVMe storage analytics breakdown: Avatars, Images, Voice, Docs
-- [ ] Orphan file detection engine scanning uploads directory against database records
-- [ ] Automated disk cleanup tool safely purging orphan files
+- [ ] Fastify Server #2 live RAM telemetry (RSS, Heap Used in MB) via internal `/metrics` endpoint
+- [ ] Active concurrent WebSocket connection counter from `roomManager`
+- [ ] Database stat counters (Total registered users, total chats, messages sent today)
+- [ ] Auto-refreshing admin overview dashboard with color-coded gauge bars
 
-## Phase 22: [User Administration, Account Moderation & Session Enforcement](phases/22_USER_MANAGEMENT_AND_ACCOUNT_MODERATION.md)
-- [ ] User administration data grid with multi-column filtering, search, and sorting
-- [ ] Account suspension and ban workflows with required reason logging
-- [ ] Real-time force disconnect terminating all active WebSocket connections for banned users
-- [ ] Role elevation dialog for promoting users to Moderator, Admin, or Super Admin
-- [ ] System registration policy configuration: Open vs. Invite-Only vs. Admin-Approval
+## Phase 30: [Storage Governance & Orphan Media Cleaner](phases/30_STORAGE_GOVERNANCE_AND_ORPHAN_CLEANER.md)
+- [ ] Hostinger NVMe storage analytics breakdown (Avatars, Images, Voice, Docs) with progress bar
+- [ ] Orphan file detection engine comparing files on disk against MySQL active media URLs
+- [ ] 15-minute in-flight safety buffer protecting newly uploaded media from purge
+- [ ] Safe orphan purge endpoint deleting unreferenced files and recording freed bytes in `audit_logs`
+- [ ] Storage management UI with orphan files table and confirmation modal
 
-## Phase 23: [Content Moderation, Abuse Reporting & Automated DLP Filtering](phases/23_CONTENT_MODERATION_AND_ABUSE_REPORTING.md)
+## Phase 31: [User Administration & Role Delegation](phases/31_USER_ADMINISTRATION_AND_ROLE_DELEGATION.md)
+- [ ] Searchable, sortable, paginated User Directory data grid (`/admin/users`)
+- [ ] Multi-criteria filtering by username/email prefix, system role, and active/suspended status
+- [ ] Role hierarchy engine (`USER` ➔ `MODERATOR` ➔ `ADMIN` ➔ `SUPER_ADMIN`)
+- [ ] Role delegation modal with mandatory audit reason logging
+- [ ] User details drawer showing account stats, active sessions, and group memberships
+
+## Phase 32: [Account Moderation, Bans & Real-Time Socket Kicks](phases/32_ACCOUNT_MODERATION_BANS_AND_SOCKET_KICKS.md)
+- [ ] Account suspension and ban workflows with duration picker (24h, 7d, 30d, Permanent) and mandatory reason
+- [ ] Real-time force disconnect terminating all active WebSocket connections for banned users (`user:kick`)
+- [ ] Invalidation and deletion of all active device sessions for banned user
+- [ ] Banned user login guard preventing new token issuance
+- [ ] Client-side un-dismissible red suspension modal with logout redirect
+
+## Phase 33: [Abuse Reporting & Moderation Queue](phases/33_ABUSE_REPORTING_AND_MODERATION_QUEUE.md)
 - [ ] User-facing abuse reporting modal on messages and profiles with category selectors
 - [ ] Admin moderation review queue (`/admin/moderation`) showing report context and messages
-- [ ] Moderation resolution actions: One-click message deletion, user warning, 24h mute, dismiss
-- [ ] High-speed in-memory Data Loss Prevention (DLP) scanner with regex patterns
-- [ ] Real-time WebSocket preflight blocking credential leaks (AWS keys, private keys, credit cards)
+- [ ] Conversational context viewer showing 2 messages before and after flagged content
+- [ ] One-click moderation actions: Delete Message, Issue Warning, Mute 24h, Suspend User, Dismiss
+- [ ] Real-time WebSocket broadcast of message deletions and user mutes
 
-## Phase 24: [Global System Broadcasts, Maintenance Mode & Emergency Controls](phases/24_GLOBAL_BROADCASTS_AND_MAINTENANCE_MODE.md)
-- [ ] Global broadcast composer with severity levels (INFO, WARNING, CRITICAL)
-- [ ] Real-time alert dispatching to all connected users over WebSocket (`system:broadcast`)
-- [ ] Responsive in-app sliding top banner with severity styling and audio chime
-- [ ] Maintenance Mode toggle with public notice countdown and administrative bypass
-- [ ] On-demand emergency database backup trigger executing native `mysqldump`
+## Phase 34: [Real-Time Data Loss Prevention (DLP) Regex Scanner](phases/34_REALTIME_DLP_REGEX_SCANNER.md)
+- [ ] In-memory Fastify WebSocket preflight scanner evaluating messages in < 1ms before broadcast
+- [ ] Pre-configured regex library: AWS Access Keys, SSH/RSA Private Keys, Credit Cards (Luhn check), SSNs
+- [ ] Immediate block of leaking message with client error banner and retained input text
+- [ ] Background incident recording into `audit_logs` table (`DLP_VIOLATION_BLOCKED`)
+- [ ] Admin DLP Rules Manager (`/admin/dlp`) with interactive regex test sandbox
 
 ---
 
-### Part IV: Advanced Geolocation & Mobility (Phase 25)
+### Part VI: Platform Reliability & Emergency Operations (Phases 35 – 36)
 
-## Phase 25: [Real-Time Live & Current GPS Location Sharing (Leaflet & OpenStreetMap)](phases/25_LIVE_AND_CURRENT_LOCATION_SHARING.md)
-- [ ] Browser Geolocation API wrapper hook (`useGeolocation.ts`) with high-accuracy positioning and permission handling
+## Phase 35: [Real-Time Global Broadcasts](phases/35_REALTIME_GLOBAL_BROADCASTS.md)
+- [ ] Global broadcast composer with severity levels (INFO, WARNING, CRITICAL) and duration
+- [ ] Real-time WebSocket dispatch via `roomManager.broadcastAll({ type: 'system:broadcast' })` in < 50ms
+- [ ] Responsive in-app sliding top banner with severity styling, icon, and dismiss button
+- [ ] Web Audio API synthesizer chime (520Hz ➔ 660Hz) alert
+- [ ] Active broadcast API for newly connected users and broadcast history manager
+
+## Phase 36: [Maintenance Mode & Emergency Database Backups](phases/36_MAINTENANCE_MODE_AND_EMERGENCY_BACKUPS.md)
+- [ ] Maintenance Mode toggle with administrative bypass in Next.js `middleware.ts`
+- [ ] Public Maintenance Mode splash page with brand logo, explanation, and live countdown timer
+- [ ] Fastify WebSocket maintenance guard rejecting non-admin connections with code 4003
+- [ ] On-demand emergency database backup trigger executing native Hostinger `mysqldump | gzip`
+- [ ] Secure backup storage outside `public_html` with download link table
+
+---
+
+### Part VII: Advanced Geolocation & Mobility (Phases 37 – 38)
+
+## Phase 37: [Current Static GPS Location Sharing](phases/37_CURRENT_STATIC_LOCATION_SHARING.md)
+- [ ] Browser Geolocation API wrapper hook (`useGeolocation.ts`) with high-accuracy positioning
 - [ ] Reverse-geocoding API route (`/api/location/reverse-geocode`) with OpenStreetMap Nominatim and server LRU cache
-- [ ] Location picker modal (`LocationPickerModal.tsx`) with interactive Leaflet map and "Send Current" vs "Share Live" actions
+- [ ] Location picker modal (`LocationPickerModal.tsx`) with interactive Leaflet map and "Send Current" action
 - [ ] Static location message bubble (`StaticLocationBubble.tsx`) with street name, coordinates, and Google/OSM navigation links
-- [ ] Real-time live location tracker (`useLiveLocationTracker.ts`) with battery-friendly throttling (8s / 10m displacement)
-- [ ] Live location bubble (`LiveLocationBubble.tsx`) with moving avatar marker, directional heading, and countdown timer
-- [ ] Multi-user collaborative map viewer (`MultiUserMapViewer.tsx`) dynamically displaying all active group member pins
-- [ ] Fastify background expiration job (`liveLocationCleanupJob.ts`) automatically ending expired location shares
+- [ ] Zero paid Google Maps / Mapbox APIs ($0.00 / mo)
+
+## Phase 38: [Real-Time Live Location Tracking & Collaborative Maps](phases/38_REALTIME_LIVE_LOCATION_TRACKING.md)
+- [ ] Live duration selector (15 Minutes, 1 Hour, 8 Hours) with optional commentary
+- [ ] Battery-friendly GPS watcher throttled to 8 seconds or 10-meter minimum displacement
+- [ ] Fastify WebSocket live streaming envelopes (`location:live_start`, `update`, `stop`, `ended`)
+- [ ] Live location bubble with moving avatar pin, directional heading arrow, and live countdown timer
+- [ ] Collaborative multi-user group map automatically adjusting bounds to fit all sharing members
+- [ ] Fastify 60-second auto-expiration daemon terminating expired live locations

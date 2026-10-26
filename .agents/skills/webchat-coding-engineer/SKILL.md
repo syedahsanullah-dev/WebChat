@@ -15,7 +15,9 @@ This skill provides step-by-step implementation standards and code patterns for 
 
 > [!CAUTION]
 > **DO NOT CODE APPLICATION FILES UNTIL EXPLICITLY INSTRUCTED BY THE USER.**
-> Only produce application code files once the user specifically gives the command to begin Phase 1.
+> Only produce application code files once the user specifically gives the command to begin.
+
+- **Zero Friction & Verification Guardrail**: Strictly **NO OTP**, **NO SMS**, **NO phone verification**, and **NO email verification codes**. Authentication and session tracking rely purely on secure HTTP-only session cookies and cryptographic session tokens.
 
 ---
 

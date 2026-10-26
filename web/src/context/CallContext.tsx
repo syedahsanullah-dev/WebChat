@@ -53,6 +53,9 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <CallContext.Provider value={call}>
+      {/* Permanent DOM Audio Element for Mobile Chrome & WebRTC Playback */}
+      <audio id="webchat-remote-audio" autoPlay playsInline className="hidden" aria-hidden="true" />
+
       {/* Active Call Floating / Docked Bar */}
       <ActiveCallBar
         isVisible={isConnected}

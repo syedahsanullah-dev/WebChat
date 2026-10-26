@@ -20,9 +20,9 @@
 
 ## 2. Key Architectural Decisions
 
-1. **Identity System**:
-   - Authentication is strictly based on `@username` and `email`.
-   - **Never** add phone numbers, SMS verification, or paid telephony gateways.
+1. **Identity System (Zero Friction - No Phone Numbers, No OTP, No Verification Codes)**:
+   - Authentication is strictly based on `@username`, `email`, and `password`.
+   - **Never add phone numbers, SMS verification, OTP verification codes, email verification codes, or paid telephony gateways.**
 2. **Audio-Only Calling (NO Video)**:
    - Voice calling only, powered by WebRTC Opus audio codec (~32 kbps).
    - Video calling is completely removed to eliminate heavy CPU load and preserve bandwidth.
@@ -36,7 +36,7 @@
    - Cuts memory usage by 60%+ (~30 MB vs ~90 MB), eliminates polling overhead, and handles 3x–5x more connections within Hostinger's CloudLinux memory limits.
    - Communication follows the JSON Envelope protocol (`WsEnvelope<T>`).
 6. **Enterprise Security & Governance Suite**:
-   - 2FA (TOTP), client-side E2EE (SubtleCrypto), announcement channels, live polls, disappearing messages, background VAPID web push, IndexedDB offline sync, webhooks, and audit logs.
+   - Multi-device session tracking & remote revocation, client-side E2EE (SubtleCrypto), announcement channels, live polls, pinned/starred bookmarks, document sharing, code syntax blocks, disappearing messages, background VAPID web push, IndexedDB offline sync, webhooks, slash commands, and audit logs.
 7. **Enterprise Administration & Operations**:
    - Super Admin Console (`/admin`), real-time Fastify RAM and socket metrics, NVMe storage analytics with orphan cleaner, user moderation with real-time socket kicks, abuse reporting review queue, automated DLP regex filtering, global broadcasts, and Maintenance Mode.
 8. **Geolocation & Real-Time Mobility (Leaflet & OpenStreetMap)**:
@@ -48,12 +48,15 @@
 
 ## 3. SDLC Compliance
 
-The development roadmap is governed by a **25-Phase Master Enterprise Blueprint**:
+The development roadmap is governed by a **38-Phase Master Enterprise Blueprint**:
 - Master Index: [`phases/README.md`](phases/README.md)
   - **Part I: Core Production Platform (Phases 01 – 14)**
-  - **Part II: Enterprise Suite & Compliance (Phases 15 – 20)**
-  - **Part III: Enterprise Administration & Operations (Phases 21 – 24)**
-  - **Part IV: Advanced Geolocation & Mobility (Phase 25)**
+  - **Part II: Enterprise Security, Data & Communications (Phases 15 – 22)**
+  - **Part III: Offline Resilience & Developer Integrations (Phases 23 – 26)**
+  - **Part IV: Enterprise Compliance & Governance (Phases 27 – 28)**
+  - **Part V: Enterprise Administration & Operations (Phases 29 – 34)**
+  - **Part VI: Platform Reliability & Emergency Operations (Phases 35 – 36)**
+  - **Part VII: Advanced Geolocation & Mobility (Phases 37 – 38)**
 - Master Specification: [`PROJECT_SPECIFICATION_AND_PHASES.md`](PROJECT_SPECIFICATION_AND_PHASES.md)
 - Checklist: [`chk.txt`](chk.txt)
 - Phased testing: Vitest unit tests, Playwright E2E chat flow, and k6 virtual user load simulation (100–500 users).

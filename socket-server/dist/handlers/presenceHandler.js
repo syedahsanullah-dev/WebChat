@@ -12,6 +12,14 @@ async function handleUserConnect(socket) {
     const isFirstConnection = !roomManager_js_1.roomManager.isUserOnline(socket.userId);
     // Register in in-memory room manager
     roomManager_js_1.roomManager.registerUser(socket.userId, socket);
+    // Send snapshot of all currently online users to the newly connected socket
+    const initEnvelope = {
+        type: 'presence:init',
+        payload: {
+            onlineUserIds: roomManager_js_1.roomManager.getOnlineUserIds(),
+        },
+    };
+    socket.send(JSON.stringify(initEnvelope));
     // Send personal online confirmation to the newly connected socket
     const selfEnvelope = {
         type: 'user:online',

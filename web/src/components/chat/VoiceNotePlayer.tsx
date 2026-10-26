@@ -196,7 +196,7 @@ export default function VoiceNotePlayer({
           </button>
 
           {/* Waveform & Duration */}
-          <div className="flex-1 flex flex-col justify-center min-w-0 pr-1">
+          <div className="flex-1 flex flex-col justify-center min-w-0 overflow-hidden pr-1">
             <WaveformVisualizer
               peaks={waveform || []}
               progress={progress}

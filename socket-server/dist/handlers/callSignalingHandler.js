@@ -105,42 +105,76 @@ async function handleCallInvite(socket, payload) {
     if (!callId || !receiverId) {
         return;
     }
+    // Resolve targetReceiverId if receiverId is a username or if receiverId is a chatId
+    let targetReceiverId = receiverId;
+    if (targetReceiverId.startsWith('@') || targetReceiverId.length < 15) {
+        try {
+            const cleanUsername = targetReceiverId.replace(/^@/, '');
+            const user = await prisma_js_1.prisma.user.findFirst({
+                where: { username: cleanUsername },
+                select: { id: true },
+            });
+            if (user) {
+                targetReceiverId = user.id;
+            }
+        }
+        catch (err) {
+            logger_js_1.logger.debug(`Could not resolve receiverId by username: ${err.message}`);
+        }
+    }
+    if ((!targetReceiverId || targetReceiverId === chatId || !roomManager_js_1.roomManager.isUserOnline(targetReceiverId)) && chatId) {
+        try {
+            const participant = await prisma_js_1.prisma.chatParticipant.findFirst({
+                where: {
+                    chatId,
+                    userId: { not: callerId },
+                },
+                select: { userId: true },
+            });
+            if (participant) {
+                targetReceiverId = participant.userId;
+            }
+        }
+        catch (err) {
+            logger_js_1.logger.debug(`Could not resolve receiverId from chat participants: ${err.message}`);
+        }
+    }
     // Check if receiver is online
-    const isReceiverOnline = roomManager_js_1.roomManager.isUserOnline(receiverId);
+    const isReceiverOnline = roomManager_js_1.roomManager.isUserOnline(targetReceiverId);
     if (!isReceiverOnline) {
-        logger_js_1.logger.info(`[CallSignaling] Call ${callId}: Receiver ${receiverId} is offline`);
+        logger_js_1.logger.info(`[CallSignaling] Call ${callId}: Receiver ${targetReceiverId} is offline`);
         const rejectEnvelope = {
             type: 'audio-call:reject',
             payload: {
                 callId,
                 chatId,
                 callerId,
-                receiverId,
+                receiverId: targetReceiverId,
                 reason: 'offline',
             },
         };
         socket.send(JSON.stringify(rejectEnvelope));
         // Record as missed call
-        await recordCallOutcome(callId, chatId, callerId, receiverId, 'missed', 0, new Date());
+        await recordCallOutcome(callId, chatId, callerId, targetReceiverId, 'missed', 0, new Date());
         return;
     }
     // Check if receiver is currently in another active call
     for (const session of activeSessions.values()) {
-        if (session.receiverId === receiverId || session.callerId === receiverId) {
+        if (session.receiverId === targetReceiverId || session.callerId === targetReceiverId) {
             if (session.status !== 'ended') {
-                logger_js_1.logger.info(`[CallSignaling] Call ${callId}: Receiver ${receiverId} is busy in call ${session.callId}`);
+                logger_js_1.logger.info(`[CallSignaling] Call ${callId}: Receiver ${targetReceiverId} is busy in call ${session.callId}`);
                 const busyEnvelope = {
                     type: 'audio-call:busy',
                     payload: {
                         callId,
                         chatId,
                         callerId,
-                        receiverId,
+                        receiverId: targetReceiverId,
                     },
                 };
                 socket.send(JSON.stringify(busyEnvelope));
                 // Record as busy call
-                await recordCallOutcome(callId, chatId, callerId, receiverId, 'busy', 0, new Date());
+                await recordCallOutcome(callId, chatId, callerId, targetReceiverId, 'busy', 0, new Date());
                 return;
             }
         }
@@ -152,7 +186,7 @@ async function handleCallInvite(socket, payload) {
         callerId,
         callerName: callerName || socket.username,
         callerAvatar: callerAvatar || null,
-        receiverId,
+        receiverId: targetReceiverId,
         status: 'ringing',
         startedAt: new Date(),
     };
@@ -166,13 +200,13 @@ async function handleCallInvite(socket, payload) {
             callerId,
             callerName: session.callerName,
             callerAvatar: session.callerAvatar,
-            receiverId,
+            receiverId: targetReceiverId,
             sdpOffer: sdp,
             offerSdp: sdp,
         },
     };
-    roomManager_js_1.roomManager.sendToUser(receiverId, incomingEnvelope);
-    logger_js_1.logger.info(`[CallSignaling] Dispatched audio-call:incoming for call ${callId} to ${receiverId}`);
+    roomManager_js_1.roomManager.sendToUser(targetReceiverId, incomingEnvelope);
+    logger_js_1.logger.info(`[CallSignaling] Dispatched audio-call:incoming for call ${callId} to ${targetReceiverId}`);
 }
 /**
  * 2. audio-call:ring

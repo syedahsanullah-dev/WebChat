@@ -4,6 +4,8 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useWebSocket } from '@/context/WebSocketContext';
 import { useAuth } from '@/context/AuthContext';
 import { useSound } from '@/hooks/useSound';
+import { getOrDeriveSharedKey } from '@/lib/crypto/keyExchange';
+import { encryptMessage, decryptMessage } from '@/lib/crypto/e2eeCipher';
 import {
   MessageAckPayload,
   MessageNewPayload,
@@ -23,6 +25,8 @@ export interface MessageItem {
   waveform?: number[] | null;
   replyToId?: string | null;
   isDeleted?: boolean;
+  isE2EE?: boolean;
+  e2eeIv?: string | null;
   status: 'pending' | 'sent' | 'delivered' | 'read' | string;
   createdAt: string;
 }
@@ -34,6 +38,8 @@ export interface SendMessageOptions {
   mediaSize?: number | null;
   mediaDuration?: number | null;
   replyToId?: string | null;
+  isE2EE?: boolean;
+  e2eeIv?: string | null;
 }
 
 export interface UseMessagesOptions {
@@ -74,6 +80,16 @@ export function useMessages({ chatId, recipientId }: UseMessagesOptions) {
     }
   }, [recipientId, send]);
 
+  // Join chat room over WebSocket so live broadcasts are received
+  useEffect(() => {
+    if (!chatId) return;
+    send({ type: 'chat:join', payload: { chatId } });
+
+    return () => {
+      send({ type: 'chat:leave', payload: { chatId } });
+    };
+  }, [chatId, send]);
+
   // Initial message fetch for active chat
   useEffect(() => {
     if (!chatId) {
@@ -98,20 +114,44 @@ export function useMessages({ chatId, recipientId }: UseMessagesOptions) {
 
         if (res.ok && isSubscribed) {
           const data = await res.json();
-          const items: MessageItem[] = (data.messages || []).map((m: any) => ({
-            id: m.id,
-            senderId: m.senderId,
-            senderName: m.sender?.displayName || m.sender?.username || undefined,
-            content: m.content || '',
-            messageType: m.messageType || 'text',
-            mediaUrl: m.mediaUrl || null,
-            mediaSize: m.mediaSize || null,
-            mediaDuration: m.mediaDuration || null,
-            replyToId: m.replyToMessageId || m.replyToId || null,
-            isDeleted: Boolean(m.isDeleted),
-            status: m.status || 'sent',
-            createdAt: m.createdAt,
-          }));
+          const items: MessageItem[] = await Promise.all(
+            (data.messages || []).map(async (m: any) => {
+              let textContent = m.content || '';
+              const isE2EE = Boolean(m.isE2EE);
+              const e2eeIv = m.e2eeIv || null;
+
+              if (isE2EE && e2eeIv && !m.isDeleted && textContent && user?.id) {
+                try {
+                  const targetPeerId = m.senderId === user.id ? recipientId : m.senderId;
+                  if (targetPeerId) {
+                    const sharedKey = await getOrDeriveSharedKey(user.id, targetPeerId);
+                    if (sharedKey) {
+                      textContent = await decryptMessage(textContent, e2eeIv, sharedKey);
+                    }
+                  }
+                } catch (decErr) {
+                  console.debug('[useMessages] Could not decrypt message:', decErr);
+                }
+              }
+
+              return {
+                id: m.id,
+                senderId: m.senderId,
+                senderName: m.sender?.displayName || m.sender?.username || undefined,
+                content: textContent,
+                messageType: m.messageType || 'text',
+                mediaUrl: m.mediaUrl || null,
+                mediaSize: m.mediaSize || null,
+                mediaDuration: m.mediaDuration || null,
+                replyToId: m.replyToMessageId || m.replyToId || null,
+                isDeleted: Boolean(m.isDeleted),
+                isE2EE,
+                e2eeIv,
+                status: m.status || 'sent',
+                createdAt: m.createdAt,
+              };
+            })
+          );
 
           // Reverse from DESC to chronological ASC
           setMessages(items.reverse());
@@ -153,20 +193,44 @@ export function useMessages({ chatId, recipientId }: UseMessagesOptions) {
 
       if (res.ok) {
         const data = await res.json();
-        const olderItems: MessageItem[] = (data.messages || []).map((m: any) => ({
-          id: m.id,
-          senderId: m.senderId,
-          senderName: m.sender?.displayName || m.sender?.username || undefined,
-          content: m.content || '',
-          messageType: m.messageType || 'text',
-          mediaUrl: m.mediaUrl || null,
-          mediaSize: m.mediaSize || null,
-          mediaDuration: m.mediaDuration || null,
-          replyToId: m.replyToMessageId || m.replyToId || null,
-          isDeleted: Boolean(m.isDeleted),
-          status: m.status || 'sent',
-          createdAt: m.createdAt,
-        }));
+        const olderItems: MessageItem[] = await Promise.all(
+          (data.messages || []).map(async (m: any) => {
+            let textContent = m.content || '';
+            const isE2EE = Boolean(m.isE2EE);
+            const e2eeIv = m.e2eeIv || null;
+
+            if (isE2EE && e2eeIv && !m.isDeleted && textContent && user?.id) {
+              try {
+                const targetPeerId = m.senderId === user.id ? recipientId : m.senderId;
+                if (targetPeerId) {
+                  const sharedKey = await getOrDeriveSharedKey(user.id, targetPeerId);
+                  if (sharedKey) {
+                    textContent = await decryptMessage(textContent, e2eeIv, sharedKey);
+                  }
+                }
+              } catch (decErr) {
+                console.debug('[useMessages] Could not decrypt older message:', decErr);
+              }
+            }
+
+            return {
+              id: m.id,
+              senderId: m.senderId,
+              senderName: m.sender?.displayName || m.sender?.username || undefined,
+              content: textContent,
+              messageType: m.messageType || 'text',
+              mediaUrl: m.mediaUrl || null,
+              mediaSize: m.mediaSize || null,
+              mediaDuration: m.mediaDuration || null,
+              replyToId: m.replyToMessageId || m.replyToId || null,
+              isDeleted: Boolean(m.isDeleted),
+              isE2EE,
+              e2eeIv,
+              status: m.status || 'sent',
+              createdAt: m.createdAt,
+            };
+          })
+        );
 
         // Prepend older items
         setMessages((prev) => [...olderItems.reverse(), ...prev]);
@@ -184,11 +248,11 @@ export function useMessages({ chatId, recipientId }: UseMessagesOptions) {
 
   // Send an optimistic text or media message
   const sendMessage = useCallback(
-    (input: string | SendMessageOptions) => {
+    async (input: string | SendMessageOptions) => {
       if (!chatId || !user) return;
 
       const isOptions = typeof input === 'object' && input !== null;
-      const content = isOptions ? (input.content || '') : input;
+      const rawContent = isOptions ? (input.content || '') : input;
       const mediaUrl = isOptions ? (input.mediaUrl || null) : null;
       const mediaSize = isOptions ? (input.mediaSize || null) : null;
       const mediaDuration = isOptions ? (input.mediaDuration || null) : null;
@@ -197,7 +261,7 @@ export function useMessages({ chatId, recipientId }: UseMessagesOptions) {
         ? input.messageType || (mediaUrl ? 'image' : 'text')
         : 'text';
 
-      if (!content.trim() && !mediaUrl) return;
+      if (!rawContent.trim() && !mediaUrl) return;
 
       const tempId = typeof crypto !== 'undefined' && crypto.randomUUID
         ? crypto.randomUUID()
@@ -205,19 +269,40 @@ export function useMessages({ chatId, recipientId }: UseMessagesOptions) {
 
       const nowIso = new Date().toISOString();
 
-      // Optimistic message item with pending clock
+      // Check if 1-on-1 E2EE encryption should be applied
+      let isE2EE = false;
+      let e2eeIv: string | null = null;
+      let payloadContent = rawContent.trim();
+
+      if (recipientId && user.id && rawContent.trim()) {
+        try {
+          const sharedKey = await getOrDeriveSharedKey(user.id, recipientId);
+          if (sharedKey) {
+            const encrypted = await encryptMessage(rawContent.trim(), sharedKey);
+            isE2EE = true;
+            e2eeIv = encrypted.iv;
+            payloadContent = encrypted.ciphertext;
+          }
+        } catch (encErr) {
+          console.warn('[useMessages] E2EE encryption fallback to plaintext:', encErr);
+        }
+      }
+
+      // Optimistic message item with pending clock (displays readable plaintext locally)
       const optimisticMessage: MessageItem = {
         id: tempId,
         tempId,
         senderId: user.id,
         senderName: user.displayName || `@${user.username}`,
-        content: content.trim(),
+        content: rawContent.trim(),
         messageType,
         mediaUrl,
         mediaSize,
         mediaDuration,
         replyToId,
         isDeleted: false,
+        isE2EE,
+        e2eeIv,
         status: 'pending',
         createdAt: nowIso,
       };
@@ -234,7 +319,7 @@ export function useMessages({ chatId, recipientId }: UseMessagesOptions) {
           tempId,
           chatId,
           recipientId: recipientId || undefined,
-          content: content.trim(),
+          content: payloadContent,
           messageType,
           mediaUrl: mediaUrl || undefined,
           fileUrl: mediaUrl || undefined,
@@ -244,6 +329,8 @@ export function useMessages({ chatId, recipientId }: UseMessagesOptions) {
           duration: mediaDuration || undefined,
           replyToId: replyToId || undefined,
           replyToMessageId: replyToId || undefined,
+          isE2EE,
+          e2eeIv: e2eeIv || undefined,
         },
       });
     },

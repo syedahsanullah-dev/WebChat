@@ -15,6 +15,7 @@ const roomManager_js_1 = require("./lib/roomManager.js");
 const auth_js_1 = require("./middleware/auth.js");
 const presenceHandler_js_1 = require("./handlers/presenceHandler.js");
 const router_js_1 = require("./router.js");
+const prisma_js_1 = require("./lib/prisma.js");
 // Load environment variables
 dotenv_1.default.config();
 const PORT = parseInt(process.env.PORT || '4000', 10);
@@ -121,6 +122,10 @@ async function startServer() {
         await exports.fastify.listen({ port: PORT, host: HOST });
         logger_js_1.logger.info(`🚀 Fastify + Native WS daemon running on http://${HOST}:${PORT}`);
         logger_js_1.logger.info(`Health check available at http://${HOST}:${PORT}/health`);
+        // Reset online status on server boot so stale crashes don't leave users permanently online
+        prisma_js_1.prisma.user
+            .updateMany({ data: { isOnline: false } })
+            .catch((err) => logger_js_1.logger.debug(`Startup presence reset non-fatal: ${err.message}`));
     }
     catch (err) {
         logger_js_1.logger.error('Failed to start server:', err);

@@ -3,6 +3,7 @@ import { Message, MessageStatus, MessageType } from './types';
 export type WsEventType =
   | 'ping'
   | 'pong'
+  | 'presence:init'
   | 'user:online'
   | 'user:offline'
   | 'typing:start'
@@ -27,7 +28,8 @@ export type WsEventType =
   | 'audio-call:busy'
   | 'audio-call:ice-candidate'
   | 'audio-call:end'
-  | 'audio-call:ended';
+  | 'audio-call:ended'
+  | 'session:revoked';
 
 export interface WsEnvelope<T = any> {
   type: WsEventType;
@@ -91,6 +93,8 @@ export interface SendMessagePayload {
   mediaDuration?: number | null;
   replyToId?: string | null;
   replyToMessageId?: string | null;
+  isE2EE?: boolean;
+  e2eeIv?: string | null;
 }
 
 export interface MessageAckPayload {
@@ -99,6 +103,8 @@ export interface MessageAckPayload {
   chatId: string;
   createdAt: string;
   status: MessageStatus;
+  isE2EE?: boolean;
+  e2eeIv?: string | null;
 }
 
 export interface MessageReadPayload {
@@ -244,5 +250,10 @@ export interface AudioCallEndedPayload {
   chatId?: string;
   duration?: number;
   status?: string;
+  reason?: string;
+}
+
+export interface SessionRevokedPayload {
+  sessionId?: string;
   reason?: string;
 }

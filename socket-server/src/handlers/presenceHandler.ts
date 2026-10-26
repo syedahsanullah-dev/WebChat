@@ -12,6 +12,15 @@ export async function handleUserConnect(socket: AuthenticatedWebSocket): Promise
   // Register in in-memory room manager
   roomManager.registerUser(socket.userId, socket);
 
+  // Send snapshot of all currently online users to the newly connected socket
+  const initEnvelope: WsEnvelope<{ onlineUserIds: string[] }> = {
+    type: 'presence:init',
+    payload: {
+      onlineUserIds: roomManager.getOnlineUserIds(),
+    },
+  };
+  socket.send(JSON.stringify(initEnvelope));
+
   // Send personal online confirmation to the newly connected socket
   const selfEnvelope: WsEnvelope<UserOnlinePayload> = {
     type: 'user:online',

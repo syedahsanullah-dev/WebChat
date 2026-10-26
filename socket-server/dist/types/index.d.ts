@@ -1,4 +1,4 @@
-export type WsEventType = 'ping' | 'pong' | 'user:online' | 'user:offline' | 'typing:start' | 'typing:stop' | 'message:send' | 'message:ack' | 'message:new' | 'message:read' | 'message:status' | 'message:reaction' | 'message:delete' | 'group:created' | 'group:member_update' | 'group:join' | 'group:leave' | 'audio-call:invite' | 'audio-call:incoming' | 'audio-call:ring' | 'audio-call:accept' | 'audio-call:accepted' | 'audio-call:reject' | 'audio-call:busy' | 'audio-call:ice-candidate' | 'audio-call:end' | 'audio-call:ended';
+export type WsEventType = 'ping' | 'pong' | 'presence:init' | 'user:online' | 'user:offline' | 'typing:start' | 'typing:stop' | 'message:send' | 'message:ack' | 'message:new' | 'message:read' | 'message:status' | 'message:reaction' | 'message:delete' | 'group:created' | 'group:member_update' | 'group:join' | 'group:leave' | 'audio-call:invite' | 'audio-call:incoming' | 'audio-call:ring' | 'audio-call:accept' | 'audio-call:accepted' | 'audio-call:reject' | 'audio-call:busy' | 'audio-call:ice-candidate' | 'audio-call:end' | 'audio-call:ended' | 'session:revoked';
 export interface WsEnvelope<T = any> {
     type: WsEventType;
     payload: T;
@@ -38,6 +38,8 @@ export interface MessageSendPayload {
     mediaDuration?: number | null;
     replyToId?: string | null;
     replyToMessageId?: string | null;
+    isE2EE?: boolean;
+    e2eeIv?: string | null;
 }
 export interface MessageAckPayload {
     tempId?: string;
@@ -45,6 +47,8 @@ export interface MessageAckPayload {
     chatId: string;
     createdAt: string;
     status: 'sent' | 'delivered' | 'read' | 'SENT' | 'DELIVERED' | 'READ';
+    isE2EE?: boolean;
+    e2eeIv?: string | null;
 }
 export interface MessageReadPayload {
     chatId: string;
@@ -74,6 +78,8 @@ export interface MessageNewPayload {
     duration?: number | null;
     mediaDuration?: number | null;
     replyToId?: string | null;
+    isE2EE?: boolean;
+    e2eeIv?: string | null;
     createdAt: string;
 }
 export interface MessageStatusPayload {
@@ -185,5 +191,9 @@ export interface AudioCallEndedPayload {
     chatId?: string;
     duration?: number;
     status?: string;
+    reason?: string;
+}
+export interface SessionRevokedPayload {
+    sessionId?: string;
     reason?: string;
 }

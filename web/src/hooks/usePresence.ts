@@ -39,6 +39,28 @@ export function usePresence() {
   const [presenceMap, setPresenceMap] = useState<Record<string, PresenceInfo>>({});
 
   useEffect(() => {
+    // 0. Subscribe to presence:init (initial snapshot from server #2 on connect)
+    const unsubInit = subscribe<{ onlineUserIds: string[] }>('presence:init', (payload) => {
+      if (!payload?.onlineUserIds) return;
+      const onlineSet = new Set(payload.onlineUserIds);
+      setPresenceMap((prev) => {
+        const next: Record<string, PresenceInfo> = {};
+        Object.keys(prev).forEach((uid) => {
+          next[uid] = {
+            isOnline: onlineSet.has(uid),
+            lastSeen: onlineSet.has(uid) ? undefined : prev[uid]?.lastSeen,
+          };
+        });
+        payload.onlineUserIds.forEach((uid) => {
+          next[uid] = {
+            isOnline: true,
+            lastSeen: undefined,
+          };
+        });
+        return next;
+      });
+    });
+
     // 1. Subscribe to user:online
     const unsubOnline = subscribe<UserOnlinePayload>('user:online', (payload) => {
       if (!payload?.userId) return;
@@ -64,6 +86,7 @@ export function usePresence() {
     });
 
     return () => {
+      unsubInit();
       unsubOnline();
       unsubOffline();
     };
@@ -71,22 +94,26 @@ export function usePresence() {
 
   const isUserOnline = useCallback(
     (userId: string): boolean => {
-      return presenceMap[userId]?.isOnline ?? false;
+      if (!userId) return false;
+      const cleanId = userId.replace(/^@/, '');
+      return presenceMap[userId]?.isOnline ?? presenceMap[cleanId]?.isOnline ?? false;
     },
     [presenceMap]
   );
 
   const getUserLastSeen = useCallback(
     (userId: string): string | undefined => {
-      return presenceMap[userId]?.lastSeen;
+      if (!userId) return undefined;
+      const cleanId = userId.replace(/^@/, '');
+      return presenceMap[userId]?.lastSeen || presenceMap[cleanId]?.lastSeen;
     },
     [presenceMap]
   );
 
   const getPresenceStatusText = useCallback(
     (userId: string, defaultOnline?: boolean, defaultLastSeen?: string | null): string => {
-      const presence = presenceMap[userId];
-      const isOnline = presence !== undefined ? presence.isOnline : (defaultOnline ?? false);
+      const presence = presenceMap[userId] || presenceMap[userId.replace(/^@/, '')];
+      const isOnline = presence !== undefined ? presence.isOnline : false;
       const lastSeen = presence !== undefined ? presence.lastSeen : defaultLastSeen;
 
       if (isOnline) {

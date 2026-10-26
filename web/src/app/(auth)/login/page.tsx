@@ -10,6 +10,7 @@ function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get('callbackUrl') || '/chat';
+  const reason = searchParams.get('reason');
   const { login } = useAuth();
 
   const [identifier, setIdentifier] = useState('');
@@ -58,6 +59,13 @@ function LoginForm() {
           Enter your username or email address to continue
         </p>
       </div>
+
+      {reason === 'session_revoked' && !error && (
+        <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg flex items-start gap-2.5 text-amber-600 dark:text-amber-400 text-xs">
+          <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+          <span>Your session was logged out remotely from another device. Please sign in again.</span>
+        </div>
+      )}
 
       {error && (
         <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg flex items-start gap-2.5 text-red-600 dark:text-red-400 text-xs">

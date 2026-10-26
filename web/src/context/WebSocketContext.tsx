@@ -134,6 +134,15 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
             send({ type: 'pong', payload: { timestamp: Date.now() } });
           }
 
+          // Handle remote session revocation
+          if (envelope.type === 'session:revoked') {
+            console.warn('[WebSocket] Session was remotely revoked.');
+            isManuallyClosedRef.current = true;
+            if (typeof window !== 'undefined') {
+              window.location.href = '/login?reason=session_revoked';
+            }
+          }
+
           // Dispatch to type-specific subscribers
           const handlers = listenersRef.current.get(envelope.type);
           if (handlers) {

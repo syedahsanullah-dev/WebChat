@@ -31,30 +31,33 @@ export async function handleMessageSend(
 
   const messageType = (payload.messageType || payload.type || (mediaUrl ? 'image' : 'text')).toLowerCase();
   const tempId = payload.tempId;
+  const isE2EE = Boolean(payload.isE2EE);
+  const e2eeIv = payload.e2eeIv || null;
 
   try {
-    // 1. Identify recipient if not provided in payload or if recipientId is a chatId
-    let recipientId = payload.recipientId;
-    if (!recipientId || recipientId === payload.chatId || recipientId.startsWith('chat-')) {
-      try {
-        const participant = await prisma.chatParticipant.findFirst({
-          where: {
-            chatId: payload.chatId,
-            userId: { not: socket.userId },
-          },
-          select: { userId: true },
-        });
-        if (participant) {
-          recipientId = participant.userId;
-        }
-      } catch (err) {
-        logger.debug(`Could not look up participant from DB: ${(err as Error).message}`);
-      }
+    // 1. Identify all chat recipients (for both 1-on-1 and group chats)
+    let otherParticipantIds: string[] = [];
+    try {
+      const participants = await prisma.chatParticipant.findMany({
+        where: {
+          chatId: payload.chatId,
+          userId: { not: socket.userId },
+        },
+        select: { userId: true },
+      });
+      otherParticipantIds = participants.map((p) => p.userId);
+    } catch (err) {
+      logger.debug(`Could not look up participants from DB: ${(err as Error).message}`);
     }
 
-    // Check if recipient is currently online
-    const isRecipientOnline = recipientId ? roomManager.isUserOnline(recipientId) : false;
-    const initialStatus = isRecipientOnline ? 'delivered' : 'sent';
+    // Fallback if DB participants lookup returned empty
+    if (otherParticipantIds.length === 0 && payload.recipientId && payload.recipientId !== payload.chatId && !payload.recipientId.startsWith('chat-')) {
+      otherParticipantIds.push(payload.recipientId);
+    }
+
+    // Check if at least one recipient is online
+    const hasOnlineRecipient = otherParticipantIds.some((uid) => roomManager.isUserOnline(uid));
+    const initialStatus = hasOnlineRecipient ? 'delivered' : 'sent';
 
     // 2. Persist message to DB
     let savedMessage: any = null;
@@ -82,17 +85,21 @@ export async function handleMessageSend(
         },
       });
 
-      // Create MessageStatus
-      if (recipientId) {
-        await prisma.messageStatus
-          .create({
-            data: {
-              messageId: savedMessage.id,
-              userId: recipientId,
-              status: initialStatus,
-            },
-          })
-          .catch((err) => logger.debug(`Failed to create MessageStatus: ${err.message}`));
+      // Create MessageStatus for each recipient
+      if (otherParticipantIds.length > 0) {
+        await Promise.all(
+          otherParticipantIds.map((targetUid) =>
+            prisma.messageStatus
+              .create({
+                data: {
+                  messageId: savedMessage.id,
+                  userId: targetUid,
+                  status: roomManager.isUserOnline(targetUid) ? 'delivered' : 'sent',
+                },
+              })
+              .catch((err) => logger.debug(`Failed to create MessageStatus for ${targetUid}: ${err.message}`))
+          )
+        );
       }
 
       // Update Chat record
@@ -118,6 +125,8 @@ export async function handleMessageSend(
         mediaSize,
         mediaDuration,
         replyToMessageId: payload.replyToMessageId || null,
+        isE2EE,
+        e2eeIv,
         createdAt: new Date(),
         sender: {
           id: socket.userId,
@@ -143,6 +152,8 @@ export async function handleMessageSend(
         chatId: payload.chatId,
         createdAt: createdAtIso,
         status: initialStatus,
+        isE2EE,
+        e2eeIv,
       },
     };
     socket.send(JSON.stringify(ackEnvelope));
@@ -162,6 +173,8 @@ export async function handleMessageSend(
         mediaSize: savedMessage.mediaSize,
         mediaDuration: savedMessage.mediaDuration,
         replyToId: savedMessage.replyToMessageId,
+        isE2EE,
+        e2eeIv,
         status: initialStatus,
         createdAt: createdAtIso,
         sender: savedMessage.sender,
@@ -171,18 +184,22 @@ export async function handleMessageSend(
     // Broadcast to chat room excluding sender
     roomManager.broadcastToRoom(`chat:${payload.chatId}`, newMsgEnvelope, socket);
 
-    // Deliver directly to recipient if online
-    if (recipientId && isRecipientOnline) {
-      roomManager.sendToUser(recipientId, newMsgEnvelope);
+    // Direct delivery to all online participants (ensures delivery even without room join)
+    otherParticipantIds.forEach((targetUid) => {
+      if (roomManager.isUserOnline(targetUid)) {
+        roomManager.sendToUser(targetUid, newMsgEnvelope);
+      }
+    });
 
-      // Notify sender that message has been delivered
+    // Notify sender that message has been delivered if any recipient is online
+    if (hasOnlineRecipient) {
       const deliveredEnvelope: WsEnvelope<MessageStatusUpdatePayload> = {
         type: 'message:status',
         payload: {
           chatId: payload.chatId,
           messageId,
           status: 'delivered',
-          userId: recipientId,
+          userId: otherParticipantIds[0],
         },
       };
       socket.send(JSON.stringify(deliveredEnvelope));

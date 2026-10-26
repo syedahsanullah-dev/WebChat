@@ -8,6 +8,7 @@ import SystemMessageBubble from './SystemMessageBubble';
 import CallLogBadge from '@/components/call/CallLogBadge';
 import Lightbox from './Lightbox';
 import DateDivider from './DateDivider';
+import E2EEHeaderBadge from './E2EEHeaderBadge';
 import { getAuthorColor } from './GroupMessageBubble';
 import { Lock, Loader2 } from 'lucide-react';
 import { isSameDay } from 'date-fns';
@@ -26,6 +27,8 @@ export interface MessageItem {
   waveform?: number[] | null;
   replyToId?: string | null;
   isDeleted?: boolean;
+  isE2EE?: boolean;
+  e2eeIv?: string | null;
   status: string;
   createdAt: string;
 }
@@ -42,6 +45,7 @@ export interface MessageListProps {
   onReply?: (message: MessageItem) => void;
   onReact?: (messageId: string, emoji: string) => void;
   onDelete?: (message: MessageItem) => void;
+  onVerifySecurity?: () => void;
 }
 
 export default function MessageList({
@@ -56,6 +60,7 @@ export default function MessageList({
   onReply,
   onReact,
   onDelete,
+  onVerifySecurity,
 }: MessageListProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -162,12 +167,7 @@ export default function MessageList({
       )}
 
       {/* WhatsApp End-to-End Encryption Banner */}
-      <div className="flex justify-center my-2 select-none">
-        <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-wa-light-header/90 dark:bg-wa-dark-header/90 text-[11px] text-wa-light-text-secondary dark:text-wa-dark-text-secondary shadow-xs text-center max-w-sm">
-          <Lock className="w-3.5 h-3.5 text-wa-green flex-shrink-0" />
-          <span>Messages are end-to-end encrypted. No third parties can read them.</span>
-        </div>
-      </div>
+      <E2EEHeaderBadge onVerifySecurity={onVerifySecurity} />
 
       {/* Render messages with Date Dividers */}
       {messages.map((msg, index) => {
@@ -264,6 +264,7 @@ export default function MessageList({
                 replyToMessage={quotedMsg}
                 reactions={reactions}
                 isDeleted={msg.isDeleted}
+                isE2EE={msg.isE2EE}
                 searchQuery={searchQuery}
                 currentUserId={currentUserId}
                 onReply={() => onReply?.(msg)}
@@ -283,6 +284,7 @@ export default function MessageList({
                 replyToMessage={quotedMsg}
                 reactions={reactions}
                 isDeleted={msg.isDeleted}
+                isE2EE={msg.isE2EE}
                 searchQuery={searchQuery}
                 currentUserId={currentUserId}
                 onReply={() => onReply?.(msg)}

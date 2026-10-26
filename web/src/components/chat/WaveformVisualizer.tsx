@@ -73,7 +73,7 @@ export default function WaveformVisualizer({
       ref={containerRef}
       onMouseDown={handleMouseDown}
       className={cn(
-        'relative flex items-center gap-[2.5px] h-8 py-1 select-none',
+        'relative flex items-center justify-between gap-[1.5px] xs:gap-[2px] h-8 py-1 w-full max-w-full overflow-hidden select-none',
         interactive ? 'cursor-pointer' : 'cursor-default',
         className
       )}
@@ -87,18 +87,17 @@ export default function WaveformVisualizer({
         const barFraction = idx / totalBars;
         const isPlayed = barFraction <= progress;
 
-        // Heights range from 4px to 26px
-        const heightPx = Math.max(4, Math.round(peak * 26));
+        // Heights range from 4px to 24px
+        const heightPx = Math.max(4, Math.round(peak * 24));
 
         return (
           <div
             key={idx}
-            className="flex items-center justify-center h-full relative"
-            style={{ width: '3px' }}
+            className="flex-1 min-w-[1.5px] max-w-[3px] flex items-center justify-center h-full relative"
           >
             <div
               className={cn(
-                'w-[2.5px] rounded-full transition-colors duration-75',
+                'w-full rounded-full transition-colors duration-75',
                 isPlayed
                   ? isMe
                     ? 'bg-wa-green dark:bg-wa-green'
@@ -114,7 +113,7 @@ export default function WaveformVisualizer({
       {/* Scrub dot indicator tracking active progress */}
       <div
         className={cn(
-          'absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-3 h-3 rounded-full shadow-sm pointer-events-none transition-transform',
+          'absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-2.5 h-2.5 rounded-full shadow-sm pointer-events-none transition-transform',
           isMe ? 'bg-wa-green' : 'bg-wa-blue'
         )}
         style={{

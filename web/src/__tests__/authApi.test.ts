@@ -15,6 +15,11 @@ vi.mock('@/lib/prisma', () => ({
       findFirst: vi.fn(),
       create: vi.fn(),
     },
+    userSession: {
+      create: vi.fn().mockResolvedValue({ id: 'mock-session-id', sessionToken: 'mock-token' }),
+      findMany: vi.fn(),
+      deleteMany: vi.fn(),
+    },
   },
 }));
 

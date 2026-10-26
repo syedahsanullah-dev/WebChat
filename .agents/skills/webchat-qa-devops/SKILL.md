@@ -7,7 +7,7 @@ description: >-
 
 # WebChat QA, Testing & DevOps Skill
 
-This skill governs testing, virtual user load simulation, automated CI/CD deployment, and operations for the WebChat application on Hostinger at **$0.00 extra monthly cost** across the full 25-phase enterprise lifecycle.
+This skill governs testing, virtual user load simulation, automated CI/CD deployment, and operations for the WebChat application on Hostinger at **$0.00 extra monthly cost** across the full 38-phase enterprise lifecycle.
 
 ---
 
@@ -17,8 +17,8 @@ This skill governs testing, virtual user load simulation, automated CI/CD deploy
 - Test directory: `web/__tests__/` and `socket-server/__tests__/`.
 - Focus areas:
   - Input validators (`validateUsername`, `validateEmail`).
-  - JWT creation and verification utilities.
-  - TOTP 2FA secret generation and token verification (`otplib`).
+  - JWT creation and session token verification utilities.
+  - Multi-device session tracking and remote revocation.
   - SubtleCrypto ECDH key derivation and AES-GCM encryption/decryption.
   - REST endpoints (`/api/auth/*`, `/api/users/search`, `/api/webhooks/*`).
   - Fastify native WebSocket upgrade authentication with valid/expired cookies.

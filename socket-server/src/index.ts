@@ -9,6 +9,7 @@ import { roomManager, AuthenticatedWebSocket } from './lib/roomManager.js';
 import { authenticateUpgrade } from './middleware/auth.js';
 import { handleUserConnect, handleUserDisconnect } from './handlers/presenceHandler.js';
 import { routeWebSocketEnvelope } from './router.js';
+import { prisma } from './lib/prisma.js';
 import { WsEnvelope } from './types/index.js';
 
 // Load environment variables
@@ -133,6 +134,11 @@ export async function startServer(): Promise<void> {
     await fastify.listen({ port: PORT, host: HOST });
     logger.info(`🚀 Fastify + Native WS daemon running on http://${HOST}:${PORT}`);
     logger.info(`Health check available at http://${HOST}:${PORT}/health`);
+
+    // Reset online status on server boot so stale crashes don't leave users permanently online
+    prisma.user
+      .updateMany({ data: { isOnline: false } })
+      .catch((err) => logger.debug(`Startup presence reset non-fatal: ${err.message}`));
   } catch (err) {
     logger.error('Failed to start server:', err);
     process.exit(1);

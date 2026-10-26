@@ -11,6 +11,8 @@ export interface UseWebRTCOptions {
 const DEFAULT_ICE_SERVERS: RTCIceServer[] = [
   { urls: 'stun:stun.l.google.com:19302' },
   { urls: 'stun:stun1.l.google.com:19302' },
+  { urls: 'stun:stun2.l.google.com:19302' },
+  { urls: 'stun:stun.cloudflare.com:3478' },
 ];
 
 export function useWebRTC(options: UseWebRTCOptions = {}) {
@@ -168,16 +170,29 @@ export function useWebRTC(options: UseWebRTCOptions = {}) {
         remoteStreamRef.current = remoteStream;
         onRemoteStream?.(remoteStream);
 
-        // Attach to hidden audio element for automatic playback
-        if (!remoteAudioRef.current) {
-          const audio = new Audio();
+        // Attach to DOM audio element for automatic playback on mobile Chrome & PWAs
+        let audio =
+          remoteAudioRef.current ||
+          (typeof document !== 'undefined'
+            ? (document.getElementById('webchat-remote-audio') as HTMLAudioElement)
+            : null);
+
+        if (!audio && typeof document !== 'undefined') {
+          audio = document.createElement('audio');
+          audio.id = 'webchat-remote-audio';
           audio.autoplay = true;
+          (audio as any).playsInline = true;
+          audio.setAttribute('playsinline', 'true');
+          audio.className = 'hidden';
+          document.body.appendChild(audio);
+        }
+
+        if (audio) {
           audio.srcObject = remoteStream;
+          audio.play().catch((err) => {
+            console.warn('[useWebRTC] audio.play() deferred:', err);
+          });
           remoteAudioRef.current = audio;
-          audio.play().catch(() => {});
-        } else {
-          remoteAudioRef.current.srcObject = remoteStream;
-          remoteAudioRef.current.play().catch(() => {});
         }
 
         setupVolumeAnalyser(remoteStream);

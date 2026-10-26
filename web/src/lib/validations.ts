@@ -79,6 +79,14 @@ export const SearchQuerySchema = z.object({
     .max(100, { message: 'Search query is too long' }),
 });
 
+export const ChangePasswordSchema = z.object({
+  currentPassword: z.string().min(1, { message: 'Current password is required' }),
+  newPassword: z
+    .string()
+    .min(8, { message: 'New password must be at least 8 characters long' })
+    .regex(/\d/, { message: 'New password must contain at least one number' }),
+});
+
 export type RegisterInput = z.infer<typeof RegisterSchema>;
 export type LoginInput = z.infer<typeof LoginSchema>;
 export type CheckUsernameInput = z.infer<typeof CheckUsernameSchema>;

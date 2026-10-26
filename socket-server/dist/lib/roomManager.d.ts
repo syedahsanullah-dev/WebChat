@@ -18,6 +18,7 @@ export declare class RoomManager {
     broadcastAll(data: any, excludeSocket?: AuthenticatedWebSocket): void;
     getActiveRoomCount(): number;
     getOnlineUserCount(): number;
+    getOnlineUserIds(): string[];
     getActiveSocketCount(): number;
     getRoomMemberCount(room: string): number;
     getUserSocketCount(userId: string): number;

@@ -36,6 +36,8 @@ export interface Message {
     replyTo?: Message | null;
     reactions?: MessageReaction[];
     isDeleted?: boolean;
+    isE2EE?: boolean;
+    e2eeIv?: string | null;
     createdAt: string | Date;
     updatedAt: string | Date;
 }
@@ -81,5 +83,17 @@ export interface CallLog {
     status: CallStatus;
     duration?: number | null;
     createdAt: string | Date;
+}
+export interface UserPublicKey {
+    id: string;
+    userId: string;
+    publicKey: string;
+    algorithm: string;
+    createdAt: string | Date;
+    updatedAt: string | Date;
+}
+export interface EncryptedPayload {
+    ciphertext: string;
+    iv: string;
 }
 //# sourceMappingURL=types.d.ts.map
