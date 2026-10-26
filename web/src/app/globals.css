@@ -76,7 +76,39 @@
 /* Mobile Chrome PWA Ergonomics & Viewport Fixes */
 html, body {
   overscroll-behavior-y: contain;
+  height: 100vh;
   height: 100dvh;
   overflow: hidden;
   -webkit-touch-callout: none;
+}
+
+/* Touch manipulation & Fast Tap Ergonomics */
+button,
+[role="button"],
+a,
+input,
+textarea,
+select {
+  touch-action: manipulation;
+}
+
+/* Smooth Momentum Scrolling */
+.custom-scrollbar,
+.overflow-y-auto,
+.overflow-x-auto {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Safe Area Inset Helpers */
+.pt-safe {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.pl-safe {
+  padding-left: env(safe-area-inset-left, 0px);
+}
+.pr-safe {
+  padding-right: env(safe-area-inset-right, 0px);
 }

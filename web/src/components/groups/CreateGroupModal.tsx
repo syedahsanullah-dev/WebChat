@@ -116,7 +116,7 @@ export default function CreateGroupModal({
       title={step === 1 ? 'Add group participants' : 'New group'}
       maxWidth="md"
     >
-      <div className="flex flex-col h-[460px]">
+      <div className="flex flex-col h-[460px] max-h-[calc(75dvh-4rem)] sm:h-[460px]">
         {step === 1 ? (
           /* Step 1: Select Participants */
           <div className="flex-1 flex flex-col relative overflow-hidden">
@@ -189,7 +189,7 @@ export default function CreateGroupModal({
                     value={title}
                     onChange={(e) => setTitle(e.target.value.slice(0, 100))}
                     placeholder="Provide a group subject"
-                    className="w-full px-3 py-2 bg-wa-light-input dark:bg-wa-dark-input text-wa-light-text-primary dark:text-wa-dark-text-primary border-b-2 border-wa-green focus:outline-none text-sm transition-colors"
+                    className="w-full px-3 py-2 bg-wa-light-input dark:bg-wa-dark-input text-wa-light-text-primary dark:text-wa-dark-text-primary border-b-2 border-wa-green focus:outline-none text-base sm:text-sm transition-colors"
                   />
                   <span className="absolute right-2 top-2.5 text-xs text-wa-light-text-muted dark:text-wa-dark-text-muted">
                     {title.length}/100
@@ -207,7 +207,7 @@ export default function CreateGroupModal({
                   onChange={(e) => setDescription(e.target.value.slice(0, 500))}
                   placeholder="What is this group about?"
                   rows={3}
-                  className="w-full px-3 py-2 bg-wa-light-input dark:bg-wa-dark-input text-wa-light-text-primary dark:text-wa-dark-text-primary rounded-lg border border-wa-light-border dark:border-wa-dark-border focus:border-wa-green focus:outline-none text-sm resize-none"
+                  className="w-full px-3 py-2 bg-wa-light-input dark:bg-wa-dark-input text-wa-light-text-primary dark:text-wa-dark-text-primary rounded-lg border border-wa-light-border dark:border-wa-dark-border focus:border-wa-green focus:outline-none text-base sm:text-sm resize-none"
                 />
               </div>
 

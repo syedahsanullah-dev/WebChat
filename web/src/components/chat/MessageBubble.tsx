@@ -95,7 +95,7 @@ export default function MessageBubble({
     >
       <div
         className={cn(
-          'max-w-[85%] sm:max-w-[70%] px-3 py-1.5 rounded-lg shadow-xs text-sm relative break-words leading-relaxed transition-all',
+          'max-w-[85%] sm:max-w-[75%] md:max-w-[70%] lg:max-w-[65%] xl:max-w-[55%] min-w-[70px] px-3 py-1.5 rounded-lg shadow-xs text-sm relative break-words leading-relaxed transition-all',
           isMe
             ? 'bg-wa-light-sent dark:bg-wa-dark-sent text-wa-light-text-primary dark:text-wa-dark-text-primary rounded-tr-none'
             : 'bg-wa-light-received dark:bg-wa-dark-received text-wa-light-text-primary dark:text-wa-dark-text-primary rounded-tl-none',

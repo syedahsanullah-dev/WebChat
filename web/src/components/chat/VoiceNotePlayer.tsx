@@ -133,7 +133,7 @@ export default function VoiceNotePlayer({
     >
       <div
         className={cn(
-          'w-full max-w-[320px] sm:max-w-[360px] p-2.5 rounded-2xl shadow-xs transition-colors relative overflow-visible',
+          'w-full max-w-[270px] xs:max-w-[310px] sm:max-w-[360px] p-2.5 rounded-2xl shadow-xs transition-colors relative overflow-visible',
           isMe
             ? 'bg-wa-light-sent dark:bg-wa-dark-sent text-wa-light-text-primary dark:text-wa-dark-text-primary rounded-tr-none'
             : 'bg-wa-light-received dark:bg-wa-dark-received text-wa-light-text-primary dark:text-wa-dark-text-primary rounded-tl-none'

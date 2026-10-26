@@ -122,7 +122,7 @@ export default function AddContactDialog({
             onChange={(e) => setAliasName(e.target.value)}
             placeholder={`e.g. ${targetUser.displayName} (Work)`}
             maxLength={100}
-            className="w-full px-3.5 py-2 rounded-lg bg-wa-light-sidebar dark:bg-wa-dark-sidebar border border-wa-light-border dark:border-wa-dark-border text-sm text-wa-light-text-primary dark:text-wa-dark-text-primary placeholder:text-wa-light-text-muted focus:outline-none focus:ring-1 focus:ring-wa-green transition-all"
+            className="w-full px-3.5 py-2.5 sm:py-2 rounded-lg bg-wa-light-sidebar dark:bg-wa-dark-sidebar border border-wa-light-border dark:border-wa-dark-border text-base sm:text-sm text-wa-light-text-primary dark:text-wa-dark-text-primary placeholder:text-wa-light-text-muted focus:outline-none focus:ring-1 focus:ring-wa-green transition-all"
             autoFocus
           />
           <p className="text-[11px] text-wa-light-text-muted dark:text-wa-dark-text-muted mt-1">
@@ -136,14 +136,14 @@ export default function AddContactDialog({
             type="button"
             onClick={onClose}
             disabled={isSubmitting}
-            className="px-4 py-2 rounded-lg text-xs font-medium text-wa-light-text-secondary dark:text-wa-dark-text-secondary hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+            className="px-4 py-2.5 sm:py-2 min-h-[38px] rounded-lg text-xs font-medium text-wa-light-text-secondary dark:text-wa-dark-text-secondary hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer"
           >
             Cancel
           </button>
           <button
             type="submit"
             disabled={isSubmitting}
-            className="px-4 py-2 rounded-lg bg-wa-green hover:bg-wa-green-dark text-white text-xs font-medium flex items-center gap-1.5 shadow transition-colors disabled:opacity-50"
+            className="px-4 py-2.5 sm:py-2 min-h-[38px] rounded-lg bg-wa-green hover:bg-wa-green-dark text-white text-xs font-medium flex items-center gap-1.5 shadow transition-colors disabled:opacity-50 cursor-pointer"
           >
             {isSubmitting ? (
               <>

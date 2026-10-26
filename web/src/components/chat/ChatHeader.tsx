@@ -78,12 +78,12 @@ export default function ChatHeader({
   return (
     <Header
       leftContent={
-        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+        <div className="flex items-center gap-1.5 xs:gap-2 sm:gap-3 min-w-0">
           {/* Mobile Back Button (<-) */}
           <button
             type="button"
             onClick={onBack}
-            className="inline-flex md:hidden p-1.5 rounded-full hover:bg-black/5 dark:hover:bg-white/5 text-wa-light-text-secondary dark:text-wa-dark-text-secondary focus:outline-none flex-shrink-0"
+            className="inline-flex md:hidden w-9 h-9 items-center justify-center rounded-full hover:bg-black/5 dark:hover:bg-white/5 text-wa-light-text-secondary dark:text-wa-dark-text-secondary focus:outline-none flex-shrink-0 cursor-pointer"
             aria-label="Back to conversations list"
           >
             <ArrowLeft className="w-5 h-5" />
@@ -96,7 +96,7 @@ export default function ChatHeader({
             <Avatar name={name} src={avatar} size="md" isOnline={isOnline} />
 
             <div className="min-w-0 flex flex-col justify-center">
-              <h2 className="font-medium text-sm text-wa-light-text-primary dark:text-wa-dark-text-primary truncate leading-tight">
+              <h2 className="font-medium text-sm sm:text-[15px] text-wa-light-text-primary dark:text-wa-dark-text-primary truncate leading-tight">
                 {name}
               </h2>
               <div className="h-4 flex items-center leading-none mt-0.5">{renderStatus()}</div>
@@ -105,12 +105,12 @@ export default function ChatHeader({
         </div>
       }
       rightContent={
-        <div className="flex items-center gap-1 sm:gap-2">
+        <div className="flex items-center gap-0.5 xs:gap-1 sm:gap-2">
           {/* Audio Call Button */}
           <button
             type="button"
             onClick={onStartCall}
-            className="p-2 rounded-full text-wa-light-text-secondary dark:text-wa-dark-text-secondary hover:text-wa-light-text-primary dark:hover:text-wa-dark-text-primary hover:bg-black/5 dark:hover:bg-white/5 transition-colors focus:outline-none"
+            className="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-full text-wa-light-text-secondary dark:text-wa-dark-text-secondary hover:text-wa-light-text-primary dark:hover:text-wa-dark-text-primary hover:bg-black/5 dark:hover:bg-white/5 transition-colors focus:outline-none cursor-pointer"
             aria-label="Start voice call"
             title="Voice call (WebRTC audio-only Opus 32kbps)"
           >
@@ -121,7 +121,7 @@ export default function ChatHeader({
           <button
             type="button"
             onClick={onSearch}
-            className="p-2 rounded-full text-wa-light-text-secondary dark:text-wa-dark-text-secondary hover:text-wa-light-text-primary dark:hover:text-wa-dark-text-primary hover:bg-black/5 dark:hover:bg-white/5 transition-colors focus:outline-none"
+            className="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-full text-wa-light-text-secondary dark:text-wa-dark-text-secondary hover:text-wa-light-text-primary dark:hover:text-wa-dark-text-primary hover:bg-black/5 dark:hover:bg-white/5 transition-colors focus:outline-none cursor-pointer"
             aria-label="Search within conversation"
           >
             <Search className="w-5 h-5" />

@@ -66,7 +66,7 @@ export default function SearchInput({
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         autoFocus={autoFocus}
-        className="w-full bg-transparent text-sm text-wa-light-text-primary dark:text-wa-dark-text-primary placeholder:text-wa-light-text-muted dark:placeholder:text-wa-dark-text-muted focus:outline-none"
+        className="w-full bg-transparent text-base sm:text-sm text-wa-light-text-primary dark:text-wa-dark-text-primary placeholder:text-wa-light-text-muted dark:placeholder:text-wa-dark-text-muted focus:outline-none"
         aria-label={placeholder}
       />
 
@@ -74,7 +74,7 @@ export default function SearchInput({
         <button
           type="button"
           onClick={handleClear}
-          className="p-1 rounded-full text-wa-light-text-secondary dark:text-wa-dark-text-secondary hover:text-wa-light-text-primary dark:hover:text-wa-dark-text-primary hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+          className="p-1.5 sm:p-1 rounded-full text-wa-light-text-secondary dark:text-wa-dark-text-secondary hover:text-wa-light-text-primary dark:hover:text-wa-dark-text-primary hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
           aria-label="Clear search"
         >
           <X className="w-3.5 h-3.5" />

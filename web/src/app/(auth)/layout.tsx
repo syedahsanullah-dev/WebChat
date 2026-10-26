@@ -13,7 +13,7 @@ export default function AuthLayout({
   const { theme, toggleTheme } = useTheme();
 
   return (
-    <div className="min-h-screen w-full flex flex-col items-center justify-center bg-wa-light-bg dark:bg-wa-dark-bg p-4 relative transition-colors duration-200">
+    <div className="min-h-[100dvh] min-h-screen w-full flex flex-col items-center justify-center bg-wa-light-bg dark:bg-wa-dark-bg p-3 sm:p-4 relative transition-colors duration-200">
       {/* Decorative WhatsApp Top Green Bar on larger screens */}
       <div className="hidden sm:block absolute top-0 left-0 right-0 h-32 bg-wa-green dark:bg-wa-green-dark z-0" />
 
@@ -46,7 +46,7 @@ export default function AuthLayout({
         </div>
 
         {/* Card Body */}
-        <div className="bg-wa-light-sidebar dark:bg-wa-dark-sidebar border border-wa-light-border dark:border-wa-dark-border rounded-2xl shadow-xl p-6 sm:p-8 transition-colors">
+        <div className="bg-wa-light-sidebar dark:bg-wa-dark-sidebar border border-wa-light-border dark:border-wa-dark-border rounded-2xl shadow-xl p-5 sm:p-8 transition-colors">
           {children}
         </div>
 

@@ -33,7 +33,7 @@ export default function InChatSearchDrawer({
   return (
     <div
       className={cn(
-        'w-full sm:w-[340px] h-full flex flex-col bg-wa-light-sidebar dark:bg-wa-dark-sidebar border-l border-wa-light-border dark:border-wa-dark-border z-30 transition-all select-none animate-in slide-in-from-right-4 duration-150',
+        'absolute inset-0 md:inset-y-0 md:left-auto md:right-0 w-full md:w-[340px] lg:w-[380px] h-full flex flex-col bg-wa-light-sidebar dark:bg-wa-dark-sidebar md:border-l border-wa-light-border dark:border-wa-dark-border shadow-2xl z-30 transition-all select-none animate-in slide-in-from-right-4 duration-150',
         className
       )}
     >

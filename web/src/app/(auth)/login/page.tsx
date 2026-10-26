@@ -81,7 +81,7 @@ function LoginForm() {
           value={identifier}
           onChange={(e) => setIdentifier(e.target.value)}
           placeholder="@username or user@example.com"
-          className="w-full px-3.5 py-2.5 rounded-lg bg-wa-light-input dark:bg-wa-dark-input border border-wa-light-border dark:border-wa-dark-border text-sm text-wa-light-text-primary dark:text-wa-dark-text-primary placeholder:text-wa-light-text-muted dark:placeholder:text-wa-dark-text-muted focus:outline-none focus:ring-2 focus:ring-wa-green transition-all"
+          className="w-full px-3.5 py-2.5 rounded-lg bg-wa-light-input dark:bg-wa-dark-input border border-wa-light-border dark:border-wa-dark-border text-base sm:text-sm text-wa-light-text-primary dark:text-wa-dark-text-primary placeholder:text-wa-light-text-muted dark:placeholder:text-wa-dark-text-muted focus:outline-none focus:ring-2 focus:ring-wa-green transition-all"
           disabled={isSubmitting}
         />
       </div>
@@ -102,13 +102,13 @@ function LoginForm() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Enter your password"
-            className="w-full px-3.5 py-2.5 pr-10 rounded-lg bg-wa-light-input dark:bg-wa-dark-input border border-wa-light-border dark:border-wa-dark-border text-sm text-wa-light-text-primary dark:text-wa-dark-text-primary placeholder:text-wa-light-text-muted dark:placeholder:text-wa-dark-text-muted focus:outline-none focus:ring-2 focus:ring-wa-green transition-all"
+            className="w-full px-3.5 py-2.5 pr-10 rounded-lg bg-wa-light-input dark:bg-wa-dark-input border border-wa-light-border dark:border-wa-dark-border text-base sm:text-sm text-wa-light-text-primary dark:text-wa-dark-text-primary placeholder:text-wa-light-text-muted dark:placeholder:text-wa-dark-text-muted focus:outline-none focus:ring-2 focus:ring-wa-green transition-all"
             disabled={isSubmitting}
           />
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-wa-light-text-muted dark:text-wa-dark-text-muted hover:text-wa-light-text-primary dark:hover:text-wa-dark-text-primary focus:outline-none"
+            className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-wa-light-text-muted dark:text-wa-dark-text-muted hover:text-wa-light-text-primary dark:hover:text-wa-dark-text-primary focus:outline-none"
             aria-label={showPassword ? 'Hide password' : 'Show password'}
           >
             {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -120,7 +120,7 @@ function LoginForm() {
       <button
         type="submit"
         disabled={isSubmitting}
-        className="w-full mt-2 py-2.5 px-4 rounded-lg bg-wa-green hover:bg-wa-green-dark text-white font-medium text-sm flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-wa-green"
+        className="w-full mt-2 py-2.5 px-4 min-h-[44px] rounded-lg bg-wa-green hover:bg-wa-green-dark text-white font-medium text-sm flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-wa-green cursor-pointer"
       >
         {isSubmitting ? (
           <>

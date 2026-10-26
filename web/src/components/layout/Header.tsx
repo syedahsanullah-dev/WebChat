@@ -19,7 +19,7 @@ export default function Header({
   return (
     <header
       className={cn(
-        'h-14 sm:h-16 min-h-[56px] sm:min-h-[64px] px-3 sm:px-4 py-2 bg-wa-light-header dark:bg-wa-dark-header border-b border-wa-light-border dark:border-wa-dark-border flex items-center justify-between flex-shrink-0 sticky top-0 w-full z-10 transition-colors',
+        'h-14 sm:h-16 min-h-[56px] sm:min-h-[64px] px-3 sm:px-4 pt-[max(0.5rem,env(safe-area-inset-top,0px))] pb-2 bg-wa-light-header dark:bg-wa-dark-header border-b border-wa-light-border dark:border-wa-dark-border flex items-center justify-between flex-shrink-0 sticky top-0 w-full z-10 transition-colors',
         className
       )}
     >

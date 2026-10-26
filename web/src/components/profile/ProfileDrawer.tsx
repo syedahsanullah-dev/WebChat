@@ -150,7 +150,7 @@ export default function ProfileDrawer({ isOpen, onClose }: ProfileDrawerProps) {
       data-testid="profile-drawer"
     >
       {/* Drawer Top Header (WhatsApp Dark Green on dark / Light grey on light) */}
-      <div className="h-24 sm:h-28 bg-wa-green dark:bg-wa-dark-header border-b border-wa-light-border dark:border-wa-dark-border px-4 pb-3 flex items-end gap-5 text-white flex-shrink-0">
+      <div className="h-24 sm:h-28 bg-wa-green dark:bg-wa-dark-header border-b border-wa-light-border dark:border-wa-dark-border px-4 pt-[max(0.75rem,env(safe-area-inset-top,0px))] pb-3 flex items-end gap-5 text-white flex-shrink-0">
         <button
           type="button"
           onClick={onClose}
@@ -251,7 +251,7 @@ export default function ProfileDrawer({ isOpen, onClose }: ProfileDrawerProps) {
                 value={displayNameInput}
                 onChange={(e) => setDisplayNameInput(e.target.value)}
                 maxLength={50}
-                className="flex-1 px-3 py-1.5 rounded-lg bg-wa-light-sidebar dark:bg-wa-dark-input border border-wa-green text-sm text-wa-light-text-primary dark:text-wa-dark-text-primary focus:outline-none"
+                className="flex-1 px-3 py-1.5 rounded-lg bg-wa-light-sidebar dark:bg-wa-dark-input border border-wa-green text-base sm:text-sm text-wa-light-text-primary dark:text-wa-dark-text-primary focus:outline-none"
                 autoFocus
                 disabled={isSaving}
               />
@@ -336,7 +336,7 @@ export default function ProfileDrawer({ isOpen, onClose }: ProfileDrawerProps) {
                 value={aboutInput}
                 onChange={(e) => setAboutInput(e.target.value)}
                 maxLength={255}
-                className="flex-1 px-3 py-1.5 rounded-lg bg-wa-light-sidebar dark:bg-wa-dark-input border border-wa-green text-sm text-wa-light-text-primary dark:text-wa-dark-text-primary focus:outline-none"
+                className="flex-1 px-3 py-1.5 rounded-lg bg-wa-light-sidebar dark:bg-wa-dark-input border border-wa-green text-base sm:text-sm text-wa-light-text-primary dark:text-wa-dark-text-primary focus:outline-none"
                 autoFocus
                 disabled={isSaving}
               />

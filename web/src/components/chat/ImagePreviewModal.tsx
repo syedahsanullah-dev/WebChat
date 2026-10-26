@@ -55,7 +55,7 @@ export default function ImagePreviewModal({
       aria-modal="true"
     >
       {/* Top Header */}
-      <div className="flex items-center justify-between px-4 py-3 bg-black/40 border-b border-white/10 z-10">
+      <div className="flex items-center justify-between px-4 pt-[max(0.75rem,env(safe-area-inset-top,0px))] pb-3 bg-black/40 border-b border-white/10 z-10">
         <button
           type="button"
           onClick={onClose}
@@ -94,7 +94,7 @@ export default function ImagePreviewModal({
       </div>
 
       {/* Bottom Caption Bar */}
-      <div className="p-4 bg-black/50 border-t border-white/10 flex items-center gap-3 max-w-3xl mx-auto w-full">
+      <div className="p-4 pb-[max(1rem,env(safe-area-inset-bottom,0px))] bg-black/50 border-t border-white/10 flex items-center gap-3 max-w-3xl mx-auto w-full">
         <button
           type="button"
           className="p-2 text-white/70 hover:text-white transition-colors focus:outline-none"
@@ -111,7 +111,7 @@ export default function ImagePreviewModal({
           onKeyDown={handleKeyDown}
           disabled={isUploading}
           placeholder="Add a caption..."
-          className="flex-1 bg-white/10 hover:bg-white/15 text-white placeholder:text-white/50 text-sm rounded-xl px-4 py-2.5 focus:outline-none focus:ring-1 focus:ring-wa-green transition-all"
+          className="flex-1 bg-white/10 hover:bg-white/15 text-white placeholder:text-white/50 text-base sm:text-sm rounded-xl px-4 py-2.5 focus:outline-none focus:ring-1 focus:ring-wa-green transition-all"
         />
 
         <button

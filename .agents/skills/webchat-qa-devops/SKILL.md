@@ -7,7 +7,7 @@ description: >-
 
 # WebChat QA, Testing & DevOps Skill
 
-This skill governs testing, virtual user load simulation, automated CI/CD deployment, and operations for the WebChat application on Hostinger at **$0.00 extra monthly cost**.
+This skill governs testing, virtual user load simulation, automated CI/CD deployment, and operations for the WebChat application on Hostinger at **$0.00 extra monthly cost** across the full 25-phase enterprise lifecycle.
 
 ---
 
@@ -18,9 +18,11 @@ This skill governs testing, virtual user load simulation, automated CI/CD deploy
 - Focus areas:
   - Input validators (`validateUsername`, `validateEmail`).
   - JWT creation and verification utilities.
-  - REST endpoints (`/api/auth/register`, `/api/auth/login`, `/api/users/search`).
+  - TOTP 2FA secret generation and token verification (`otplib`).
+  - SubtleCrypto ECDH key derivation and AES-GCM encryption/decryption.
+  - REST endpoints (`/api/auth/*`, `/api/users/search`, `/api/webhooks/*`).
   - Fastify native WebSocket upgrade authentication with valid/expired cookies.
-  - `RoomManager` unit tests (joining rooms, broadcasting, leaving rooms).
+  - `RoomManager` unit tests (joining rooms, broadcasting polls/messages, leaving rooms).
 
 ### End-to-End Chat Testing (Playwright)
 - Test file: `e2e/chat-flow.spec.ts`.
@@ -29,6 +31,7 @@ This skill governs testing, virtual user load simulation, automated CI/CD deploy
   2. User A sends a message; User B receives it in real-time over native WebSockets.
   3. Status tick transitions from single grey `✓` to double grey `✓✓` to double blue `✓✓`.
   4. User A records a mock voice note; User B verifies playback availability.
+  5. User A creates a poll; User B casts a vote and verifies live percentage updates.
 
 ---
 

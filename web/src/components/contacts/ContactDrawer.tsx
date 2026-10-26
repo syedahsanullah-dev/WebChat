@@ -124,7 +124,7 @@ export default function ContactDrawer({
       data-testid="contact-drawer"
     >
       {/* Drawer Top Header (WhatsApp Style) */}
-      <div className="h-24 sm:h-28 bg-wa-green dark:bg-wa-dark-header border-b border-wa-light-border dark:border-wa-dark-border px-4 pb-3 flex items-end gap-5 text-white flex-shrink-0">
+      <div className="h-24 sm:h-28 bg-wa-green dark:bg-wa-dark-header border-b border-wa-light-border dark:border-wa-dark-border px-4 pt-[max(0.75rem,env(safe-area-inset-top,0px))] pb-3 flex items-end gap-5 text-white flex-shrink-0">
         <button
           type="button"
           onClick={onClose}
@@ -151,7 +151,7 @@ export default function ContactDrawer({
             value={filterQuery}
             onChange={(e) => setFilterQuery(e.target.value)}
             placeholder="Search contacts..."
-            className="w-full pl-10 pr-9 py-2 rounded-xl bg-wa-light-input dark:bg-wa-dark-input border border-wa-light-border dark:border-wa-dark-border text-sm text-wa-light-text-primary dark:text-wa-dark-text-primary placeholder:text-wa-light-text-muted focus:outline-none focus:ring-1 focus:ring-wa-green transition-all"
+            className="w-full pl-10 pr-9 py-2 rounded-xl bg-wa-light-input dark:bg-wa-dark-input border border-wa-light-border dark:border-wa-dark-border text-base sm:text-sm text-wa-light-text-primary dark:text-wa-dark-text-primary placeholder:text-wa-light-text-muted focus:outline-none focus:ring-1 focus:ring-wa-green transition-all"
           />
           {filterQuery && (
             <button

@@ -125,7 +125,7 @@ export default function NewChatModal({
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search by @username, name, or email..."
-              className="w-full pl-10 pr-9 py-2.5 rounded-xl bg-wa-light-input dark:bg-wa-dark-input border border-wa-light-border dark:border-wa-dark-border text-sm text-wa-light-text-primary dark:text-wa-dark-text-primary placeholder:text-wa-light-text-muted focus:outline-none focus:ring-2 focus:ring-wa-green transition-all"
+              className="w-full pl-10 pr-9 py-2.5 rounded-xl bg-wa-light-input dark:bg-wa-dark-input border border-wa-light-border dark:border-wa-dark-border text-base sm:text-sm text-wa-light-text-primary dark:text-wa-dark-text-primary placeholder:text-wa-light-text-muted focus:outline-none focus:ring-2 focus:ring-wa-green transition-all"
               autoFocus
             />
             {searchQuery ? (
@@ -145,7 +145,7 @@ export default function NewChatModal({
           </p>
 
           {/* Results List */}
-          <div className="min-h-[220px] max-h-[380px] overflow-y-auto custom-scrollbar space-y-1 pr-1">
+          <div className="min-h-[180px] sm:min-h-[220px] max-h-[calc(70dvh-120px)] sm:max-h-[380px] overflow-y-auto custom-scrollbar space-y-1 pr-1">
             {isLoading ? (
               <div className="flex flex-col items-center justify-center py-12 text-wa-light-text-muted dark:text-wa-dark-text-muted gap-2">
                 <Loader2 className="w-6 h-6 animate-spin text-wa-green" />

@@ -3,13 +3,13 @@ name: webchat-coding-engineer
 description: >-
   Use this skill when generating, modifying, or refactoring code for the WhatsApp Web clone.
   Enforces Next.js 15 App Router best practices, Fastify + native ws dual-server conventions,
-  audio-only WebRTC calling, WhatsApp Web UI tokens, and Mobile Chrome PWA install standards.
+  audio-only WebRTC calling, WhatsApp Web UI tokens, E2EE WebCrypto, and Mobile Chrome PWA install standards.
   Always honors the rule: DO NOT CODE UNTIL EXPLICITLY INSTRUCTED BY THE USER.
 ---
 
 # WebChat Coding & Engineering Skill
 
-This skill provides step-by-step implementation standards and code patterns for developing the WhatsApp Web clone across both Server #1 (Next.js) and Server #2 (Fastify + Native `ws`).
+This skill provides step-by-step implementation standards and code patterns for developing the WhatsApp Web clone across both Server #1 (Next.js) and Server #2 (Fastify + Native `ws`), including the Enterprise extensions.
 
 ## Crucial Guardrail
 
@@ -24,7 +24,7 @@ This skill provides step-by-step implementation standards and code patterns for 
 - **Standalone Output Mode**: `next.config.js` must set `output: 'standalone'` so Next.js packages its own minimal `server.js` ready for Hostinger Node.js deployment.
 - **Client vs Server Components**:
   - Keep pages and data-fetching server components by default.
-  - Mark active chat windows, audio recorders, call modals, and input fields as `'use client'`.
+  - Mark active chat windows, audio recorders, call modals, polls, and input fields as `'use client'`.
 - **WhatsApp Web Design System (Tailwind CSS)**:
   - Dark Mode Background: `#111b21`
   - Sidebar: `#202c33`
@@ -52,21 +52,43 @@ This skill provides step-by-step implementation standards and code patterns for 
   ```
 - **In-Memory Room Manager (`roomManager.ts`)**:
   ```typescript
-  // Tracks client connections and handles room broadcasts
   roomManager.join(`chat:${chatId}`, socket);
   roomManager.broadcastToRoom(`chat:${chatId}`, { type: 'message:new', payload: message });
   roomManager.sendToUser(recipientId, { type: 'message:status', payload: statusUpdate });
+  roomManager.broadcastToRoom(`chat:${chatId}`, { type: 'poll:update', payload: pollTally });
   ```
 - **Heartbeat Ping-Pong**:
   - Server sends `ws.ping()` every 30 seconds.
-  - If a client fails to reply with `pong` before the next interval, terminate the socket to clean up dead mobile connections.
+  - If a client fails to reply with `pong` before the next interval, terminate the socket.
 - **JWT Authentication Handshake**:
   - During the initial HTTP upgrade, parse `request.headers.cookie` for `auth_token`.
   - Validate JWT using `JWT_SECRET`. If invalid or expired, abort upgrade (`socket.destroy()`).
 
 ---
 
-## 3. WebRTC Audio-Only Implementation (No Video)
+## 3. Web Cryptography API E2EE Conventions (SubtleCrypto)
+
+- **ECDH Key Generation**:
+  ```typescript
+  const keyPair = await window.crypto.subtle.generateKey(
+    { name: 'ECDH', namedCurve: 'P-256' },
+    false, // Private key is non-extractable
+    ['deriveKey', 'deriveBits']
+  );
+  ```
+- **AES-GCM Encryption**:
+  ```typescript
+  const iv = window.crypto.getRandomValues(new Uint8Array(12));
+  const ciphertext = await window.crypto.subtle.encrypt(
+    { name: 'AES-GCM', iv },
+    derivedSharedKey,
+    new TextEncoder().encode(plaintext)
+  );
+  ```
+
+---
+
+## 4. WebRTC Audio-Only Implementation (No Video)
 
 - **Media Stream Constraints**:
   ```typescript
@@ -92,13 +114,10 @@ This skill provides step-by-step implementation standards and code patterns for 
     ],
   };
   ```
-- **Call State Lifecycle**:
-  - State machine: `idle` -> `outgoing_ringing` | `incoming_ringing` -> `connected` -> `ended`.
-  - On call termination, stop all audio tracks and clean up RTCPeerConnection immediately.
 
 ---
 
-## 4. Mobile Chrome PWA & "Install Website" Pattern
+## 5. Mobile Chrome PWA & "Install Website" Pattern
 
 - **Web App Manifest (`public/manifest.json`)**:
   - `start_url: "/chat"`, `display: "standalone"`, `theme_color: "#111b21"`, icons: 192px, 512px, maskable 512px.
@@ -106,3 +125,22 @@ This skill provides step-by-step implementation standards and code patterns for 
   - Capture `beforeinstallprompt` event on `window`.
   - Render WhatsApp-themed "Install WebChat" green banner.
   - Call `prompt()` on click and await user response.
+
+---
+
+## 6. Geolocation & Real-Time Mobility Pattern (Leaflet & OSM)
+
+- **Mapping Engine**: Leaflet.js (`leaflet`) with OpenStreetMap raster tiles (`https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png`).
+- **Reverse Geocoding**: Server-side proxy (`/api/location/reverse-geocode`) calling OpenStreetMap Nominatim with an in-memory LRU cache to respect OSM usage policies.
+- **Battery Optimization for Live GPS**:
+  - Use `navigator.geolocation.watchPosition` with `{ enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }`.
+  - Throttle updates using the Haversine formula: only transmit when the user moves `> 10 meters` or `8 seconds` have elapsed.
+- **WebSocket Protocol**:
+  ```typescript
+  // Start live location
+  roomManager.broadcastToRoom(`chat:${chatId}`, { type: 'location:live_started', payload: liveLocation });
+  // Coordinate update
+  roomManager.broadcastToRoom(`chat:${chatId}`, { type: 'location:live_updated', payload: { liveLocationId, lat, lng, heading } });
+  // Stop live location
+  roomManager.broadcastToRoom(`chat:${chatId}`, { type: 'location:live_stopped', payload: { liveLocationId } });
+  ```

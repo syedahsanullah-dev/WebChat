@@ -66,7 +66,7 @@ export default function Modal({
     <div
       role="presentation"
       onClick={handleBackdropClick}
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs transition-opacity animate-in fade-in duration-200"
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs transition-opacity animate-in fade-in duration-200"
     >
       <div
         ref={dialogRef}
@@ -80,7 +80,7 @@ export default function Modal({
         )}
       >
         {(title || showCloseButton) && (
-          <div className="flex items-center justify-between px-6 py-4 border-b border-wa-light-border dark:border-wa-dark-border">
+          <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 border-b border-wa-light-border dark:border-wa-dark-border">
             {title ? (
               <h2
                 id="modal-title"
@@ -104,7 +104,7 @@ export default function Modal({
           </div>
         )}
 
-        <div className="p-6 overflow-y-auto max-h-[calc(85vh-5rem)]">
+        <div className="p-4 sm:p-6 overflow-y-auto max-h-[calc(85dvh-5rem)] max-h-[calc(85vh-5rem)]">
           {children}
         </div>
       </div>

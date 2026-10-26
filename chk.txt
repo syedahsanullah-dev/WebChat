@@ -1,12 +1,14 @@
-# WhatsApp Web Clone (Next.js & Fastify + ws) - Phased Implementation Checklist
+# WhatsApp Web Clone (Next.js & Fastify + ws) - 24-Phase Master Enterprise Checklist
 ## Architecture: Hostinger Dual Node.js Servers ($0 Extra Cost) | Identity: @username & Email
-## Calling: High-Definition Audio Only | Mobile: Chrome PWA Installable | Full SDLC
+## Calling: High-Definition Audio Only | Mobile: Chrome PWA Installable | Full Enterprise SDLC
 
 > Master Index & Agent Instructions: [phases/README.md](phases/README.md)  
 > Tech Stack, Dependencies & .env Config: [TECH_STACK_AND_ENV_CONFIG.md](TECH_STACK_AND_ENV_CONFIG.md)  
-> Full Blueprint: [PROJECT_SPECIFICATION_AND_PHASES.md](PROJECT_SPECIFICATION_AND_PHASES.md)
+> Full Enterprise Blueprint: [PROJECT_SPECIFICATION_AND_PHASES.md](PROJECT_SPECIFICATION_AND_PHASES.md)
 
 ---
+
+### Part I: Core Production Platform (Phases 01 – 14)
 
 ## Phase 1: [Workspace Scaffolding & WhatsApp Web Layout Shell](phases/01_WORKSPACE_AND_LAYOUT_SHELL.md)
 - [x] Initialize workspace structure: `web/` (Next.js 15 Standalone) and `socket-server/` (Fastify 4+ & Native ws)
@@ -16,85 +18,174 @@
 - [x] Create UI primitives: Avatar with online dot, Dropdown menu, Search bar, and Modal dialogs
 
 ## Phase 2: [Hostinger Database & Dual-Server Infrastructure Setup](phases/02_DATABASE_AND_DUAL_SERVER_SETUP.md)
-- [x] Create MySQL / MariaDB database in Hostinger hPanel and configure `DATABASE_URL` with `connection_limit=10`
-- [x] Configure Prisma ORM schema (Users, Contacts, Chats, Participants, Messages, Statuses, CallLogs)
-- [x] Run Prisma migration and generate type-safe client
-- [x] Initialize Server #2 (Fastify + Native ws) with RoomManager, JWT handshake authentication, and port config
-- [x] Create `/public/uploads/` directory structure (`avatars/`, `images/`, `voice/`)
+- [ ] Create MySQL / MariaDB database in Hostinger hPanel and configure `DATABASE_URL` with `connection_limit=10`
+- [ ] Configure Prisma ORM schema with MySQL provider and pooled connections
+- [ ] Run initial Prisma migration and generate type-safe client
+- [ ] Initialize Server #2 (Fastify + Native ws) with RoomManager, JWT handshake authentication, and port config
+- [ ] Create `/public/uploads/` directory structure (`avatars/`, `images/`, `voice/`, `docs/`)
 
 ## Phase 3: [Authentication & Profile System (Username & Email)](phases/03_AUTHENTICATION_AND_PROFILE.md)
-- [x] User registration with Email, unique `@username`, Display Name, and Password
-- [x] Real-time debounced username availability validation endpoint (`/api/auth/check-username`)
-- [x] User login supporting either Email OR Username + Password
-- [x] Secure session persistence via HTTP-only JWT cookies
-- [x] User profile drawer: Upload avatar to local storage, edit Display Name, update About/Status
+- [ ] User registration with Email, unique `@username`, Display Name, and Password
+- [ ] Real-time debounced username availability validation endpoint (`/api/auth/check-username`)
+- [ ] User login supporting either Email OR Username + Password
+- [ ] Secure session persistence via HTTP-only JWT cookies
+- [ ] User profile drawer: Upload avatar to local storage, edit Display Name, update About/Status
 
 ## Phase 4: [Contact Discovery & Address Book](phases/04_CONTACT_DISCOVERY_AND_ADDRESS_BOOK.md)
-- [x] Search users by `@username` prefix or exact `email` with debounced search bar
-- [x] "New Chat / Add Contact" modal displaying matched user info, @handle, and avatar
-- [x] Add contact with optional custom nickname
-- [x] Alphabetically sorted contact drawer with quick filter
-- [x] Block and unblock contact workflows
+- [ ] Search users by `@username` prefix or exact `email` with debounced search bar
+- [ ] "New Chat / Add Contact" modal displaying matched user info, @handle, and avatar
+- [ ] Add contact with optional custom nickname
+- [ ] Alphabetically sorted contact drawer with quick filter
+- [ ] Block and unblock contact workflows
 
 ## Phase 5: [Real-Time Presence & Status Engine (Server #2)](phases/05_REALTIME_PRESENCE_AND_STATUS_ENGINE.md)
-- [x] Online / offline presence tracking via Server #2 native WebSocket connection lifecycle
-- [x] Update and broadcast "Last seen" timestamp to MySQL when users disconnect
-- [x] Active chat header: Show "online" in green or "last seen today at..."
-- [x] Live typing indicators ("typing...") with 2.5-second throttling to protect server CPU
+- [ ] Online / offline presence tracking via Server #2 native WebSocket connection lifecycle
+- [ ] Update and broadcast "Last seen" timestamp to MySQL when users disconnect
+- [ ] Active chat header: Show "online" in green or "last seen today at..."
+- [ ] Live typing indicators ("typing...") with 2.5-second throttling to protect server CPU
 
 ## Phase 6: [1-on-1 Direct Messaging Engine](phases/06_ONE_TO_ONE_MESSAGING_ENGINE.md)
-- [x] Create or open existing 1-on-1 chat with contact deduplication
-- [x] Left sidebar conversation list sorted by `lastMessageAt DESC` with unread badges
-- [x] Chat viewport with auto-scroll and WhatsApp doodle wallpaper
-- [x] Send text messages with optimistic UI rendering
-- [x] Delivery & Read receipts: Single grey tick (`✓`), double grey tick (`✓✓`), double blue tick (`✓✓`)
+- [ ] Create or open existing 1-on-1 chat with contact deduplication
+- [ ] Left sidebar conversation list sorted by `lastMessageAt DESC` with unread badges
+- [ ] Chat viewport with auto-scroll and WhatsApp doodle wallpaper
+- [ ] Send text messages with optimistic UI rendering
+- [ ] Delivery & Read receipts: Single grey tick (`✓`), double grey tick (`✓✓`), double blue tick (`✓✓`)
 
 ## Phase 7: [Media Sharing (Images & Attachments)](phases/07_MEDIA_SHARING_AND_ATTACHMENTS.md)
-- [x] Attachment menu popup (Photos & Videos, Documents)
-- [x] Client-side WebP image compression before upload (max 15MB)
-- [x] Next.js upload API saving files to `/public/uploads/images/` on Hostinger
-- [x] Image message bubbles with captions and loading skeletons
-- [x] Fullscreen lightbox viewer with zoom, pan, and download actions
+- [ ] Attachment menu popup (Photos & Videos, Documents)
+- [ ] Client-side WebP image compression before upload (max 15MB)
+- [ ] Next.js upload API saving files to `/public/uploads/images/` on Hostinger
+- [ ] Image message bubbles with captions and loading skeletons
+- [ ] Fullscreen lightbox viewer with zoom, pan, and download actions
 
 ## Phase 8: [Voice Notes & Audio Messages](phases/08_VOICE_NOTES_AND_AUDIO_MESSAGING.md)
-- [x] Browser MediaRecorder audio capture with recording timer
-- [x] Lock-to-record and trash/cancel controls
-- [x] Web Audio API amplitude peak calculation for waveform visualizer
-- [x] WhatsApp voice note player with scrubbable waveform and speed toggle (`1x`, `1.5x`, `2x`)
+- [ ] Browser MediaRecorder audio capture with recording timer
+- [ ] Lock-to-record and trash/cancel controls
+- [ ] Web Audio API amplitude peak calculation for waveform visualizer
+- [ ] WhatsApp voice note player with scrubbable waveform and speed toggle (`1x`, `1.5x`, `2x`)
 
 ## Phase 9: [Group Chats & Community Administration](phases/09_GROUP_CHATS_AND_COMMUNITY_ADMIN.md)
-- [x] "New Group" multi-step modal with multi-select contact picker
-- [x] Set group title, group description, and group avatar upload
-- [x] Group message view with sender name and colored badges
-- [x] System event messages (user joined, left, group created)
-- [x] Group info drawer with participant list and Admin controls (promote/remove)
+- [ ] "New Group" multi-step modal with multi-select contact picker
+- [ ] Set group title, group description, and group avatar upload
+- [ ] Group message view with sender name and colored badges
+- [ ] System event messages (user joined, left, group created)
+- [ ] Group info drawer with participant list and Admin controls (promote/remove)
 
 ## Phase 10: [Advanced Chat Features (Replies, Reactions & Search)](phases/10_ADVANCED_MESSAGING_REPLIES_REACTIONS_SEARCH.md)
-- [x] Quoted message replies with jump-to-original scroll
-- [x] WhatsApp emoji reaction pill on message hover (👍, ❤️, 😂, 😮, 😢, 🙏)
-- [x] In-chat message text search with match highlights
-- [x] Message deletion ("Delete for me" and "Delete for everyone")
+- [ ] Quoted message replies with jump-to-original scroll
+- [ ] WhatsApp emoji reaction pill on message hover (👍, ❤️, 😂, 😮, 😢, 🙏)
+- [ ] In-chat message text search with match highlights
+- [ ] Message deletion ("Delete for me" and "Delete for everyone")
 
 ## Phase 11: [Real-Time Audio Calling (WebRTC Voice via Server #2)](phases/11_AUDIO_CALLING_WEBRTC_VOICE.md)
-- [x] Audio-only WebRTC call signaling over Server #2 WebSockets (`audio-call:invite`, `accept`, `ice-candidate`, `end`)
-- [x] Google STUN (`stun:stun.l.google.com:19302`) + Metered.ca TURN relay configuration
-- [x] Incoming voice call modal with ringtone, accept, and decline buttons
-- [x] Audio call active bar: Mute microphone, speaker device selector, call duration timer, end call
-- [x] Call history logged to `call_logs` table and inserted as in-feed message badges
+- [ ] Audio-only WebRTC call signaling over Server #2 WebSockets (`audio-call:invite`, `accept`, `ice-candidate`, `end`)
+- [ ] Google STUN (`stun:stun.l.google.com:19302`) + Metered.ca TURN relay configuration
+- [ ] Incoming voice call modal with ringtone, accept, and decline buttons
+- [ ] Audio call active bar: Mute microphone, speaker device selector, call duration timer, end call
+- [ ] Call history logged to `call_logs` table and inserted as in-feed message badges
 
 ## Phase 12: [Progressive Web App (PWA) & Mobile Chrome Install Experience](phases/12_PWA_AND_MOBILE_CHROME_INSTALLATION.md)
-- [x] Web App Manifest (`manifest.json`) with `standalone` display, theme color `#111b21`, and 192/512px icons
-- [x] Service worker (`sw.js`) caching core UI assets and providing offline reconnection fallback
-- [x] In-app "Install WebChat" banner / button capturing Mobile Chrome `beforeinstallprompt`
-- [x] Mobile viewport optimization (`100dvh`, `viewport-fit=cover`, touch audio unlock)
+- [ ] Web App Manifest (`manifest.json`) with `standalone` display, theme color `#111b21`, and 192/512px icons
+- [ ] Service worker (`sw.js`) caching core UI assets and providing offline reconnection fallback
+- [ ] In-app "Install WebChat" banner / button capturing Mobile Chrome `beforeinstallprompt`
+- [ ] Mobile viewport optimization (`100dvh`, `viewport-fit=cover`, touch audio unlock)
 
 ## Phase 13: [Automated Testing & Load Simulation (SDLC QA)](phases/13_AUTOMATED_TESTING_AND_LOAD_SIMULATION.md)
-- [x] Unit & integration tests with Vitest for auth, token verification, and REST APIs
-- [x] End-to-end browser chat test suite with Playwright (2-user registration and live messaging flow)
-- [x] k6 load simulation script (`/scripts/load-test.js`) testing 100–500 concurrent simulated users
+- [ ] Unit & integration tests with Vitest for auth, token verification, and REST APIs
+- [ ] End-to-end browser chat test suite with Playwright (2-user registration and live messaging flow)
+- [ ] k6 load simulation script (`/scripts/load-test.js`) testing 100–500 concurrent simulated users
 
 ## Phase 14: [Automated CI/CD, Zero-Cost Monitoring & Maintenance (SDLC Ops)](phases/14_AUTOMATED_CICD_DEPLOYMENT_AND_MONITORING.md)
 - [ ] GitHub Actions workflow for automated test, build, and SSH/FTPS deployment to Hostinger
 - [ ] Zero-cost Winston file error logger on Hostinger disk (`/logs/app-error.log`)
 - [ ] UptimeRobot 5-minute HTTP keep-alive pings preventing Node.js process idle sleep
 - [ ] Hostinger hPanel automated daily MySQL backup cron job (`mysqldump | gzip`)
+
+---
+
+### Part II: Enterprise Suite & Compliance (Phases 15 – 20)
+
+## Phase 15: [Enterprise Security, 2FA (TOTP) & End-to-End Encryption (E2EE)](phases/15_ENTERPRISE_SECURITY_2FA_AND_E2EE.md)
+- [ ] RFC 6238 TOTP Two-Factor Authentication setup with QR code and 10 backup recovery codes
+- [ ] Login 2FA challenge workflow for accounts with 2FA enabled
+- [ ] Active device session tracking with IP, User-Agent, and one-click remote session revocation
+- [ ] Client-side E2EE using Web Cryptography API (`SubtleCrypto` ECDH P-256 + AES-GCM-256)
+- [ ] 60-digit safety number fingerprint comparison modal for verified encryption
+- [ ] Rate-limiting middleware on Server #1 and Server #2 against brute-force attacks
+
+## Phase 16: [Enterprise Channels, Polls & Message Governance](phases/16_ENTERPRISE_CHANNELS_POLLS_AND_GOVERNANCE.md)
+- [ ] One-way broadcast / announcement channels where only Owner/Admin post and members react
+- [ ] Interactive multi-choice polls with live animated progress bars and real-time voting tallies
+- [ ] Pinned messages banner strip (up to 5 pinned messages per chat with jump-to navigation)
+- [ ] Personal starred / bookmarked messages slide-over drawer with direct conversation links
+
+## Phase 17: [Enterprise Document Sharing, Code Blocks & Ephemeral Messages](phases/17_DOCUMENT_SHARING_CODE_BLOCKS_AND_EPHEMERAL.md)
+- [ ] Document sharing for `.pdf`, `.docx`, `.xlsx`, `.zip` up to 25MB on Hostinger NVMe storage
+- [ ] Color-coded document message cards (PDF red, Excel green, Word blue, Zip orange) with in-app PDF preview
+- [ ] Markdown fenced code blocks with syntax highlighting and one-click "Copy Code" button
+- [ ] Disappearing / ephemeral messages (24h, 7d, 90d) with automated disk cleanup cron
+
+## Phase 18: [Background Web Push Notifications & Local-First Offline Sync](phases/18_BACKGROUND_WEB_PUSH_AND_OFFLINE_SYNC.md)
+- [ ] W3C Web Push Protocol (VAPID) delivering background push notifications when browser tabs are closed
+- [ ] In-app notification permission prompt and service worker notification click navigation
+- [ ] Local-first IndexedDB storage (`idb`) caching messages and offline outgoing queue
+- [ ] Automatic FIFO offline queue flush and status reconciliation upon network reconnection
+
+## Phase 19: [Enterprise Automations: Inbound/Outbound Webhooks & Bot System](phases/19_WEBHOOKS_BOTS_AND_EXTERNAL_INTEGRATIONS.md)
+- [ ] Inbound webhooks allowing CI/CD (GitHub Actions, Jira) to post automated alerts into channels
+- [ ] Verified purple `[BOT]` badge on bot messages to prevent impersonation
+- [ ] Slash commands parser for `/poll`, `/remind [duration] [message]`, `/announce [message]`, `/help`
+- [ ] Fastify background reminder job delivering scheduled bot reminders
+
+## Phase 20: [Enterprise Audit Logging, Compliance Data Export & Legal Hold](phases/20_AUDIT_LOGGING_COMPLIANCE_AND_DATA_EXPORT.md)
+- [ ] Immutable security audit log table capturing authentication, governance, and data modifications
+- [ ] Searchable Audit Log Console for enterprise compliance officers with CSV export
+- [ ] Legal Hold governance lock preventing message deletion and suspending ephemeral expiration
+- [ ] Compliance chat export generating standalone, styled offline HTML and JSON `.zip` archives
+- [ ] GDPR self-service "Download My Data" and account deletion workflows
+
+---
+
+### Part III: Enterprise Administration & Operations (Phases 21 – 24)
+
+## Phase 21: [Super Admin Console, System Metrics & Storage Governance](phases/21_ADMIN_CONSOLE_AND_SYSTEM_METRICS.md)
+- [ ] Super Admin portal route (`/admin`) protected by `systemRole: "SUPER_ADMIN" | "ADMIN"`
+- [ ] Live Fastify memory telemetry (RAM MB) and active WebSocket connection count
+- [ ] Hostinger NVMe storage analytics breakdown: Avatars, Images, Voice, Docs
+- [ ] Orphan file detection engine scanning uploads directory against database records
+- [ ] Automated disk cleanup tool safely purging orphan files
+
+## Phase 22: [User Administration, Account Moderation & Session Enforcement](phases/22_USER_MANAGEMENT_AND_ACCOUNT_MODERATION.md)
+- [ ] User administration data grid with multi-column filtering, search, and sorting
+- [ ] Account suspension and ban workflows with required reason logging
+- [ ] Real-time force disconnect terminating all active WebSocket connections for banned users
+- [ ] Role elevation dialog for promoting users to Moderator, Admin, or Super Admin
+- [ ] System registration policy configuration: Open vs. Invite-Only vs. Admin-Approval
+
+## Phase 23: [Content Moderation, Abuse Reporting & Automated DLP Filtering](phases/23_CONTENT_MODERATION_AND_ABUSE_REPORTING.md)
+- [ ] User-facing abuse reporting modal on messages and profiles with category selectors
+- [ ] Admin moderation review queue (`/admin/moderation`) showing report context and messages
+- [ ] Moderation resolution actions: One-click message deletion, user warning, 24h mute, dismiss
+- [ ] High-speed in-memory Data Loss Prevention (DLP) scanner with regex patterns
+- [ ] Real-time WebSocket preflight blocking credential leaks (AWS keys, private keys, credit cards)
+
+## Phase 24: [Global System Broadcasts, Maintenance Mode & Emergency Controls](phases/24_GLOBAL_BROADCASTS_AND_MAINTENANCE_MODE.md)
+- [ ] Global broadcast composer with severity levels (INFO, WARNING, CRITICAL)
+- [ ] Real-time alert dispatching to all connected users over WebSocket (`system:broadcast`)
+- [ ] Responsive in-app sliding top banner with severity styling and audio chime
+- [ ] Maintenance Mode toggle with public notice countdown and administrative bypass
+- [ ] On-demand emergency database backup trigger executing native `mysqldump`
+
+---
+
+### Part IV: Advanced Geolocation & Mobility (Phase 25)
+
+## Phase 25: [Real-Time Live & Current GPS Location Sharing (Leaflet & OpenStreetMap)](phases/25_LIVE_AND_CURRENT_LOCATION_SHARING.md)
+- [ ] Browser Geolocation API wrapper hook (`useGeolocation.ts`) with high-accuracy positioning and permission handling
+- [ ] Reverse-geocoding API route (`/api/location/reverse-geocode`) with OpenStreetMap Nominatim and server LRU cache
+- [ ] Location picker modal (`LocationPickerModal.tsx`) with interactive Leaflet map and "Send Current" vs "Share Live" actions
+- [ ] Static location message bubble (`StaticLocationBubble.tsx`) with street name, coordinates, and Google/OSM navigation links
+- [ ] Real-time live location tracker (`useLiveLocationTracker.ts`) with battery-friendly throttling (8s / 10m displacement)
+- [ ] Live location bubble (`LiveLocationBubble.tsx`) with moving avatar marker, directional heading, and countdown timer
+- [ ] Multi-user collaborative map viewer (`MultiUserMapViewer.tsx`) dynamically displaying all active group member pins
+- [ ] Fastify background expiration job (`liveLocationCleanupJob.ts`) automatically ending expired location shares

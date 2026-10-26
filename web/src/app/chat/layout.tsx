@@ -31,7 +31,7 @@ export default function ChatLayout({
       <div className="flex h-[100dvh] w-full overflow-hidden bg-wa-light-bg dark:bg-wa-dark-bg text-wa-light-text-primary dark:text-wa-dark-text-primary overscroll-y-contain relative select-none">
         {/* Left Sidebar Panel */}
         <div
-          className={`h-full w-full md:w-[35%] lg:w-[30%] min-w-[320px] max-w-[500px] flex-shrink-0 transition-transform duration-300 ease-in-out md:translate-x-0 ${
+          className={`h-full w-full md:w-[40%] md:min-w-[300px] md:max-w-[380px] lg:w-[33%] lg:min-w-[340px] lg:max-w-[450px] xl:w-[30%] xl:max-w-[500px] flex-shrink-0 transition-transform duration-300 ease-in-out md:translate-x-0 ${
             activeChatId
               ? '-translate-x-full absolute top-0 left-0 md:relative md:top-auto md:left-auto'
               : 'translate-x-0 relative'

@@ -1,5 +1,5 @@
 # WebChat Technical Architecture, Dependencies & Environment Reference
-## Dual-Server Node.js Setup: Next.js 15 Standalone + Fastify & Native `ws`
+## Dual-Server Node.js Setup: Next.js 15 Standalone + Fastify & Native `ws` (25-Phase Master Enterprise Blueprint)
 
 > This document is the single source of truth for all npm packages, package scripts, environment variables, and runtime configurations for both Server #1 (Frontend/REST) and Server #2 (WebSocket Daemon).
 
@@ -15,7 +15,7 @@
 | **Default Port** | `3000` (Local) / Hostinger Assigned | `4000` (Local) / Hostinger Assigned |
 | **Memory Target** | ~70–120 MB RAM | **~25–35 MB RAM** (Fastify + `ws` ultra-light) |
 | **Database Access**| Prisma Client (`connection_limit=10`)| Prisma Client (`connection_limit=10`) |
-| **Primary Role** | UI, SSR, Auth, Uploads, PWA, REST | Presence, Live Typing, Messages, Voice Signaling |
+| **Primary Role** | UI, SSR, Auth, Uploads, PWA, REST, Webhooks, Push, Compliance | Presence, Live Typing, Messages, Polls, Voice Signaling, Cleanup Jobs |
 
 ---
 
@@ -53,7 +53,14 @@
     "clsx": "^2.1.1",
     "tailwind-merge": "^2.5.5",
     "date-fns": "^4.1.0",
-    "winston": "^3.17.0"
+    "winston": "^3.17.0",
+    "otplib": "^12.0.1",
+    "qrcode": "^1.5.4",
+    "web-push": "^3.6.7",
+    "idb": "^8.0.0",
+    "prismjs": "^1.29.0",
+    "archiver": "^7.0.1",
+    "leaflet": "^1.9.4"
   },
   "devDependencies": {
     "typescript": "^5.7.2",
@@ -62,6 +69,11 @@
     "@types/react-dom": "^19.0.1",
     "@types/jsonwebtoken": "^9.0.7",
     "@types/bcryptjs": "^2.4.6",
+    "@types/qrcode": "^1.5.5",
+    "@types/web-push": "^3.6.4",
+    "@types/prismjs": "^1.26.5",
+    "@types/archiver": "^6.0.3",
+    "@types/leaflet": "^1.9.14",
     "tailwindcss": "^3.4.16",
     "postcss": "^8.4.49",
     "autoprefixer": "^10.4.20",
@@ -96,20 +108,28 @@ NEXT_PUBLIC_APP_URL="http://localhost:3000"
 NEXT_PUBLIC_SOCKET_URL="ws://localhost:4000"
 
 # Hostinger MySQL Database Connection String (Strictly connection_limit=10)
-# Format: mysql://USER:PASSWORD@HOST:3306/DATABASE?connection_limit=10&pool_timeout=20
 DATABASE_URL="mysql://u123456789_webchat:YourSecurePassword123@127.0.0.1:3306/u123456789_webchat?connection_limit=10&pool_timeout=20"
 
-# JSON Web Token Secret (Generate using: openssl rand -base64 32)
+# JSON Web Token Secret
 JWT_SECRET="your_ultra_secure_256_bit_jwt_secret_key_change_in_production"
 JWT_EXPIRES_IN="7d"
 
-# Media Storage Configuration (Stored locally on Hostinger NVMe disk)
+# 2FA Secret Encryption Key (For encrypting TOTP secrets in DB)
+TOTP_ENCRYPTION_KEY="your_32_byte_aes_key_for_totp_secret_storage"
+
+# VAPID Web Push Keys (Generate with: npx web-push generate-vapid-keys)
+NEXT_PUBLIC_VAPID_PUBLIC_KEY="your_vapid_public_key_base64"
+VAPID_PRIVATE_KEY="your_vapid_private_key_base64"
+VAPID_SUBJECT="mailto:admin@yourdomain.com"
+
+# Media & Document Storage (Stored locally on Hostinger NVMe disk at $0 cost)
 UPLOAD_DIR="./public/uploads"
 NEXT_PUBLIC_UPLOAD_BASE_URL="/uploads"
-MAX_IMAGE_SIZE_BYTES=15728640 # 15 MB
-MAX_VOICE_SIZE_BYTES=20971520 # 20 MB
+MAX_IMAGE_SIZE_BYTES=15728640  # 15 MB
+MAX_VOICE_SIZE_BYTES=20971520  # 20 MB
+MAX_DOC_SIZE_BYTES=26214400    # 25 MB
 
-# WebRTC STUN & TURN Relay Configuration (Metered.ca Free Tier 50 GB/mo)
+# WebRTC STUN & TURN Relay (Metered.ca Free Tier 50 GB/mo)
 NEXT_PUBLIC_STUN_URL="stun:stun.l.google.com:19302"
 NEXT_PUBLIC_TURN_URL="turn:relay.metered.ca:80"
 NEXT_PUBLIC_TURN_USERNAME="your_metered_turn_username"
@@ -126,7 +146,7 @@ const nextConfig = {
   },
   experimental: {
     serverActions: {
-      bodySizeLimit: '20mb',
+      bodySizeLimit: '30mb',
     },
   },
 };
@@ -156,6 +176,7 @@ module.exports = nextConfig;
     "fastify": "^4.28.1",
     "@fastify/cors": "^9.0.1",
     "@fastify/cookie": "^9.3.1",
+    "@fastify/rate-limit": "^9.1.0",
     "ws": "^8.18.0",
     "@prisma/client": "^5.22.0",
     "jsonwebtoken": "^9.0.2",
@@ -197,13 +218,14 @@ JWT_SECRET="your_ultra_secure_256_bit_jwt_secret_key_change_in_production"
 # Heartbeat Ping-Pong Interval in milliseconds
 PING_INTERVAL_MS=30000
 
-# Client Typing Throttling in milliseconds (Protects CPU)
+# Client Typing Throttling in milliseconds
 TYPING_THROTTLE_MS=2500
+
+# Ephemeral Cleanup Interval in milliseconds (15 minutes)
+EPHEMERAL_CLEANUP_INTERVAL_MS=900000
 ```
 
 ### 3.3 Fastify + Native `ws` Room Manager Architecture
-
-Native `ws` does not have built-in rooms like Socket.io. We use this lightweight, ultra-fast in-memory pattern:
 
 ```typescript
 // socket-server/src/lib/roomManager.ts
@@ -217,9 +239,7 @@ export interface AuthenticatedWebSocket extends WebSocket {
 }
 
 export class RoomManager {
-  // Map of roomId -> Set of connected WebSockets
   private rooms: Map<string, Set<AuthenticatedWebSocket>> = new Map();
-  // Map of userId -> Set of active WebSockets for that user (multiple tabs)
   private userSockets: Map<string, Set<AuthenticatedWebSocket>> = new Map();
 
   join(room: string, socket: AuthenticatedWebSocket) {
@@ -284,13 +304,20 @@ export class RoomManager {
       }
     }
   }
+
+  getActiveSocketCount(): number {
+    let count = 0;
+    for (const sockets of this.userSockets.values()) {
+      count += sockets.size;
+    }
+    return count;
+  }
 }
 
 export const roomManager = new RoomManager();
 ```
 
 ### 3.4 Standardized WebSocket JSON Envelope Protocol
-All messages over native `ws` adhere to this structure:
 ```typescript
 export interface WsEnvelope<T = any> {
   type: 
@@ -305,34 +332,31 @@ export interface WsEnvelope<T = any> {
     | 'message:status'
     | 'message:reaction'
     | 'message:delete'
+    | 'poll:vote'
+    | 'poll:update'
+    | 'chat:pin'
     | 'audio-call:invite'
     | 'audio-call:ring'
     | 'audio-call:accept'
     | 'audio-call:reject'
     | 'audio-call:ice-candidate'
-    | 'audio-call:end';
+    | 'audio-call:end'
+    | 'location:live_start'
+    | 'location:live_started'
+    | 'location:live_update'
+    | 'location:live_updated'
+    | 'location:live_stop'
+    | 'location:live_stopped'
+    | 'location:live_ended'
+    | 'system:broadcast'
+    | 'user:kick';
   payload: T;
 }
 ```
 
 ---
 
-## 4. Shared Library (`shared/`) Specifications
-
-### 4.1 Structure
-```text
-shared/
-├── src/
-│   ├── types.ts          # Common entities (User, Message, Chat, Contact, CallLog)
-│   ├── events.ts         # WsEnvelope types and event payload interfaces
-│   └── constants.ts      # Audio codec, image constraints, timeouts
-├── tsconfig.json
-└── package.json
-```
-
----
-
-## 5. Hostinger Production Runtime Settings (hPanel)
+## 4. Hostinger Production Runtime Settings (hPanel)
 
 | Setting | Server #1 (`chat.yourdomain.com`) | Server #2 (`ws.yourdomain.com`) |
 | :--- | :--- | :--- |

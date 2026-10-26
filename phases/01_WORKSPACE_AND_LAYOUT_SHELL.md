@@ -127,27 +127,27 @@ export default {
 
 ## 5. Detailed Step-by-Step Implementation Tasks
 
-- [ ] **1. Monorepo & Directory Scaffolding**:
+- [x] **1. Monorepo & Directory Scaffolding**:
   - Create root workspace with `web/`, `socket-server/`, and `shared/`.
   - Initialize `web/` with Next.js 15+ App Router, React 19, TypeScript, and Tailwind CSS.
   - Initialize `socket-server/` with Fastify 4+ and native `ws` (see `TECH_STACK_AND_ENV_CONFIG.md`).
   - Set `output: 'standalone'` in `web/next.config.js`.
-- [ ] **2. WhatsApp Web Theme & Global Styles**:
+- [x] **2. WhatsApp Web Theme & Global Styles**:
   - Populate `web/tailwind.config.ts` with custom `wa` color tokens.
   - Add dark/light mode toggle with theme persistence in `localStorage`.
   - In `globals.css`, add the subtle dark CSS doodle background pattern for the active chat area.
   - Customize scrollbars to match WhatsApp's slim, semi-transparent scrollbar.
-- [ ] **3. Responsive Two-Column Layout Shell**:
+- [x] **3. Responsive Two-Column Layout Shell**:
   - Implement `web/src/app/chat/layout.tsx`:
     - Desktop: Split screen (Left: 30%–35% fixed width, Right: 65%–70% flex-grow).
     - Mobile (`< 768px`): Dynamic single-column view using URL state or active chat selection. When no conversation is open, show the sidebar full-width; when a conversation is open, slide in the chat area full-width with a back arrow button (`←`).
     - Use `100dvh` for all layout heights to avoid Android/iOS Chrome navigation bar jumping.
-- [ ] **4. Core UI Primitives**:
+- [x] **4. Core UI Primitives**:
   - `Avatar.tsx`: Circular avatar displaying image with fallback uppercase initials; includes bottom-right online green indicator dot when `isOnline = true`.
   - `SearchInput.tsx`: Search bar with WhatsApp magnifying glass icon, clear button, and global `Ctrl + /` (or `Cmd + /`) keyboard shortcut listener that focuses the input.
   - `DropdownMenu.tsx`: Accessible three-dots vertical menu icon (`⋮`) with popup options (New Group, Profile, Settings, Log out).
   - `Modal.tsx`: Reusable backdrop overlay modal with escape key listener and focus trap.
-- [ ] **5. Audio & Asset Setup**:
+- [x] **5. Audio & Asset Setup**:
   - Place synthesized or standard WhatsApp Web notification sounds into `web/public/sounds/`:
     - `sent.mp3` (subtle pop for message sent)
     - `receive.mp3` (standard notification chime)

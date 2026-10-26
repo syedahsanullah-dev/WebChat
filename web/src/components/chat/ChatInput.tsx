@@ -124,7 +124,7 @@ export default function ChatInput({
 
       <footer
         className={cn(
-          'px-4 py-2 bg-wa-light-header dark:bg-wa-dark-header border-t border-wa-light-border dark:border-wa-dark-border flex items-end gap-2 transition-colors relative min-h-[58px]',
+          'px-2.5 sm:px-4 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom,0px))] bg-wa-light-header dark:bg-wa-dark-header border-t border-wa-light-border dark:border-wa-dark-border flex items-end gap-1.5 sm:gap-2 transition-colors relative min-h-[58px]',
           className
         )}
       >
@@ -162,7 +162,7 @@ export default function ChatInput({
           <button
             type="button"
             disabled={disabled}
-            className="p-2 rounded-full text-wa-light-text-secondary dark:text-wa-dark-text-secondary hover:text-wa-light-text-primary dark:hover:text-wa-dark-text-primary hover:bg-black/5 dark:hover:bg-white/5 transition-colors focus:outline-none flex-shrink-0"
+            className="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-full text-wa-light-text-secondary dark:text-wa-dark-text-secondary hover:text-wa-light-text-primary dark:hover:text-wa-dark-text-primary hover:bg-black/5 dark:hover:bg-white/5 transition-colors focus:outline-none flex-shrink-0 cursor-pointer"
             aria-label="Add emoji"
             title="Emoji"
           >
@@ -175,7 +175,7 @@ export default function ChatInput({
             disabled={disabled}
             onClick={() => setIsAttachmentOpen((prev) => !prev)}
             className={cn(
-              'p-2 rounded-full transition-colors focus:outline-none flex-shrink-0',
+              'w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-full transition-colors focus:outline-none flex-shrink-0 cursor-pointer',
               isAttachmentOpen
                 ? 'text-wa-green bg-wa-green/10'
                 : 'text-wa-light-text-secondary dark:text-wa-dark-text-secondary hover:text-wa-light-text-primary dark:hover:text-wa-dark-text-primary hover:bg-black/5 dark:hover:bg-white/5'
@@ -196,7 +196,7 @@ export default function ChatInput({
               placeholder={placeholder}
               disabled={disabled}
               rows={1}
-              className="w-full resize-none max-h-[120px] bg-wa-light-input dark:bg-wa-dark-input text-wa-light-text-primary dark:text-wa-dark-text-primary placeholder:text-wa-light-text-muted dark:placeholder:text-wa-dark-text-muted text-sm rounded-lg px-4 py-2 focus:outline-none focus:ring-1 focus:ring-wa-green transition-all overflow-y-auto"
+              className="w-full resize-none max-h-[120px] bg-wa-light-input dark:bg-wa-dark-input text-wa-light-text-primary dark:text-wa-dark-text-primary placeholder:text-wa-light-text-muted dark:placeholder:text-wa-dark-text-muted text-[15px] sm:text-sm rounded-lg px-3.5 py-2 focus:outline-none focus:ring-1 focus:ring-wa-green transition-all overflow-y-auto leading-relaxed"
             />
           </div>
 
@@ -206,7 +206,7 @@ export default function ChatInput({
               type="button"
               onClick={handleSend}
               disabled={disabled}
-              className="p-2 rounded-full bg-wa-green text-white hover:bg-wa-green-dark transition-colors focus:outline-none shadow-xs flex-shrink-0"
+              className="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-full bg-wa-green text-white hover:bg-wa-green-dark transition-colors focus:outline-none shadow-xs flex-shrink-0 cursor-pointer"
               aria-label="Send message"
             >
               <Send className="w-5 h-5" />
@@ -216,7 +216,7 @@ export default function ChatInput({
               type="button"
               onClick={handleStartMic}
               disabled={disabled}
-              className="p-2 rounded-full text-wa-light-text-secondary dark:text-wa-dark-text-secondary hover:text-wa-light-text-primary dark:hover:text-wa-dark-text-primary hover:bg-black/5 dark:hover:bg-white/5 transition-colors focus:outline-none flex-shrink-0"
+              className="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-full text-wa-light-text-secondary dark:text-wa-dark-text-secondary hover:text-wa-light-text-primary dark:hover:text-wa-dark-text-primary hover:bg-black/5 dark:hover:bg-white/5 transition-colors focus:outline-none flex-shrink-0 cursor-pointer"
               aria-label="Voice note"
               title="Voice message"
             >
