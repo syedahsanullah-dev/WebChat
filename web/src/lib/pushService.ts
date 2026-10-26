@@ -17,11 +17,16 @@ export interface PushNotificationPayload {
 // Initialize VAPID details if environment variables are provided
 let isVapidConfigured = false;
 
+const DEFAULT_VAPID_PUBLIC_KEY =
+  'BGBM6mKJ-GnXm5jvnwG_uwCReH3Kc3X1EV1l5mrOB-H8hJUE4ZP6UM-o1dyuqbSorldUnwv702zLYjmdF04TBw0';
+const DEFAULT_VAPID_PRIVATE_KEY =
+  'oNRkH0vD_NpPLsorDIZb-hiOrJbgXRjtCPZXCFzisJE';
+
 export function ensureVapidConfigured(): boolean {
   if (isVapidConfigured) return true;
   const vapidSubject = process.env.VAPID_SUBJECT || 'mailto:support@vusigma.com';
-  const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || '';
-  const vapidPrivateKey = process.env.VAPID_PRIVATE_KEY || '';
+  const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || DEFAULT_VAPID_PUBLIC_KEY;
+  const vapidPrivateKey = process.env.VAPID_PRIVATE_KEY || DEFAULT_VAPID_PRIVATE_KEY;
 
   if (vapidPublicKey && vapidPrivateKey) {
     try {
