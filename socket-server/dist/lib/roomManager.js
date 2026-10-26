@@ -65,6 +65,16 @@ class RoomManager {
             }
         }
     }
+    broadcastAll(data, excludeSocket) {
+        const message = typeof data === 'string' ? data : JSON.stringify(data);
+        for (const sockets of this.userSockets.values()) {
+            for (const socket of sockets) {
+                if (socket !== excludeSocket && socket.readyState === ws_1.WebSocket.OPEN) {
+                    socket.send(message);
+                }
+            }
+        }
+    }
     // Accessors for metrics/testing
     getActiveRoomCount() {
         return this.rooms.size;
@@ -83,6 +93,10 @@ class RoomManager {
     }
     getRoomMembers(room) {
         return this.rooms.get(room);
+    }
+    clear() {
+        this.rooms.clear();
+        this.userSockets.clear();
     }
 }
 exports.RoomManager = RoomManager;

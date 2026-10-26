@@ -7,6 +7,17 @@ import { ChatProvider } from '@/context/ChatContext';
 
 export default function ChatLayout({ children }: { children: React.ReactNode }) {
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
+  const [activeChatData, setActiveChatData] = useState<any | null>(null);
+
+  const handleSelectChat = (id: string, chatData?: any) => {
+    setActiveChatId(id);
+    setActiveChatData(chatData || null);
+  };
+
+  const handleBack = () => {
+    setActiveChatId(null);
+    setActiveChatData(null);
+  };
 
   return (
     <ChatProvider>
@@ -18,7 +29,7 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
           }`}
         >
           <Sidebar
-            onSelectChat={(id) => setActiveChatId(id)}
+            onSelectChat={handleSelectChat}
             activeChatId={activeChatId}
           />
         </div>
@@ -31,7 +42,8 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
         >
           <ChatArea
             activeChatId={activeChatId}
-            onBack={() => setActiveChatId(null)}
+            activeChatData={activeChatData}
+            onBack={handleBack}
           >
             {children}
           </ChatArea>

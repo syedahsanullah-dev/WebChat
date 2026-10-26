@@ -13,6 +13,8 @@ const dotenv_1 = __importDefault(require("dotenv"));
 const logger_js_1 = require("./lib/logger.js");
 const roomManager_js_1 = require("./lib/roomManager.js");
 const auth_js_1 = require("./middleware/auth.js");
+const presenceHandler_js_1 = require("./handlers/presenceHandler.js");
+const router_js_1 = require("./router.js");
 // Load environment variables
 dotenv_1.default.config();
 const PORT = parseInt(process.env.PORT || '4000', 10);
@@ -60,38 +62,6 @@ exports.fastify.server.on('upgrade', (request, socket, head) => {
         exports.wss.emit('connection', ws, request, user);
     });
 });
-function handleWebSocketMessage(socket, envelope) {
-    switch (envelope.type) {
-        case 'ping':
-            socket.send(JSON.stringify({ type: 'pong', payload: { timestamp: Date.now() } }));
-            break;
-        case 'typing:start':
-        case 'typing:stop':
-            if (envelope.payload?.chatId) {
-                roomManager_js_1.roomManager.broadcastToRoom(`chat:${envelope.payload.chatId}`, envelope, socket);
-            }
-            break;
-        case 'message:send':
-        case 'message:new':
-            if (envelope.payload?.chatId) {
-                roomManager_js_1.roomManager.broadcastToRoom(`chat:${envelope.payload.chatId}`, envelope);
-            }
-            break;
-        case 'audio-call:invite':
-        case 'audio-call:ring':
-        case 'audio-call:accept':
-        case 'audio-call:reject':
-        case 'audio-call:ice-candidate':
-        case 'audio-call:end':
-            if (envelope.payload?.receiverId) {
-                roomManager_js_1.roomManager.sendToUser(envelope.payload.receiverId, envelope);
-            }
-            break;
-        default:
-            logger_js_1.logger.debug(`Unhandled message type: ${envelope.type} from ${socket.userId}`);
-            break;
-    }
-}
 // WebSocket Connection handler
 exports.wss.on('connection', (ws, _req, user) => {
     const authWs = ws;
@@ -100,28 +70,26 @@ exports.wss.on('connection', (ws, _req, user) => {
     authWs.username = userInfo.username;
     authWs.isAlive = true;
     authWs.rooms = new Set();
-    roomManager_js_1.roomManager.registerUser(authWs.userId, authWs);
-    logger_js_1.logger.info(`WebSocket connected: user=${authWs.username} (${authWs.userId})`);
-    // Initial presence confirmation
-    authWs.send(JSON.stringify({
-        type: 'user:online',
-        payload: { userId: authWs.userId, username: authWs.username },
-    }));
+    // Process connect presence lifecycle and online broadcast
+    (0, presenceHandler_js_1.handleUserConnect)(authWs).catch((err) => {
+        logger_js_1.logger.error(`Presence connect error for user ${authWs.userId}:`, err);
+    });
     authWs.on('pong', () => {
         authWs.isAlive = true;
     });
     authWs.on('message', (rawData) => {
         try {
             const data = JSON.parse(rawData.toString());
-            handleWebSocketMessage(authWs, data);
+            (0, router_js_1.routeWebSocketEnvelope)(authWs, data);
         }
         catch (err) {
             logger_js_1.logger.warn(`Malformed message from user ${authWs.userId}: ${err.message}`);
         }
     });
     authWs.on('close', () => {
-        roomManager_js_1.roomManager.leaveAll(authWs);
-        logger_js_1.logger.info(`WebSocket closed: user=${authWs.username} (${authWs.userId})`);
+        (0, presenceHandler_js_1.handleUserDisconnect)(authWs).catch((err) => {
+            logger_js_1.logger.error(`Presence disconnect error for user ${authWs.userId}:`, err);
+        });
     });
     authWs.on('error', (err) => {
         logger_js_1.logger.error(`WebSocket error for user ${authWs.userId}:`, err);

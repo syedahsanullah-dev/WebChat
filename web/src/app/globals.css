@@ -57,3 +57,26 @@
   pointer-events: none;
   z-index: 0;
 }
+
+/* Search highlight flash animation */
+@keyframes wa-highlight-flash {
+  0% {
+    background-color: rgba(0, 168, 132, 0.35);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+.wa-search-highlight-flash {
+  animation: wa-highlight-flash 1.2s ease-out;
+  border-radius: 0.5rem;
+}
+
+/* Mobile Chrome PWA Ergonomics & Viewport Fixes */
+html, body {
+  overscroll-behavior-y: contain;
+  height: 100dvh;
+  overflow: hidden;
+  -webkit-touch-callout: none;
+}

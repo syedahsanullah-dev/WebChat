@@ -60,7 +60,28 @@ export const ProfileUpdateSchema = z.object({
     .optional(),
 });
 
+export const AddContactSchema = z.object({
+  contactUserId: z
+    .string()
+    .min(1, { message: 'Contact user ID is required' }),
+  aliasName: z
+    .string()
+    .trim()
+    .max(100, { message: 'Nickname must not exceed 100 characters' })
+    .optional()
+    .nullable(),
+});
+
+export const SearchQuerySchema = z.object({
+  q: z
+    .string()
+    .trim()
+    .max(100, { message: 'Search query is too long' }),
+});
+
 export type RegisterInput = z.infer<typeof RegisterSchema>;
 export type LoginInput = z.infer<typeof LoginSchema>;
 export type CheckUsernameInput = z.infer<typeof CheckUsernameSchema>;
 export type ProfileUpdateInput = z.infer<typeof ProfileUpdateSchema>;
+export type AddContactInput = z.infer<typeof AddContactSchema>;
+export type SearchQueryInput = z.infer<typeof SearchQuerySchema>;

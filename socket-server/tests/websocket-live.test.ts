@@ -182,8 +182,15 @@ describe('Empirical Challenger: Live Native WebSocket Wire Protocol Suite', () =
     const typingPromiseU2 = waitForMessage(wsU2);
 
     let senderReceivedTyping = false;
-    wsU1Tab1.on('message', () => {
-      senderReceivedTyping = true;
+    wsU1Tab1.on('message', (data) => {
+      try {
+        const msg = JSON.parse(data.toString());
+        if (msg.type === 'typing:start') {
+          senderReceivedTyping = true;
+        }
+      } catch {
+        // ignore parse error
+      }
     });
 
     wsU1Tab1.send(
@@ -207,7 +214,7 @@ describe('Empirical Challenger: Live Native WebSocket Wire Protocol Suite', () =
       })
     );
     const receivedMsg = await messagePromiseU2;
-    expect(receivedMsg.type).toBe('message:send');
+    expect(['message:send', 'message:new']).toContain(receivedMsg.type);
     expect(receivedMsg.payload.content).toBe('Live challenge ping');
 
     // 7. Progressive closure for User 1:

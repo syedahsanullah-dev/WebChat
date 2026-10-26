@@ -1,138 +1,280 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import Header from '@/components/layout/Header';
+import ChatHeader from '@/components/chat/ChatHeader';
+import MessageList, { MessageItem } from '@/components/chat/MessageList';
+import ChatInput from '@/components/chat/ChatInput';
+import ImagePreviewModal from '@/components/chat/ImagePreviewModal';
+import GroupInfoDrawer from '@/components/groups/GroupInfoDrawer';
+import InChatSearchDrawer from '@/components/chat/InChatSearchDrawer';
+import { QuotedMessageData } from '@/components/chat/QuotedReplyPreview';
 import Avatar from '@/components/ui/Avatar';
-import DropdownMenu, { DropdownMenuItem } from '@/components/ui/DropdownMenu';
 import Modal from '@/components/ui/Modal';
+import { DropdownMenuItem } from '@/components/ui/DropdownMenu';
 import { MOCK_CHATS } from '@/components/layout/Sidebar';
-import { playSentSound, startRingtone } from '@/lib/audio';
-import { cn } from '@/lib/utils';
-import {
-  ArrowLeft,
-  Phone,
-  Search,
-  Paperclip,
-  Smile,
-  Send,
-  Mic,
-  Lock,
-  Laptop,
-  CheckCheck,
-  PhoneOff,
-  PhoneCall,
-} from 'lucide-react';
+import { startRingtone } from '@/lib/audio';
+import { compressImage, CompressionResult } from '@/lib/imageCompression';
+import { RecordedAudioResult } from '@/hooks/useAudioRecorder';
+import { usePresence } from '@/hooks/usePresence';
+import { useTyping } from '@/hooks/useTyping';
+import { useMessages } from '@/hooks/useMessages';
+import { useReactions } from '@/hooks/useReactions';
+import { useInChatSearch } from '@/hooks/useInChatSearch';
+import { useAuth } from '@/context/AuthContext';
+import { useCall } from '@/context/CallContext';
+import { Lock, Laptop, Trash2 } from 'lucide-react';
 
-export interface ChatMessage {
+export interface ActiveChatInfo {
   id: string;
-  sender: 'me' | 'them';
-  text: string;
-  time: string;
+  name: string;
+  username?: string;
+  avatar?: string | null;
+  isOnline?: boolean;
+  lastSeen?: string;
+  isGroup?: boolean;
+  groupDescription?: string | null;
+  otherUser?: {
+    id: string;
+    username: string;
+    displayName: string;
+    avatarUrl?: string | null;
+    isOnline?: boolean;
+    lastSeen?: string;
+  } | null;
 }
 
 export interface ChatAreaProps {
   activeChatId?: string | null;
+  activeChatData?: ActiveChatInfo | null;
   onBack: () => void;
   children?: React.ReactNode;
 }
 
 export default function ChatArea({
   activeChatId,
+  activeChatData,
   onBack,
   children,
 }: ChatAreaProps) {
-  const [inputText, setInputText] = useState('');
-  const [isCalling, setIsCalling] = useState(false);
-  const [callStatus, setCallStatus] = useState<'ringing' | 'connected' | 'ended'>('ringing');
-  const [messages, setMessages] = useState<Record<string, ChatMessage[]>>({
-    'chat-1': [
-      { id: 'm1', sender: 'them', text: 'Hey there! How is the WebChat architecture going?', time: '12:40 PM' },
-      { id: 'm2', sender: 'me', text: 'Dual-server setup is complete. Next.js handles SSR and Fastify handles native WebSockets!', time: '12:42 PM' },
-      { id: 'm3', sender: 'them', text: 'Let us coordinate the server deployment tonight.', time: '12:45 PM' },
-    ],
-    'chat-2': [
-      { id: 'm4', sender: 'them', text: 'The Fastify WebSocket daemon runs smoothly at 28MB RAM!', time: '11:20 AM' },
-    ],
+  const { user } = useAuth();
+  const { startCall } = useCall();
+  const [compressionResult, setCompressionResult] = useState<CompressionResult | null>(null);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [isGroupInfoOpen, setIsGroupInfoOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [replyingToMessage, setReplyingToMessage] = useState<QuotedMessageData | null>(null);
+  const [deletingMessage, setDeletingMessage] = useState<MessageItem | null>(null);
+
+  // Active chat metadata
+  const fallbackChat = MOCK_CHATS.find((c) => c.id === activeChatId) || null;
+  const activeChat = activeChatData || fallbackChat;
+
+  const recipientId =
+    activeChat?.otherUser?.id || activeChat?.username || activeChat?.id || null;
+
+  // Real-time presence
+  const { isUserOnline, getUserLastSeen } = usePresence();
+  const isContactOnline = activeChat
+    ? isUserOnline(activeChat.otherUser?.id || activeChat.id) ||
+      isUserOnline(activeChat.username || '') ||
+      Boolean(activeChat.isOnline)
+    : false;
+
+  const contactLastSeen = activeChat
+    ? getUserLastSeen(activeChat.otherUser?.id || activeChat.id) ||
+      getUserLastSeen(activeChat.username || '') ||
+      ('lastSeen' in activeChat ? activeChat.lastSeen : undefined)
+    : undefined;
+
+  // Real-time typing
+  const { isTyping, typingUsername, emitTyping, stopTyping } = useTyping({
+    chatId: activeChatId,
+    recipientId,
   });
 
-  const stopRingtoneRef = useRef<(() => void) | null>(null);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  // Real-time messages & optimistic delivery
+  const {
+    messages,
+    isLoadingOlder,
+    hasMore,
+    sendMessage,
+    deleteMessage,
+    fetchOlderMessages,
+  } = useMessages({
+    chatId: activeChatId,
+    recipientId,
+  });
 
-  const activeChat = MOCK_CHATS.find((c) => c.id === activeChatId) || null;
-  const currentMessages = activeChatId ? messages[activeChatId] || [] : [];
+  // Reactions hook
+  const { reactionsByMessage, toggleReaction } = useReactions(activeChatId);
 
-  // Scroll to bottom when messages update
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [currentMessages, activeChatId]);
-
-  // Clean up ringtone on unmount or when call ends
-  useEffect(() => {
-    return () => {
-      if (stopRingtoneRef.current) {
-        stopRingtoneRef.current();
-        stopRingtoneRef.current = null;
-      }
-    };
-  }, []);
+  // In-chat search hook
+  const inChatSearch = useInChatSearch(messages);
 
   const handleStartCall = () => {
-    setIsCalling(true);
-    setCallStatus('ringing');
-    stopRingtoneRef.current = startRingtone();
-  };
-
-  const handleEndCall = () => {
-    if (stopRingtoneRef.current) {
-      stopRingtoneRef.current();
-      stopRingtoneRef.current = null;
+    if (!activeChat) return;
+    if (activeChat.isGroup) {
+      alert('Voice calling is only available for 1-on-1 private conversations.');
+      return;
     }
-    setCallStatus('ended');
-    setTimeout(() => {
-      setIsCalling(false);
-    }, 600);
+    const targetUserId = activeChat.otherUser?.id || recipientId;
+    if (!targetUserId) {
+      alert('Cannot start call: Recipient could not be determined.');
+      return;
+    }
+
+    startCall({
+      chatId: activeChatId || activeChat.id,
+      recipientId: targetUserId,
+      recipientName: activeChat.name,
+      recipientUsername: activeChat.username || activeChat.otherUser?.username,
+      recipientAvatar: activeChat.avatar,
+    });
   };
 
-  const handleSendMessage = () => {
-    if (!inputText.trim() || !activeChatId) return;
-
-    const newMessage: ChatMessage = {
-      id: `msg-${Date.now()}`,
-      sender: 'me',
-      text: inputText.trim(),
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-    };
-
-    setMessages((prev) => ({
-      ...prev,
-      [activeChatId]: [...(prev[activeChatId] || []), newMessage],
-    }));
-
-    setInputText('');
-    playSentSound();
+  const handleSendMessage = (text: string) => {
+    stopTyping();
+    sendMessage({
+      content: text,
+      replyToId: replyingToMessage?.id || null,
+      messageType: 'text',
+    });
+    setReplyingToMessage(null);
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      handleSendMessage();
+  const handleReplyMessage = (msg: MessageItem) => {
+    setReplyingToMessage({
+      id: msg.id,
+      senderName: msg.senderName || (msg.senderId === user?.id ? 'You' : 'User'),
+      content: msg.content,
+      messageType: msg.messageType,
+      mediaUrl: msg.mediaUrl,
+    });
+  };
+
+  const handleConfirmDelete = (deleteType: 'everyone' | 'forMe') => {
+    if (deletingMessage) {
+      deleteMessage(deletingMessage.id, deleteType);
+      setDeletingMessage(null);
+    }
+  };
+
+  const handleImageSelect = async (file: File) => {
+    try {
+      const result = await compressImage(file, {
+        maxWidth: 1920,
+        maxHeight: 1920,
+        quality: 0.82,
+      });
+      setCompressionResult(result);
+    } catch (err) {
+      console.error('[ChatArea] Error compressing image:', err);
+      alert('Failed to process image. Please try another file.');
+    }
+  };
+
+  const handleSendImage = async (caption: string) => {
+    if (!compressionResult || !activeChatId) return;
+
+    setIsUploadingImage(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', compressionResult.file);
+      if (caption) {
+        formData.append('caption', caption);
+      }
+
+      const res = await fetch('/api/upload/image', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({}));
+        throw new Error(errJson.error || 'Failed to upload image');
+      }
+
+      const uploadData = await res.json();
+
+      sendMessage({
+        content: caption,
+        mediaUrl: uploadData.mediaUrl,
+        mediaSize: uploadData.mediaSize,
+        messageType: 'image',
+        replyToId: replyingToMessage?.id || null,
+      });
+      setReplyingToMessage(null);
+
+      if (compressionResult.previewUrl) {
+        URL.revokeObjectURL(compressionResult.previewUrl);
+      }
+      setCompressionResult(null);
+    } catch (err: any) {
+      console.error('[ChatArea] Error uploading image:', err);
+      alert(`Image upload failed: ${err.message || 'Unknown error'}`);
+    } finally {
+      setIsUploadingImage(false);
+    }
+  };
+
+  const handleCloseImagePreview = () => {
+    if (compressionResult?.previewUrl) {
+      URL.revokeObjectURL(compressionResult.previewUrl);
+    }
+    setCompressionResult(null);
+  };
+
+  const handleSendVoice = async (result: RecordedAudioResult) => {
+    if (!activeChatId) return;
+
+    try {
+      const formData = new FormData();
+      const ext = result.mimeType?.includes('ogg') ? 'ogg' : 'webm';
+      formData.append('file', result.blob, `voice_${Date.now()}.${ext}`);
+      formData.append('duration', String(result.duration));
+      formData.append('peaks', JSON.stringify(result.peaks));
+
+      const res = await fetch('/api/upload/voice', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({}));
+        throw new Error(errJson.error || 'Failed to upload voice note');
+      }
+
+      const uploadData = await res.json();
+
+      sendMessage({
+        messageType: 'voice',
+        content: JSON.stringify(uploadData.waveform || result.peaks),
+        mediaUrl: uploadData.mediaUrl,
+        mediaSize: uploadData.mediaSize,
+        mediaDuration: uploadData.mediaDuration || result.duration,
+        replyToId: replyingToMessage?.id || null,
+      });
+      setReplyingToMessage(null);
+    } catch (err: any) {
+      console.error('[ChatArea] Error uploading voice note:', err);
+      alert(`Voice message upload failed: ${err.message || 'Unknown error'}`);
     }
   };
 
   const menuItems: DropdownMenuItem[] = [
     {
-      id: 'contact-info',
-      label: 'Contact info',
-      onClick: () => {},
-    },
-    {
-      id: 'clear-messages',
-      label: 'Clear messages',
+      id: 'info',
+      label: activeChat?.isGroup ? 'Group info' : 'Contact info',
       onClick: () => {
-        if (activeChatId) {
-          setMessages((prev) => ({ ...prev, [activeChatId]: [] }));
+        if (activeChat?.isGroup) {
+          setIsGroupInfoOpen((prev) => !prev);
         }
       },
+    },
+    {
+      id: 'search',
+      label: 'Search messages',
+      onClick: () => setIsSearchOpen(true),
     },
     {
       id: 'close-chat',
@@ -177,194 +319,134 @@ export default function ChatArea({
 
   // 2. Active Chat View
   return (
-    <main className="h-full w-full flex flex-col bg-wa-light-bg dark:bg-wa-dark-bg overflow-hidden relative transition-colors">
-      {/* Top Header */}
-      <Header
-        leftContent={
-          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-            {/* Mobile Back Button (<-) */}
-            <button
-              type="button"
-              onClick={onBack}
-              className="inline-flex md:hidden p-1.5 rounded-full hover:bg-black/5 dark:hover:bg-white/5 text-wa-light-text-secondary dark:text-wa-dark-text-secondary focus:outline-none"
-              aria-label="Back to conversations list"
-            >
-              <ArrowLeft className="w-5 h-5" />
-            </button>
-
-            <Avatar
-              name={activeChat.name}
-              src={activeChat.avatar}
-              size="md"
-              isOnline={activeChat.isOnline}
-            />
-
-            <div className="min-w-0">
-              <h2 className="font-medium text-sm text-wa-light-text-primary dark:text-wa-dark-text-primary truncate">
-                {activeChat.name}
-              </h2>
-              <p className="text-xs text-wa-green truncate font-normal">
-                {activeChat.isOnline ? 'online' : 'offline'}
-              </p>
-            </div>
-          </div>
-        }
-        rightContent={
-          <div className="flex items-center gap-1 sm:gap-2">
-            {/* Audio Call Button */}
-            <button
-              type="button"
-              onClick={handleStartCall}
-              className="p-2 rounded-full text-wa-light-text-secondary dark:text-wa-dark-text-secondary hover:text-wa-light-text-primary dark:hover:text-wa-dark-text-primary hover:bg-black/5 dark:hover:bg-white/5 transition-colors focus:outline-none"
-              aria-label="Start voice call"
-              title="Voice call (WebRTC audio-only)"
-            >
-              <Phone className="w-5 h-5" />
-            </button>
-
-            {/* Search Button */}
-            <button
-              type="button"
-              className="p-2 rounded-full text-wa-light-text-secondary dark:text-wa-dark-text-secondary hover:text-wa-light-text-primary dark:hover:text-wa-dark-text-primary hover:bg-black/5 dark:hover:bg-white/5 transition-colors focus:outline-none"
-              aria-label="Search within conversation"
-            >
-              <Search className="w-5 h-5" />
-            </button>
-
-            {/* Menu */}
-            <DropdownMenu items={menuItems} align="right" />
-          </div>
-        }
-      />
-
-      {/* Messages Scroll Area with WhatsApp Doodle Wallpaper */}
-      <div className="flex-1 wa-chat-bg overflow-y-auto p-4 sm:p-6 space-y-3 z-0">
-        {/* Encryption Banner */}
-        <div className="flex justify-center my-2">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-wa-light-header/90 dark:bg-wa-dark-header/90 text-[11px] text-wa-light-text-secondary dark:text-wa-dark-text-secondary shadow-xs text-center max-w-sm">
-            <Lock className="w-3 h-3 text-wa-green flex-shrink-0" />
-            <span>Messages are end-to-end encrypted. No third parties can read them.</span>
-          </div>
-        </div>
-
-        {/* Message bubbles */}
-        {currentMessages.map((msg) => {
-          const isMe = msg.sender === 'me';
-          return (
-            <div
-              key={msg.id}
-              className={cn('flex w-full', isMe ? 'justify-end' : 'justify-start')}
-            >
-              <div
-                className={cn(
-                  'max-w-[85%] sm:max-w-[70%] px-3 py-1.5 rounded-lg shadow-xs text-sm relative break-words',
-                  isMe
-                    ? 'bg-wa-light-sent dark:bg-wa-dark-sent text-wa-light-text-primary dark:text-wa-dark-text-primary rounded-tr-none'
-                    : 'bg-wa-light-received dark:bg-wa-dark-received text-wa-light-text-primary dark:text-wa-dark-text-primary rounded-tl-none'
-                )}
-              >
-                <p className="leading-relaxed whitespace-pre-wrap">{msg.text}</p>
-                <div className="flex items-center justify-end gap-1 mt-1 text-[10px] text-wa-light-text-muted dark:text-wa-dark-text-muted float-right ml-2 -mb-0.5">
-                  <span>{msg.time}</span>
-                  {isMe && <CheckCheck className="w-3.5 h-3.5 text-wa-blue-tick" />}
-                </div>
-              </div>
-            </div>
-          );
-        })}
-        <div ref={messagesEndRef} />
-      </div>
-
-      {/* Bottom Message Input Bar */}
-      <footer className="px-4 py-2 bg-wa-light-header dark:bg-wa-dark-header border-t border-wa-light-border dark:border-wa-dark-border flex items-center gap-2 z-10">
-        <button
-          type="button"
-          className="p-2 rounded-full text-wa-light-text-secondary dark:text-wa-dark-text-secondary hover:text-wa-light-text-primary dark:hover:text-wa-dark-text-primary hover:bg-black/5 dark:hover:bg-white/5 transition-colors focus:outline-none"
-          aria-label="Add emoji"
-        >
-          <Smile className="w-5 h-5" />
-        </button>
-
-        <button
-          type="button"
-          className="p-2 rounded-full text-wa-light-text-secondary dark:text-wa-dark-text-secondary hover:text-wa-light-text-primary dark:hover:text-wa-dark-text-primary hover:bg-black/5 dark:hover:bg-white/5 transition-colors focus:outline-none"
-          aria-label="Attach file"
-        >
-          <Paperclip className="w-5 h-5" />
-        </button>
-
-        <input
-          type="text"
-          value={inputText}
-          onChange={(e) => setInputText(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder="Type a message"
-          className="flex-1 bg-wa-light-input dark:bg-wa-dark-input text-wa-light-text-primary dark:text-wa-dark-text-primary placeholder:text-wa-light-text-muted dark:placeholder:text-wa-dark-text-muted text-sm rounded-lg px-4 py-2 focus:outline-none focus:ring-1 focus:ring-wa-green transition-all"
+    <div className="h-full w-full flex overflow-hidden relative">
+      <main className="flex-1 flex flex-col bg-wa-light-bg dark:bg-wa-dark-bg overflow-hidden relative transition-colors h-full">
+        {/* Top Header */}
+        <ChatHeader
+          name={activeChat.name}
+          avatar={activeChat.avatar}
+          isOnline={activeChat.isGroup ? false : isContactOnline}
+          lastSeen={activeChat.isGroup ? undefined : contactLastSeen}
+          subtitle={
+            activeChat.isGroup
+              ? ('groupDescription' in activeChat && activeChat.groupDescription
+                  ? activeChat.groupDescription
+                  : 'Group conversation')
+              : undefined
+          }
+          isTyping={isTyping}
+          typingUsername={typingUsername}
+          onBack={onBack}
+          onStartCall={handleStartCall}
+          onSearch={() => setIsSearchOpen(true)}
+          onHeaderClick={() => {
+            if (activeChat.isGroup) {
+              setIsGroupInfoOpen((prev) => !prev);
+            }
+          }}
+          menuItems={menuItems}
         />
 
-        {inputText.trim() ? (
-          <button
-            type="button"
-            onClick={handleSendMessage}
-            className="p-2 rounded-full bg-wa-green text-white hover:bg-wa-green-dark transition-colors focus:outline-none shadow-xs"
-            aria-label="Send message"
-          >
-            <Send className="w-5 h-5" />
-          </button>
-        ) : (
-          <button
-            type="button"
-            className="p-2 rounded-full text-wa-light-text-secondary dark:text-wa-dark-text-secondary hover:text-wa-light-text-primary dark:hover:text-wa-dark-text-primary hover:bg-black/5 dark:hover:bg-white/5 transition-colors focus:outline-none"
-            aria-label="Voice message"
-          >
-            <Mic className="w-5 h-5" />
-          </button>
-        )}
-      </footer>
+        {/* Messages Scroll Area with WhatsApp Doodle Wallpaper */}
+        <MessageList
+          messages={messages}
+          currentUserId={user?.id || 'me'}
+          isGroup={Boolean(activeChat.isGroup)}
+          searchQuery={inChatSearch.query}
+          reactionsByMessage={reactionsByMessage}
+          isLoadingOlder={isLoadingOlder}
+          hasMore={hasMore}
+          onLoadMore={fetchOlderMessages}
+          onReply={handleReplyMessage}
+          onReact={toggleReaction}
+          onDelete={(msg) => setDeletingMessage(msg)}
+        />
 
-      {/* WebRTC Audio Call Modal */}
-      <Modal
-        isOpen={isCalling}
-        onClose={handleEndCall}
-        title="WebChat Voice Call"
-        maxWidth="sm"
-        showCloseButton={false}
-      >
-        <div className="flex flex-col items-center text-center space-y-6 py-4">
-          <div className="relative">
-            <Avatar name={activeChat.name} src={activeChat.avatar} size="xl" isOnline={true} />
-            <div className="absolute -bottom-1 -right-1 p-2 bg-wa-green text-white rounded-full ring-4 ring-wa-light-sidebar dark:ring-wa-dark-sidebar animate-pulse">
-              <PhoneCall className="w-4 h-4" />
+        {/* Bottom Message Input Bar */}
+        <ChatInput
+          onSendMessage={handleSendMessage}
+          onImageSelect={handleImageSelect}
+          onSendVoice={handleSendVoice}
+          onTyping={emitTyping}
+          replyingToMessage={replyingToMessage}
+          onCancelReply={() => setReplyingToMessage(null)}
+          disabled={!activeChatId}
+        />
+
+        {/* Image Preview & Caption Modal */}
+        <ImagePreviewModal
+          isOpen={Boolean(compressionResult)}
+          compressionResult={compressionResult}
+          isUploading={isUploadingImage}
+          onClose={handleCloseImagePreview}
+          onSend={handleSendImage}
+        />
+
+        {/* Delete Message Confirmation Modal */}
+        <Modal
+          isOpen={Boolean(deletingMessage)}
+          onClose={() => setDeletingMessage(null)}
+          title="Delete message?"
+          maxWidth="sm"
+        >
+          <div className="space-y-4 py-2">
+            <p className="text-sm text-wa-light-text-secondary dark:text-wa-dark-text-secondary">
+              Are you sure you want to delete this message?
+            </p>
+            <div className="flex flex-col gap-2 pt-2">
+              {deletingMessage?.senderId === user?.id && (
+                <button
+                  type="button"
+                  onClick={() => handleConfirmDelete('everyone')}
+                  className="w-full py-2.5 px-4 rounded-xl bg-red-500 hover:bg-red-600 text-white font-medium text-sm transition-colors focus:outline-none"
+                >
+                  Delete for everyone
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => handleConfirmDelete('forMe')}
+                className="w-full py-2.5 px-4 rounded-xl bg-wa-light-input dark:bg-wa-dark-input hover:bg-wa-light-hover dark:hover:bg-wa-dark-hover text-wa-light-text-primary dark:text-wa-dark-text-primary font-medium text-sm transition-colors focus:outline-none"
+              >
+                Delete for me
+              </button>
+              <button
+                type="button"
+                onClick={() => setDeletingMessage(null)}
+                className="w-full py-2 px-4 rounded-xl text-wa-light-text-muted dark:text-wa-dark-text-muted hover:text-wa-light-text-primary dark:hover:text-wa-dark-text-primary text-sm focus:outline-none"
+              >
+                Cancel
+              </button>
             </div>
           </div>
+        </Modal>
 
-          <div>
-            <h3 className="font-semibold text-xl text-wa-light-text-primary dark:text-wa-dark-text-primary">
-              {activeChat.name}
-            </h3>
-            <p className="text-sm text-wa-light-text-secondary dark:text-wa-dark-text-secondary mt-1">
-              {callStatus === 'ringing'
-                ? 'Ringing... (Opus 32kbps)'
-                : callStatus === 'connected'
-                ? '00:15 Connected'
-                : 'Call Ended'}
-            </p>
-          </div>
+        {children}
+      </main>
 
-          <div className="flex items-center justify-center gap-6">
-            <button
-              type="button"
-              onClick={handleEndCall}
-              className="p-4 rounded-full bg-red-600 hover:bg-red-700 text-white shadow-lg transition-transform hover:scale-105 focus:outline-none"
-              aria-label="End call"
-            >
-              <PhoneOff className="w-6 h-6" />
-            </button>
-          </div>
-        </div>
-      </Modal>
+      {/* Pinned Group Info Drawer */}
+      {isGroupInfoOpen && activeChat.isGroup && (
+        <GroupInfoDrawer
+          isOpen={isGroupInfoOpen}
+          groupId={activeChat.id}
+          onClose={() => setIsGroupInfoOpen(false)}
+          onExitGroup={onBack}
+        />
+      )}
 
-      {children}
-    </main>
+      {/* Pinned In-Chat Search Drawer */}
+      {isSearchOpen && (
+        <InChatSearchDrawer
+          isOpen={isSearchOpen}
+          onClose={() => setIsSearchOpen(false)}
+          query={inChatSearch.query}
+          onQueryChange={inChatSearch.setQuery}
+          currentMatchNumber={inChatSearch.currentMatchNumber}
+          totalMatches={inChatSearch.totalMatches}
+          onNextMatch={inChatSearch.nextMatch}
+          onPrevMatch={inChatSearch.prevMatch}
+        />
+      )}
+    </div>
   );
 }

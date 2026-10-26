@@ -1,12 +1,20 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import Header from '@/components/layout/Header';
 import Avatar from '@/components/ui/Avatar';
 import SearchInput from '@/components/ui/SearchInput';
 import DropdownMenu, { DropdownMenuItem } from '@/components/ui/DropdownMenu';
 import Modal from '@/components/ui/Modal';
 import ProfileDrawer from '@/components/profile/ProfileDrawer';
+import InstallAppBanner from '@/components/pwa/InstallAppBanner';
+import NewChatModal from '@/components/contacts/NewChatModal';
+import ContactDrawer from '@/components/contacts/ContactDrawer';
+import CreateGroupModal from '@/components/groups/CreateGroupModal';
+import ConversationItem, { ConversationItemData } from '@/components/sidebar/ConversationItem';
+import { usePresence } from '@/hooks/usePresence';
+import { useWebSocket } from '@/context/WebSocketContext';
+import { UserTypingStatusPayload, MessageNewPayload, MessageAckPayload } from '@shared/events';
 import { useTheme } from '@/context/ThemeContext';
 import { useAuth } from '@/context/AuthContext';
 import { cn } from '@/lib/utils';
@@ -14,12 +22,12 @@ import {
   Sun,
   Moon,
   MessageSquarePlus,
-  CheckCheck,
   Users,
   Settings,
   LogOut,
   User,
   ShieldCheck,
+  BookUser,
 } from 'lucide-react';
 
 export interface ChatItemData {
@@ -29,9 +37,12 @@ export interface ChatItemData {
   avatar?: string | null;
   lastMessage: string;
   time: string;
+  lastMessageAt?: string;
+  lastSeen?: string;
   unreadCount?: number;
   isOnline: boolean;
   isGroup?: boolean;
+  otherUser?: any;
 }
 
 export const MOCK_CHATS: ChatItemData[] = [
@@ -41,6 +52,7 @@ export const MOCK_CHATS: ChatItemData[] = [
     username: '@sarah',
     lastMessage: 'Let us coordinate the server deployment tonight.',
     time: '12:45 PM',
+    lastMessageAt: new Date(Date.now() - 15 * 60 * 1000).toISOString(),
     unreadCount: 2,
     isOnline: true,
   },
@@ -50,6 +62,7 @@ export const MOCK_CHATS: ChatItemData[] = [
     username: '@alex_lead',
     lastMessage: 'The Fastify WebSocket daemon runs smoothly at 28MB RAM!',
     time: '11:20 AM',
+    lastMessageAt: new Date(Date.now() - 90 * 60 * 1000).toISOString(),
     unreadCount: 0,
     isOnline: true,
   },
@@ -59,6 +72,7 @@ export const MOCK_CHATS: ChatItemData[] = [
     username: '@infra_team',
     lastMessage: 'GitHub Actions workflow deployed standalone server.',
     time: 'Yesterday',
+    lastMessageAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
     unreadCount: 0,
     isOnline: false,
     isGroup: true,
@@ -69,6 +83,7 @@ export const MOCK_CHATS: ChatItemData[] = [
     username: '@elena_r',
     lastMessage: 'Voice call quality with Opus codec is crystal clear.',
     time: 'Yesterday',
+    lastMessageAt: new Date(Date.now() - 30 * 60 * 60 * 1000).toISOString(),
     unreadCount: 0,
     isOnline: false,
   },
@@ -78,13 +93,14 @@ export const MOCK_CHATS: ChatItemData[] = [
     username: '@brody_m',
     lastMessage: 'See you in the audio call shortly 👍',
     time: 'Wednesday',
+    lastMessageAt: new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString(),
     unreadCount: 0,
     isOnline: true,
   },
 ];
 
 export interface SidebarProps {
-  onSelectChat: (chatId: string) => void;
+  onSelectChat: (chatId: string, chatData?: any) => void;
   activeChatId?: string | null;
   className?: string;
 }
@@ -96,12 +112,184 @@ export default function Sidebar({
 }: SidebarProps) {
   const { theme, toggleTheme } = useTheme();
   const { user, logout } = useAuth();
+  const { isUserOnline } = usePresence();
+  const { subscribe } = useWebSocket();
+
+  const [chats, setChats] = useState<ConversationItemData[]>(() =>
+    MOCK_CHATS.map((c) => ({
+      ...c,
+      lastMessageAt: c.lastMessageAt || new Date().toISOString(),
+    }))
+  );
+  const [typingChats, setTypingChats] = useState<Record<string, { isTyping: boolean; username?: string }>>({});
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState<'all' | 'unread' | 'groups'>('all');
   const [activeModal, setActiveModal] = useState<'settings' | 'new-group' | null>(null);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isContactDrawerOpen, setIsContactDrawerOpen] = useState(false);
+  const [isNewChatModalOpen, setIsNewChatModalOpen] = useState(false);
+
+  // Fetch chats from REST API
+  const refreshChats = useCallback(async () => {
+    try {
+      const res = await fetch('/api/chats', {
+        headers: { 'Cache-Control': 'no-cache' },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data.chats) && data.chats.length > 0) {
+          setChats(data.chats);
+        }
+      }
+    } catch {
+      // Swallowed safely in dev
+    }
+  }, []);
+
+  useEffect(() => {
+    refreshChats();
+  }, [refreshChats, user]);
+
+  // Subscribe to typing indicators
+  useEffect(() => {
+    const unsubStart = subscribe<UserTypingStatusPayload>('typing:start', (payload) => {
+      if (!payload?.chatId) return;
+      if (user && payload.userId === user.id) return;
+      setTypingChats((prev) => ({
+        ...prev,
+        [payload.chatId]: { isTyping: true, username: payload.username },
+      }));
+    });
+
+    const unsubStop = subscribe<UserTypingStatusPayload>('typing:stop', (payload) => {
+      if (!payload?.chatId) return;
+      if (user && payload.userId === user.id) return;
+      setTypingChats((prev) => {
+        const next = { ...prev };
+        delete next[payload.chatId];
+        return next;
+      });
+    });
+
+    return () => {
+      unsubStart();
+      unsubStop();
+    };
+  }, [subscribe, user]);
+
+  // Subscribe to real-time message updates to re-order conversations to top
+  useEffect(() => {
+    const unsubNew = subscribe<MessageNewPayload>('message:new', (payload) => {
+      if (!payload?.chatId) return;
+
+      setChats((prev) => {
+        const targetIndex = prev.findIndex((c) => c.id === payload.chatId);
+        if (targetIndex !== -1) {
+          const target = prev[targetIndex];
+          const isNotActive = payload.chatId !== activeChatId;
+          const updatedChat: ConversationItemData = {
+            ...target,
+            lastMessage: payload.content || (payload.type === 'image' ? 'Photo' : 'Audio'),
+            lastMessageAt:
+              payload.createdAt instanceof Date
+                ? payload.createdAt.toISOString()
+                : String(payload.createdAt || new Date().toISOString()),
+            unreadCount: isNotActive ? (target.unreadCount || 0) + 1 : 0,
+          };
+
+          const remaining = prev.filter((_, idx) => idx !== targetIndex);
+          return [updatedChat, ...remaining];
+        }
+
+        // Chat not currently in list: refresh conversation list from server
+        refreshChats();
+        return prev;
+      });
+    });
+
+    const unsubAck = subscribe<MessageAckPayload>('message:ack', (payload) => {
+      if (!payload?.chatId) return;
+
+      setChats((prev) => {
+        const targetIndex = prev.findIndex((c) => c.id === payload.chatId);
+        if (targetIndex !== -1) {
+          const target = prev[targetIndex];
+          const updatedChat: ConversationItemData = {
+            ...target,
+            lastMessageAt: payload.createdAt || new Date().toISOString(),
+          };
+          const remaining = prev.filter((_, idx) => idx !== targetIndex);
+          return [updatedChat, ...remaining];
+        }
+        return prev;
+      });
+    });
+
+    return () => {
+      unsubNew();
+      unsubAck();
+    };
+  }, [subscribe, activeChatId, refreshChats]);
+
+  // Handle open direct 1-on-1 chat
+  const handleOpenDirectChat = async (targetUserId: string, existingChatId?: string | null) => {
+    if (existingChatId) {
+      onSelectChat(existingChatId);
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/chats/direct', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ targetUserId }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        const chat = data.chat;
+        const otherParticipant = chat.participants?.find((p: any) => p.userId !== user?.id);
+        const otherUser = otherParticipant?.user;
+
+        const chatItem: ConversationItemData = {
+          id: chat.id,
+          name: otherUser?.displayName || 'Direct Chat',
+          username: otherUser ? `@${otherUser.username}` : '',
+          avatar: otherUser?.avatarUrl,
+          lastMessage: '',
+          lastMessageAt: chat.lastMessageAt || new Date().toISOString(),
+          unreadCount: 0,
+          isOnline: Boolean(otherUser?.isOnline),
+          isGroup: false,
+        };
+
+        setChats((prev) => {
+          if (prev.some((c) => c.id === chat.id)) return prev;
+          return [chatItem, ...prev];
+        });
+
+        onSelectChat(chat.id, chatItem);
+      } else {
+        onSelectChat('chat-' + targetUserId);
+      }
+    } catch {
+      onSelectChat('chat-' + targetUserId);
+    }
+  };
 
   const menuItems: DropdownMenuItem[] = [
+    {
+      id: 'new-chat',
+      label: 'New Chat',
+      icon: <MessageSquarePlus className="w-4 h-4 text-wa-light-text-secondary dark:text-wa-dark-text-secondary" />,
+      onClick: () => setIsNewChatModalOpen(true),
+    },
+    {
+      id: 'contacts',
+      label: 'Contacts',
+      icon: <BookUser className="w-4 h-4 text-wa-light-text-secondary dark:text-wa-dark-text-secondary" />,
+      onClick: () => setIsContactDrawerOpen(true),
+    },
     {
       id: 'new-group',
       label: 'New Group',
@@ -131,11 +319,11 @@ export default function Sidebar({
   ];
 
   const filteredChats = useMemo(() => {
-    return MOCK_CHATS.filter((chat) => {
+    return chats.filter((chat) => {
       // Search filter
       const matchesSearch =
         chat.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        chat.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (chat.username && chat.username.toLowerCase().includes(searchQuery.toLowerCase())) ||
         chat.lastMessage.toLowerCase().includes(searchQuery.toLowerCase());
 
       if (!matchesSearch) return false;
@@ -145,7 +333,7 @@ export default function Sidebar({
       if (filterType === 'groups') return chat.isGroup;
       return true;
     });
-  }, [searchQuery, filterType]);
+  }, [chats, searchQuery, filterType]);
 
   return (
     <aside
@@ -158,6 +346,16 @@ export default function Sidebar({
       <ProfileDrawer
         isOpen={isProfileOpen}
         onClose={() => setIsProfileOpen(false)}
+      />
+
+      {/* Slide-over WhatsApp Contact Drawer */}
+      <ContactDrawer
+        isOpen={isContactDrawerOpen}
+        onClose={() => setIsContactDrawerOpen(false)}
+        onStartChat={(targetUserId) => {
+          handleOpenDirectChat(targetUserId);
+        }}
+        onOpenNewChatModal={() => setIsNewChatModalOpen(true)}
       />
 
       {/* Sidebar Top Header */}
@@ -192,10 +390,10 @@ export default function Sidebar({
             {/* New Chat Button */}
             <button
               type="button"
-              onClick={() => setActiveModal('new-group')}
+              onClick={() => setIsNewChatModalOpen(true)}
               className="p-2 rounded-full text-wa-light-text-secondary dark:text-wa-dark-text-secondary hover:text-wa-light-text-primary dark:hover:text-wa-dark-text-primary hover:bg-black/5 dark:hover:bg-white/5 transition-colors focus:outline-none"
-              aria-label="New chat or group"
-              title="New group"
+              aria-label="New chat or find contacts"
+              title="New chat"
             >
               <MessageSquarePlus className="w-5 h-5" />
             </button>
@@ -206,6 +404,9 @@ export default function Sidebar({
         }
       />
 
+      {/* PWA Install Promotion Banner */}
+      <InstallAppBanner />
+
       {/* Search Input Box */}
       <div className="px-3 py-2 border-b border-wa-light-border dark:border-wa-dark-border">
         <SearchInput
@@ -215,16 +416,16 @@ export default function Sidebar({
         />
       </div>
 
-      {/* Filter Chips */}
-      <div className="flex items-center gap-2 px-3 py-2 border-b border-wa-light-border/60 dark:border-wa-dark-border/60 overflow-x-auto scrollbar-none text-xs">
+      {/* Filter Tabs (All / Unread / Groups) */}
+      <div className="flex items-center gap-2 px-3 py-2 border-b border-wa-light-border dark:border-wa-dark-border text-xs">
         <button
           type="button"
           onClick={() => setFilterType('all')}
           className={cn(
-            'px-3 py-1 rounded-full font-medium transition-colors whitespace-nowrap',
+            'px-3 py-1 rounded-full font-medium transition-colors focus:outline-none',
             filterType === 'all'
-              ? 'bg-wa-green text-white'
-              : 'bg-wa-light-input dark:bg-wa-dark-input text-wa-light-text-secondary dark:text-wa-dark-text-secondary hover:bg-wa-light-hover dark:hover:bg-wa-dark-hover'
+              ? 'bg-wa-green/15 text-wa-green dark:bg-wa-green/20'
+              : 'bg-wa-light-hover dark:bg-wa-dark-hover text-wa-light-text-secondary dark:text-wa-dark-text-secondary'
           )}
         >
           All
@@ -233,10 +434,10 @@ export default function Sidebar({
           type="button"
           onClick={() => setFilterType('unread')}
           className={cn(
-            'px-3 py-1 rounded-full font-medium transition-colors whitespace-nowrap',
+            'px-3 py-1 rounded-full font-medium transition-colors focus:outline-none',
             filterType === 'unread'
-              ? 'bg-wa-green text-white'
-              : 'bg-wa-light-input dark:bg-wa-dark-input text-wa-light-text-secondary dark:text-wa-dark-text-secondary hover:bg-wa-light-hover dark:hover:bg-wa-dark-hover'
+              ? 'bg-wa-green/15 text-wa-green dark:bg-wa-green/20'
+              : 'bg-wa-light-hover dark:bg-wa-dark-hover text-wa-light-text-secondary dark:text-wa-dark-text-secondary'
           )}
         >
           Unread
@@ -245,18 +446,18 @@ export default function Sidebar({
           type="button"
           onClick={() => setFilterType('groups')}
           className={cn(
-            'px-3 py-1 rounded-full font-medium transition-colors whitespace-nowrap',
+            'px-3 py-1 rounded-full font-medium transition-colors focus:outline-none',
             filterType === 'groups'
-              ? 'bg-wa-green text-white'
-              : 'bg-wa-light-input dark:bg-wa-dark-input text-wa-light-text-secondary dark:text-wa-dark-text-secondary hover:bg-wa-light-hover dark:hover:bg-wa-dark-hover'
+              ? 'bg-wa-green/15 text-wa-green dark:bg-wa-green/20'
+              : 'bg-wa-light-hover dark:bg-wa-dark-hover text-wa-light-text-secondary dark:text-wa-dark-text-secondary'
           )}
         >
           Groups
         </button>
       </div>
 
-      {/* Conversations List */}
-      <div className="flex-1 overflow-y-auto divide-y divide-wa-light-border/50 dark:divide-wa-dark-border/50">
+      {/* Conversation List */}
+      <div className="flex-1 overflow-y-auto divide-y divide-wa-light-border/40 dark:divide-wa-dark-border/40">
         {filteredChats.length === 0 ? (
           <div className="p-6 text-center text-sm text-wa-light-text-muted dark:text-wa-dark-text-muted">
             No chats found
@@ -264,72 +465,28 @@ export default function Sidebar({
         ) : (
           filteredChats.map((chat) => {
             const isSelected = activeChatId === chat.id;
+            const isChatOnline =
+              isUserOnline(chat.username?.replace('@', '') || '') ||
+              isUserOnline(chat.id) ||
+              chat.isOnline;
+            const isTyping = Boolean(typingChats[chat.id]?.isTyping);
+            const typingUsername = typingChats[chat.id]?.username;
+
             return (
-              <div
+              <ConversationItem
                 key={chat.id}
-                role="button"
-                tabIndex={0}
-                onClick={() => onSelectChat(chat.id)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    onSelectChat(chat.id);
-                  }
-                }}
-                className={cn(
-                  'flex items-center gap-3 px-3 py-3 cursor-pointer transition-colors outline-none',
-                  isSelected
-                    ? 'bg-wa-light-active dark:bg-wa-dark-active'
-                    : 'hover:bg-wa-light-hover dark:hover:bg-wa-dark-hover'
-                )}
-              >
-                <Avatar
-                  name={chat.name}
-                  src={chat.avatar}
-                  size="lg"
-                  isOnline={chat.isOnline}
-                />
-
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="font-medium text-sm text-wa-light-text-primary dark:text-wa-dark-text-primary truncate">
-                      {chat.name}
-                    </span>
-                    <span
-                      className={cn(
-                        'text-xs flex-shrink-0 ml-2',
-                        chat.unreadCount && chat.unreadCount > 0
-                          ? 'text-wa-green font-medium'
-                          : 'text-wa-light-text-muted dark:text-wa-dark-text-muted'
-                      )}
-                    >
-                      {chat.time}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center justify-between text-xs">
-                    <p className="text-wa-light-text-secondary dark:text-wa-dark-text-secondary truncate flex items-center gap-1">
-                      {!chat.isGroup && (
-                        <CheckCheck className="w-3.5 h-3.5 text-wa-blue-tick flex-shrink-0" />
-                      )}
-                      <span className="truncate">{chat.lastMessage}</span>
-                    </p>
-
-                    {chat.unreadCount && chat.unreadCount > 0 ? (
-                      <span className="flex-shrink-0 ml-2 min-w-5 h-5 px-1.5 rounded-full bg-wa-green text-white text-[11px] font-bold flex items-center justify-center">
-                        {chat.unreadCount}
-                      </span>
-                    ) : null}
-                  </div>
-                </div>
-              </div>
+                chat={{ ...chat, isOnline: isChatOnline }}
+                isSelected={isSelected}
+                isTyping={isTyping}
+                typingUsername={typingUsername}
+                onSelect={(id) => onSelectChat(id, chat)}
+              />
             );
           })
         )}
       </div>
 
-      {/* Modals for Sidebar Actions */}
-
+      {/* Settings Modal */}
       <Modal
         isOpen={activeModal === 'settings'}
         onClose={() => setActiveModal(null)}
@@ -355,26 +512,29 @@ export default function Sidebar({
         </div>
       </Modal>
 
-      <Modal
+      {/* Multi-Step New Group Modal */}
+      <CreateGroupModal
         isOpen={activeModal === 'new-group'}
         onClose={() => setActiveModal(null)}
-        title="Create New Group"
-      >
-        <div className="space-y-4">
-          <input
-            type="text"
-            placeholder="Group subject..."
-            className="w-full px-3 py-2 rounded-lg bg-wa-light-input dark:bg-wa-dark-input border border-wa-light-border dark:border-wa-dark-border text-sm focus:outline-none focus:ring-1 focus:ring-wa-green text-wa-light-text-primary dark:text-wa-dark-text-primary"
-          />
-          <button
-            type="button"
-            onClick={() => setActiveModal(null)}
-            className="w-full py-2 bg-wa-green hover:bg-wa-green-dark text-white rounded-lg text-sm font-semibold transition-colors"
-          >
-            Create Group
-          </button>
-        </div>
-      </Modal>
+        onGroupCreated={(newGroup) => {
+          refreshChats();
+          onSelectChat(newGroup.id, {
+            id: newGroup.id,
+            name: newGroup.groupTitle,
+            avatar: newGroup.groupAvatarUrl,
+            isGroup: true,
+          });
+        }}
+      />
+
+      {/* New Chat / Find Users Modal */}
+      <NewChatModal
+        isOpen={isNewChatModalOpen}
+        onClose={() => setIsNewChatModalOpen(false)}
+        onStartChat={(targetUserId, existingChatId) => {
+          handleOpenDirectChat(targetUserId, existingChatId);
+        }}
+      />
     </aside>
   );
 }

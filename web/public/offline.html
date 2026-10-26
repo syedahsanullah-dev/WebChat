@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#111b21" />
+  <title>Offline • WebChat</title>
+  <link rel="icon" href="/icons/icon-192x192.png" />
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: #111b21;
+      color: #e9edef;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+      text-align: center;
+      background-image: radial-gradient(rgba(37, 211, 102, 0.04) 1px, transparent 1px);
+      background-size: 24px 24px;
+    }
+
+    .card {
+      max-width: 400px;
+      width: 100%;
+      background: #202c33;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 20px;
+      padding: 2.5rem 2rem;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+      display: flex;
+      flex-col;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .icon-container {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: rgba(239, 68, 68, 0.12);
+      border: 2px solid rgba(239, 68, 68, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1.5rem;
+      position: relative;
+    }
+
+    .icon-container svg {
+      width: 36px;
+      height: 36px;
+      stroke: #ef4444;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      fill: none;
+    }
+
+    h1 {
+      font-size: 1.35rem;
+      font-weight: 600;
+      color: #e9edef;
+      margin-bottom: 0.65rem;
+    }
+
+    p {
+      font-size: 0.88rem;
+      line-height: 1.55;
+      color: #8696a0;
+      margin-bottom: 2rem;
+    }
+
+    .retry-btn {
+      background-color: #00a884;
+      color: #111b21;
+      font-weight: 600;
+      font-size: 0.95rem;
+      padding: 0.85rem 2rem;
+      border-radius: 9999px;
+      border: none;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: background-color 0.15s ease, transform 0.1s ease;
+      box-shadow: 0 4px 14px rgba(0, 168, 132, 0.35);
+    }
+
+    .retry-btn:hover {
+      background-color: #02906f;
+    }
+
+    .retry-btn:active {
+      transform: scale(0.97);
+    }
+
+    .status-text {
+      font-size: 0.75rem;
+      color: #667781;
+      margin-top: 1.25rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="icon-container">
+      <svg viewBox="0 0 24 24">
+        <line x1="1" y1="1" x2="23" y2="23"></line>
+        <path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"></path>
+        <path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"></path>
+        <path d="M10.71 5.05A16 16 0 0 1 22.56 9"></path>
+        <path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"></path>
+        <path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path>
+        <line x1="12" y1="20" x2="12.01" y2="20"></line>
+      </svg>
+    </div>
+
+    <h1>You're Offline</h1>
+    <p>WebChat requires an internet connection to sync your conversations and voice calls. Please check your network and reconnect.</p>
+
+    <button class="retry-btn" onclick="retryConnection()">
+      <span>Retry Connection</span>
+    </button>
+
+    <div class="status-text" id="status-msg">Auto-reconnecting when internet is restored...</div>
+  </div>
+
+  <script>
+    function retryConnection() {
+      const btn = document.querySelector('.retry-btn span');
+      btn.textContent = 'Reconnecting...';
+      setTimeout(() => {
+        window.location.reload();
+      }, 300);
+    }
+
+    // Auto-reconnect when connection is re-established
+    window.addEventListener('online', () => {
+      document.getElementById('status-msg').textContent = 'Connection restored! Reloading...';
+      document.getElementById('status-msg').style.color = '#00a884';
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
+    });
+  </script>
+</body>
+</html>

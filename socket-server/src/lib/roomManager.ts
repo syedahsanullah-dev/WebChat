@@ -76,6 +76,17 @@ export class RoomManager {
     }
   }
 
+  broadcastAll(data: any, excludeSocket?: AuthenticatedWebSocket): void {
+    const message = typeof data === 'string' ? data : JSON.stringify(data);
+    for (const sockets of this.userSockets.values()) {
+      for (const socket of sockets) {
+        if (socket !== excludeSocket && socket.readyState === WebSocket.OPEN) {
+          socket.send(message);
+        }
+      }
+    }
+  }
+
   // Accessors for metrics/testing
   getActiveRoomCount(): number {
     return this.rooms.size;
@@ -99,6 +110,11 @@ export class RoomManager {
 
   getRoomMembers(room: string): Set<AuthenticatedWebSocket> | undefined {
     return this.rooms.get(room);
+  }
+
+  clear(): void {
+    this.rooms.clear();
+    this.userSockets.clear();
   }
 }
 

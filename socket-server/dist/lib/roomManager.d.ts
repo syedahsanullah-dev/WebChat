@@ -15,12 +15,14 @@ export declare class RoomManager {
     isUserOnline(userId: string): boolean;
     broadcastToRoom(room: string, data: any, excludeSocket?: AuthenticatedWebSocket): void;
     sendToUser(userId: string, data: any): void;
+    broadcastAll(data: any, excludeSocket?: AuthenticatedWebSocket): void;
     getActiveRoomCount(): number;
     getOnlineUserCount(): number;
     getRoomMemberCount(room: string): number;
     getUserSocketCount(userId: string): number;
     getUserSockets(userId: string): Set<AuthenticatedWebSocket> | undefined;
     getRoomMembers(room: string): Set<AuthenticatedWebSocket> | undefined;
+    clear(): void;
 }
 export declare const roomManager: RoomManager;
 export default roomManager;

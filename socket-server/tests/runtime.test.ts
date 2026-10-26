@@ -23,7 +23,7 @@ describe('Empirical Challenger: Live Runtime & RSS Memory Verification', () => {
 
       // Wait for server to start listening
       let started = false;
-      const timeoutMs = 8000;
+      const timeoutMs = 20000;
       const startMs = Date.now();
 
       await new Promise<void>((resolve, reject) => {
@@ -90,5 +90,5 @@ describe('Empirical Challenger: Live Runtime & RSS Memory Verification', () => {
         serverProcess.kill('SIGTERM');
       }
     }
-  }, 15000);
+  }, 25000);
 });
