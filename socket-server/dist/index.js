@@ -76,6 +76,43 @@ exports.fastify.get('/', async () => {
         documentation: '/health',
     };
 });
+// Phase 35: Internal Global Broadcast Dispatcher (triggered by Server #1)
+exports.fastify.post('/internal/broadcast', async (request, reply) => {
+    const payload = request.body;
+    if (!payload || !payload.message) {
+        return reply.status(400).send({ error: 'Message payload is required' });
+    }
+    const broadcastEnvelope = {
+        type: 'system:broadcast',
+        payload: {
+            id: payload.id || `bcast-${Date.now()}`,
+            message: payload.message,
+            severity: payload.severity || 'INFO',
+            createdAt: payload.createdAt || new Date().toISOString(),
+            expiresAt: payload.expiresAt || null,
+            creatorName: payload.creatorName || 'System Administrator',
+        },
+    };
+    roomManager_js_1.roomManager.broadcastAll(broadcastEnvelope);
+    logger_js_1.logger.info(`📢 System broadcast dispatched to all connected clients: ${payload.message}`);
+    return {
+        success: true,
+        deliveredSockets: roomManager_js_1.roomManager.getActiveSocketCount ? roomManager_js_1.roomManager.getActiveSocketCount() : 0,
+    };
+});
+// Phase 35: Dismiss Global Broadcast Dispatcher
+exports.fastify.post('/internal/broadcast/dismiss', async (request, reply) => {
+    const payload = request.body;
+    const dismissEnvelope = {
+        type: 'system:broadcast_dismiss',
+        payload: {
+            id: payload?.id,
+        },
+    };
+    roomManager_js_1.roomManager.broadcastAll(dismissEnvelope);
+    logger_js_1.logger.info(`📢 System broadcast dismiss dispatched: ${payload?.id}`);
+    return { success: true };
+});
 // Native ws WebSocketServer mounted with manual upgrade handling
 exports.wss = new ws_1.WebSocketServer({ noServer: true });
 // Attach upgrade listener to fastify.server

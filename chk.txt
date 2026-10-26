@@ -169,18 +169,18 @@
 ### Part III: Offline Resilience & Developer Integrations (Phases 23 – 26)
 
 ## Phase 23: [Background Web Push Notifications (VAPID)](phases/23_BACKGROUND_WEB_PUSH_NOTIFICATIONS.md)
-- [ ] W3C Web Push protocol implementation via `web-push` library and VAPID keypairs ($0 cost)
-- [ ] Service worker background push event listener displaying system notifications when browser is closed
-- [ ] Notification click handler focusing or opening chat window directly (`clients.openWindow`)
-- [ ] Client push subscription manager and user notification preferences toggle
-- [ ] Fastify Server #2 offline interceptor triggering push only when recipient is offline
+- [x] W3C Web Push protocol implementation via `web-push` library and VAPID keypairs ($0 cost)
+- [x] Service worker background push event listener displaying system notifications when browser is closed
+- [x] Notification click handler focusing or opening chat window directly (`clients.openWindow`)
+- [x] Client push subscription manager and user notification preferences toggle
+- [x] Fastify Server #2 offline interceptor triggering push only when recipient is offline
 
 ## Phase 24: [Local-First Offline Sync & IndexedDB Message Queue](phases/24_LOCAL_FIRST_OFFLINE_SYNC_AND_INDEXEDDB.md)
-- [ ] Browser IndexedDB storage engine via `idb` with `messages`, `chats`, and `outbox` stores
-- [ ] Instant 0ms cache rendering on initial conversation load from IndexedDB
-- [ ] Online/offline network connectivity listener with yellow warning banner
-- [ ] Offline message enqueueing with temporary client IDs and clock icon (`🕒`)
-- [ ] Automatic FIFO reconciliation queue flushing upon socket reconnection and updating ticks
+- [x] Browser IndexedDB storage engine via `idb` with `messages`, `chats`, and `outbox` stores
+- [x] Instant 0ms cache rendering on initial conversation load from IndexedDB
+- [x] Online/offline network connectivity listener with yellow warning banner
+- [x] Offline message enqueueing with temporary client IDs and clock icon (`🕒`)
+- [x] Automatic FIFO reconciliation queue flushing upon socket reconnection and updating ticks
 
 ## Phase 25: [Inbound & Outbound Webhooks Engine](phases/25_INBOUND_AND_OUTBOUND_WEBHOOKS.md)
 - [ ] Webhook management API and drawer for group admins with HMAC SHA-256 secret tokens

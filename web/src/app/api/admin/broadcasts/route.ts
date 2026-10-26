@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { verifyAdminRequest } from '@/lib/adminAuth';
 
+export const dynamic = 'force-dynamic';
+
 const SOCKET_SERVER_URL =
   process.env.INTERNAL_SOCKET_URL ||
   process.env.NEXT_PUBLIC_SOCKET_URL?.replace(/^ws/, 'http') ||
