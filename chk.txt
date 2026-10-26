@@ -96,10 +96,10 @@
 - [ ] k6 load simulation script (`/scripts/load-test.js`) testing 100–500 concurrent simulated users
 
 ## Phase 14: [Automated CI/CD, Zero-Cost Monitoring & Maintenance (SDLC Ops)](phases/14_AUTOMATED_CICD_DEPLOYMENT_AND_MONITORING.md)
-- [ ] GitHub Actions workflow for automated test, build, and SSH/FTPS deployment to Hostinger
-- [ ] Zero-cost Winston file error logger on Hostinger disk (`/logs/app-error.log`)
-- [ ] UptimeRobot 5-minute HTTP keep-alive pings preventing Node.js process idle sleep
-- [ ] Hostinger hPanel automated daily MySQL backup cron job (`mysqldump | gzip`)
+- [x] GitHub Actions workflow for automated test, build, and SSH/FTPS deployment to Hostinger
+- [x] Zero-cost Winston file error logger on Hostinger disk (`/logs/app-error.log`)
+- [x] UptimeRobot 5-minute HTTP keep-alive pings preventing Node.js process idle sleep
+- [x] Hostinger hPanel automated daily MySQL backup cron job (`mysqldump | gzip`)
 
 ---
 

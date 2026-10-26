@@ -36,11 +36,16 @@ fastify.register(cookie);
 fastify.get('/health', async () => {
   return {
     status: 'ok',
+    service: 'webchat-socket-server',
+    server: 'Fastify + Native ws',
+    memoryUsageMB: Math.round(process.memoryUsage().rss / 1024 / 1024),
     memoryMB: Math.round(process.memoryUsage().rss / 1024 / 1024),
+    uptimeSeconds: Math.round(process.uptime()),
     uptime: Math.round(process.uptime()),
-    timestamp: new Date().toISOString(),
+    activeConnections: roomManager.getActiveSocketCount ? roomManager.getActiveSocketCount() : wss.clients.size,
     onlineUsers: roomManager.getOnlineUserCount(),
     activeRooms: roomManager.getActiveRoomCount(),
+    timestamp: new Date().toISOString(),
   };
 });
 

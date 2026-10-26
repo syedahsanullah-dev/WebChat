@@ -96,6 +96,14 @@ export class RoomManager {
     return this.userSockets.size;
   }
 
+  getActiveSocketCount(): number {
+    let count = 0;
+    for (const sockets of this.userSockets.values()) {
+      count += sockets.size;
+    }
+    return count;
+  }
+
   getRoomMemberCount(room: string): number {
     return this.rooms.get(room)?.size ?? 0;
   }

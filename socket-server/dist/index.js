@@ -35,11 +35,16 @@ exports.fastify.register(cookie_1.default);
 exports.fastify.get('/health', async () => {
     return {
         status: 'ok',
+        service: 'webchat-socket-server',
+        server: 'Fastify + Native ws',
+        memoryUsageMB: Math.round(process.memoryUsage().rss / 1024 / 1024),
         memoryMB: Math.round(process.memoryUsage().rss / 1024 / 1024),
+        uptimeSeconds: Math.round(process.uptime()),
         uptime: Math.round(process.uptime()),
-        timestamp: new Date().toISOString(),
+        activeConnections: roomManager_js_1.roomManager.getActiveSocketCount ? roomManager_js_1.roomManager.getActiveSocketCount() : exports.wss.clients.size,
         onlineUsers: roomManager_js_1.roomManager.getOnlineUserCount(),
         activeRooms: roomManager_js_1.roomManager.getActiveRoomCount(),
+        timestamp: new Date().toISOString(),
     };
 });
 // Root welcome endpoint

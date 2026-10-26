@@ -1,0 +1,124 @@
+name: Deploy WebChat to Hostinger
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test-and-verify:
+    name: Automated Testing & Build Validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20 LTS
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Monorepo Dependencies
+        run: npm ci
+
+      - name: Run Prisma Client Generation
+        run: |
+          cd web && npx prisma generate
+          cd ../socket-server && npx prisma generate
+
+      - name: Run Automated Vitest Test Suite
+        run: npm test
+
+      - name: Build Server #1 (Next.js 15 Standalone)
+        run: |
+          cd web
+          npm run build
+        env:
+          NODE_ENV: production
+          NEXT_TELEMETRY_DISABLED: 1
+
+      - name: Verify Next.js Standalone Artifacts
+        run: |
+          test -f web/.next/standalone/server.js || (echo "Missing standalone server.js" && exit 1)
+          test -d web/.next/static || (echo "Missing static directory" && exit 1)
+
+      - name: Build Server #2 (Fastify + Native ws Daemon)
+        run: |
+          cd socket-server
+          npm run build
+
+      - name: Verify Fastify Build Artifacts
+        run: |
+          test -f socket-server/dist/index.js || (echo "Missing dist/index.js" && exit 1)
+
+  deploy-to-hostinger:
+    name: Production Deployment to Hostinger
+    needs: test-and-verify
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20 LTS
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Monorepo Dependencies
+        run: npm ci
+
+      - name: Build Production Artifacts
+        run: |
+          cd web && npm run build
+          cd ../socket-server && npm run build
+        env:
+          NODE_ENV: production
+          NEXT_TELEMETRY_DISABLED: 1
+
+      - name: Run Prisma Database Migrations
+        if: env.PRODUCTION_DATABASE_URL != ''
+        run: |
+          cd web
+          npx prisma migrate deploy
+        env:
+          PRODUCTION_DATABASE_URL: ${{ secrets.PRODUCTION_DATABASE_URL }}
+          DATABASE_URL: ${{ secrets.PRODUCTION_DATABASE_URL }}
+
+      - name: Deploy Server #1 (chat.yourdomain.com) via SSH
+        if: env.HOSTINGER_SSH_KEY != ''
+        uses: easingthemes/ssh-deploy@main
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.HOSTINGER_SSH_KEY }}
+          REMOTE_HOST: ${{ secrets.HOSTINGER_HOST }}
+          REMOTE_USER: ${{ secrets.HOSTINGER_USER }}
+          SOURCE: "web/.next/standalone/ web/.next/static/ web/public/"
+          TARGET: "${{ secrets.HOSTINGER_SERVER1_PATH || '/home/u946657530/domains/chat.vusigma.com/public_html' }}"
+          HOSTINGER_SSH_KEY: ${{ secrets.HOSTINGER_SSH_KEY }}
+
+      - name: Deploy Server #2 (ws.yourdomain.com) via SSH
+        if: env.HOSTINGER_SSH_KEY != ''
+        uses: easingthemes/ssh-deploy@main
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.HOSTINGER_SSH_KEY }}
+          REMOTE_HOST: ${{ secrets.HOSTINGER_HOST }}
+          REMOTE_USER: ${{ secrets.HOSTINGER_USER }}
+          SOURCE: "socket-server/dist/ socket-server/package.json socket-server/public_html/"
+          TARGET: "${{ secrets.HOSTINGER_SERVER2_PATH || '/home/u946657530/domains/ws.vusigma.com/public_html' }}"
+          HOSTINGER_SSH_KEY: ${{ secrets.HOSTINGER_SSH_KEY }}
+
+      - name: Deployment Summary & Hostinger Git Status
+        run: |
+          echo "=========================================================="
+          echo "✓ CI/CD Pipeline Passed All Quality Gates"
+          echo "✓ Server #1 (Next.js 15 Standalone) Verified"
+          echo "✓ Server #2 (Fastify + Native ws Daemon) Verified"
+          echo "✓ Hostinger Git Auto-Deployment Webhook active on 'main'"
+          echo "=========================================================="

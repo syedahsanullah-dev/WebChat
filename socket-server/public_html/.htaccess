@@ -1,0 +1,26 @@
+# ==============================================================================
+# Hostinger LiteSpeed / Apache WebSocket Reverse Proxy Configuration
+# Subdomain: ws.yourdomain.com
+# Routes WebSockets (wss://) and HTTP (https://) to local Fastify daemon
+# Added Monthly Cost: $0.00 / mo
+# ==============================================================================
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Route WebSocket upgrade requests (ws://, wss://)
+    RewriteCond %{HTTP:Upgrade} =websocket [NC]
+    RewriteCond %{HTTP:Connection} upgrade [NC]
+    RewriteRule /(.*) ws://127.0.0.1:4000/$1 [P,L]
+
+    # Route normal HTTP REST requests (https://ws.yourdomain.com/health)
+    RewriteCond %{HTTP:Upgrade} !=websocket [NC]
+    RewriteRule /(.*) http://127.0.0.1:4000/$1 [P,L]
+</IfModule>
+
+# Security Headers
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "DENY"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>

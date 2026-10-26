@@ -49,7 +49,7 @@ When multiple autonomous agents (e.g. Antigravity Team Preview Agents) work on t
 | **11** | [`11_AUDIO_CALLING_WEBRTC_VOICE.md`](11_AUDIO_CALLING_WEBRTC_VOICE.md) | WebRTC 1-on-1 voice calling, STUN/TURN signaling via `ws`, call controls, call logs | Server #2 & Client | Pending |
 | **12** | [`12_PWA_AND_MOBILE_CHROME_INSTALLATION.md`](12_PWA_AND_MOBILE_CHROME_INSTALLATION.md) | `manifest.json`, service worker, Mobile Chrome `beforeinstallprompt` banner, 100dvh | Server #1 (`web/`) | Pending |
 | **13** | [`13_AUTOMATED_TESTING_AND_LOAD_SIMULATION.md`](13_AUTOMATED_TESTING_AND_LOAD_SIMULATION.md) | Vitest unit/integration tests, Playwright E2E chat flow, k6 100–500 user load simulator | Tooling / QA | Pending |
-| **14** | [`14_AUTOMATED_CICD_DEPLOYMENT_AND_MONITORING.md`](14_AUTOMATED_CICD_DEPLOYMENT_AND_MONITORING.md) | GitHub Actions CI/CD to Hostinger, Fastify health check, Winston log rotation, cron backup | DevOps / Ops | Pending |
+| **14** | [`14_AUTOMATED_CICD_DEPLOYMENT_AND_MONITORING.md`](14_AUTOMATED_CICD_DEPLOYMENT_AND_MONITORING.md) | GitHub Actions CI/CD to Hostinger, Fastify health check, Winston log rotation, cron backup | DevOps / Ops | **COMPLETED** |
 
 ---
 
