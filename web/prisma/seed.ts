@@ -4,6 +4,11 @@ import * as bcrypt from 'bcryptjs';
 const prisma = new PrismaClient();
 
 async function main() {
+  if (process.env.SEED_DEMO_DATA !== 'true') {
+    console.log('ℹ️ Skipping demo data seeding (set SEED_DEMO_DATA=true to seed demo users)');
+    return;
+  }
+
   console.log('🌱 Starting database seed...');
 
   const defaultPassword = 'Password123!';

@@ -220,9 +220,20 @@ describe('Adversarial & Stress Tests: UI Primitives & Keyboard Shortcuts', () =>
     });
 
     it('toggles mobile sliding classes when conversation is opened and closed via back button', () => {
+      const mockInitialChats = [
+        {
+          id: 'chat-test-1',
+          name: 'Sarah Connor',
+          username: '@sarah',
+          lastMessage: 'Let us coordinate the server deployment tonight.',
+          time: '12:45 PM',
+          isOnline: true,
+        },
+      ];
+
       const { container } = render(
         <ThemeProvider>
-          <ChatLayout>
+          <ChatLayout initialChats={mockInitialChats}>
             <div>Chat Body</div>
           </ChatLayout>
         </ThemeProvider>

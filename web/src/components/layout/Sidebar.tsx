@@ -45,82 +45,27 @@ export interface ChatItemData {
   otherUser?: any;
 }
 
-export const MOCK_CHATS: ChatItemData[] = [
-  {
-    id: 'chat-1',
-    name: 'Sarah Connor',
-    username: '@sarah',
-    lastMessage: 'Let us coordinate the server deployment tonight.',
-    time: '12:45 PM',
-    lastMessageAt: new Date(Date.now() - 15 * 60 * 1000).toISOString(),
-    unreadCount: 2,
-    isOnline: true,
-  },
-  {
-    id: 'chat-2',
-    name: 'Tech Lead Alex',
-    username: '@alex_lead',
-    lastMessage: 'The Fastify WebSocket daemon runs smoothly at 28MB RAM!',
-    time: '11:20 AM',
-    lastMessageAt: new Date(Date.now() - 90 * 60 * 1000).toISOString(),
-    unreadCount: 0,
-    isOnline: true,
-  },
-  {
-    id: 'chat-3',
-    name: 'DevOps & Infrastructure',
-    username: '@infra_team',
-    lastMessage: 'GitHub Actions workflow deployed standalone server.',
-    time: 'Yesterday',
-    lastMessageAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-    unreadCount: 0,
-    isOnline: false,
-    isGroup: true,
-  },
-  {
-    id: 'chat-4',
-    name: 'Elena Rostova',
-    username: '@elena_r',
-    lastMessage: 'Voice call quality with Opus codec is crystal clear.',
-    time: 'Yesterday',
-    lastMessageAt: new Date(Date.now() - 30 * 60 * 60 * 1000).toISOString(),
-    unreadCount: 0,
-    isOnline: false,
-  },
-  {
-    id: 'chat-5',
-    name: 'Marcus Brody',
-    username: '@brody_m',
-    lastMessage: 'See you in the audio call shortly 👍',
-    time: 'Wednesday',
-    lastMessageAt: new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString(),
-    unreadCount: 0,
-    isOnline: true,
-  },
-];
+export const MOCK_CHATS: ChatItemData[] = [];
 
 export interface SidebarProps {
   onSelectChat: (chatId: string, chatData?: any) => void;
   activeChatId?: string | null;
   className?: string;
+  initialChats?: ConversationItemData[];
 }
 
 export default function Sidebar({
   onSelectChat,
   activeChatId,
   className,
+  initialChats = [],
 }: SidebarProps) {
   const { theme, toggleTheme } = useTheme();
   const { user, logout } = useAuth();
   const { isUserOnline } = usePresence();
   const { subscribe } = useWebSocket();
 
-  const [chats, setChats] = useState<ConversationItemData[]>(() =>
-    MOCK_CHATS.map((c) => ({
-      ...c,
-      lastMessageAt: c.lastMessageAt || new Date().toISOString(),
-    }))
-  );
+  const [chats, setChats] = useState<ConversationItemData[]>(initialChats);
   const [typingChats, setTypingChats] = useState<Record<string, { isTyping: boolean; username?: string }>>({});
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState<'all' | 'unread' | 'groups'>('all');
@@ -137,7 +82,7 @@ export default function Sidebar({
       });
       if (res.ok) {
         const data = await res.json();
-        if (Array.isArray(data.chats) && data.chats.length > 0) {
+        if (Array.isArray(data.chats)) {
           setChats(data.chats);
         }
       }

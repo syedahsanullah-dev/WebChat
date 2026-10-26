@@ -5,7 +5,13 @@ import Sidebar from '@/components/layout/Sidebar';
 import ChatArea from '@/components/layout/ChatArea';
 import { ChatProvider } from '@/context/ChatContext';
 
-export default function ChatLayout({ children }: { children: React.ReactNode }) {
+export default function ChatLayout({
+  children,
+  initialChats,
+}: {
+  children: React.ReactNode;
+  initialChats?: any[];
+}) {
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
   const [activeChatData, setActiveChatData] = useState<any | null>(null);
 
@@ -31,6 +37,7 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
           <Sidebar
             onSelectChat={handleSelectChat}
             activeChatId={activeChatId}
+            initialChats={initialChats}
           />
         </div>
 
