@@ -33,6 +33,8 @@ export type WsEventType =
   | 'system:broadcast_dismiss'
   | 'poll:vote'
   | 'poll:update'
+  | 'chat:pin'
+  | 'chat:pin_updated'
   | 'webhook:received';
 
 export interface WsEnvelope<T = any> {
@@ -270,4 +272,56 @@ export interface ErrorPayload {
   code?: string;
   message: string;
   details?: any;
+}
+
+export interface PollVotePayload {
+  pollId: string;
+  optionId: string;
+  chatId?: string;
+}
+
+export interface PollUpdatePayload {
+  pollId: string;
+  chatId: string;
+  options: Array<{
+    id: string;
+    text: string;
+    orderIdx: number;
+    voteCount: number;
+    percentage: number;
+    voterIds: string[];
+  }>;
+  totalVotes: number;
+}
+
+export interface ChatPinPayload {
+  chatId: string;
+  messageId: string;
+  durationSeconds?: number;
+}
+
+export interface ChatPinUpdatedPayload {
+  chatId: string;
+  action: 'pinned' | 'unpinned';
+  pinnedMessage?: {
+    id: string;
+    chatId: string;
+    messageId: string;
+    pinnedById: string;
+    expiresAt?: string | null;
+    pinnedAt: string;
+    messageSnippet?: string;
+    messageSenderName?: string;
+  } | null;
+  activePins?: Array<{
+    id: string;
+    chatId: string;
+    messageId: string;
+    pinnedById: string;
+    pinnedByName?: string;
+    expiresAt?: string | null;
+    pinnedAt: string;
+    messageSnippet?: string;
+    messageSenderName?: string;
+  }>;
 }

@@ -6,6 +6,7 @@ import AttachmentMenu from './AttachmentMenu';
 import AudioRecorder from './AudioRecorder';
 import QuotedReplyPreview, { QuotedMessageData } from './QuotedReplyPreview';
 import SlashCommandPopover from './SlashCommandPopover';
+import CreatePollModal from '@/components/polls/CreatePollModal';
 import { useAudioRecorder, RecordedAudioResult } from '@/hooks/useAudioRecorder';
 import { AVAILABLE_COMMANDS } from '@/lib/slashCommandParser';
 import { SlashCommandDefinition } from '@shared/types';
@@ -42,6 +43,7 @@ export default function ChatInput({
 }: ChatInputProps) {
   const [text, setText] = useState('');
   const [isAttachmentOpen, setIsAttachmentOpen] = useState(false);
+  const [isCreatePollOpen, setIsCreatePollOpen] = useState(false);
   const [isProcessingAudio, setIsProcessingAudio] = useState(false);
   const [popoverSelectedIndex, setPopoverSelectedIndex] = useState(0);
   const [isPopoverDismissed, setIsPopoverDismissed] = useState(false);
@@ -248,7 +250,17 @@ export default function ChatInput({
             onClose={() => setIsAttachmentOpen(false)}
             onSelectPhoto={() => fileInputRef.current?.click()}
             onSelectLocation={onSelectLocation}
+            onSelectPoll={() => setIsCreatePollOpen(true)}
           />
+
+          {/* Interactive Create Poll Modal */}
+          {chatId && (
+            <CreatePollModal
+              isOpen={isCreatePollOpen}
+              chatId={chatId}
+              onClose={() => setIsCreatePollOpen(false)}
+            />
+          )}
 
           {/* Emoji Button */}
           <button

@@ -1,4 +1,4 @@
-export type WsEventType = 'ping' | 'pong' | 'presence:init' | 'user:online' | 'user:offline' | 'typing:start' | 'typing:stop' | 'message:send' | 'message:ack' | 'message:new' | 'message:read' | 'message:status' | 'message:reaction' | 'message:delete' | 'group:created' | 'group:member_update' | 'group:join' | 'group:leave' | 'audio-call:invite' | 'audio-call:incoming' | 'audio-call:ring' | 'audio-call:accept' | 'audio-call:accepted' | 'audio-call:reject' | 'audio-call:busy' | 'audio-call:ice-candidate' | 'audio-call:end' | 'audio-call:ended' | 'session:revoked' | 'error' | 'system:broadcast' | 'system:broadcast_dismiss';
+export type WsEventType = 'ping' | 'pong' | 'presence:init' | 'user:online' | 'user:offline' | 'typing:start' | 'typing:stop' | 'message:send' | 'message:ack' | 'message:new' | 'message:read' | 'message:status' | 'message:reaction' | 'message:delete' | 'group:created' | 'group:member_update' | 'group:join' | 'group:leave' | 'audio-call:invite' | 'audio-call:incoming' | 'audio-call:ring' | 'audio-call:accept' | 'audio-call:accepted' | 'audio-call:reject' | 'audio-call:busy' | 'audio-call:ice-candidate' | 'audio-call:end' | 'audio-call:ended' | 'session:revoked' | 'error' | 'system:broadcast' | 'system:broadcast_dismiss' | 'poll:vote' | 'poll:update' | 'chat:pin' | 'chat:pin_updated' | 'webhook:received';
 export interface WsEnvelope<T = any> {
     type: WsEventType;
     payload: T;
@@ -207,4 +207,52 @@ export interface ErrorPayload {
     code?: string;
     message: string;
     details?: any;
+}
+export interface PollVotePayload {
+    pollId: string;
+    optionId: string;
+    chatId?: string;
+}
+export interface PollUpdatePayload {
+    pollId: string;
+    chatId: string;
+    options: Array<{
+        id: string;
+        text: string;
+        orderIdx: number;
+        voteCount: number;
+        percentage: number;
+        voterIds: string[];
+    }>;
+    totalVotes: number;
+}
+export interface ChatPinPayload {
+    chatId: string;
+    messageId: string;
+    durationSeconds?: number;
+}
+export interface ChatPinUpdatedPayload {
+    chatId: string;
+    action: 'pinned' | 'unpinned';
+    pinnedMessage?: {
+        id: string;
+        chatId: string;
+        messageId: string;
+        pinnedById: string;
+        expiresAt?: string | null;
+        pinnedAt: string;
+        messageSnippet?: string;
+        messageSenderName?: string;
+    } | null;
+    activePins?: Array<{
+        id: string;
+        chatId: string;
+        messageId: string;
+        pinnedById: string;
+        pinnedByName?: string;
+        expiresAt?: string | null;
+        pinnedAt: string;
+        messageSnippet?: string;
+        messageSenderName?: string;
+    }>;
 }

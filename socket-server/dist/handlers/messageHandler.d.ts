@@ -14,3 +14,7 @@ export declare function handleMessageSend(socket: AuthenticatedWebSocket, payloa
  * Marks unread messages in the chat as read in DB and broadcasts status: 'read'
  */
 export declare function handleMessageRead(socket: AuthenticatedWebSocket, payload: MessageReadPayload): Promise<void>;
+/**
+ * Dispatches a background Web Push notification to an offline recipient via Server #1 Next.js API
+ */
+export declare function dispatchOfflinePush(recipientId: string, payload: any): Promise<void>;

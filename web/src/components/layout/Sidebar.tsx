@@ -24,7 +24,9 @@ import { cn } from '@/lib/utils';
 import {
   Sun,
   Moon,
+  MessageSquare,
   MessageSquarePlus,
+  Megaphone,
   Users,
   Settings,
   LogOut,
@@ -33,7 +35,10 @@ import {
   BookUser,
   Laptop,
   Bell,
+  Star,
 } from 'lucide-react';
+import ChannelsSidebarTab from '@/components/channels/ChannelsSidebarTab';
+import StarredMessagesDrawer from '@/components/starred/StarredMessagesDrawer';
 
 export interface ChatItemData {
   id: string;
@@ -47,6 +52,10 @@ export interface ChatItemData {
   unreadCount?: number;
   isOnline: boolean;
   isGroup?: boolean;
+  isChannel?: boolean;
+  isChannelAdmin?: boolean;
+  channelMetadata?: any;
+  groupDescription?: string | null;
   otherUser?: any;
 }
 
@@ -80,6 +89,8 @@ export default function Sidebar({
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isContactDrawerOpen, setIsContactDrawerOpen] = useState(false);
   const [isNewChatModalOpen, setIsNewChatModalOpen] = useState(false);
+  const [sidebarTab, setSidebarTab] = useState<'chats' | 'channels'>('chats');
+  const [isStarredOpen, setIsStarredOpen] = useState(false);
 
   // Fetch chats from REST API
   const refreshChats = useCallback(async () => {
@@ -269,6 +280,12 @@ export default function Sidebar({
       onClick: () => setIsNotificationsOpen(true),
     },
     {
+      id: 'starred',
+      label: 'Starred messages',
+      icon: <Star className="w-4 h-4 text-wa-light-text-secondary dark:text-wa-dark-text-secondary" />,
+      onClick: () => setIsStarredOpen(true),
+    },
+    {
       id: 'settings',
       label: 'Settings',
       icon: <Settings className="w-4 h-4 text-wa-light-text-secondary dark:text-wa-dark-text-secondary" />,
@@ -336,10 +353,20 @@ export default function Sidebar({
         onOpenNewChatModal={() => setIsNewChatModalOpen(true)}
       />
 
+      {/* Slide-over WhatsApp Starred Messages Drawer */}
+      <StarredMessagesDrawer
+        isOpen={isStarredOpen}
+        onClose={() => setIsStarredOpen(false)}
+        onSelectMessage={(chatId, messageId) => {
+          const chatData = chats.find((c) => c.id === chatId);
+          onSelectChat(chatId, chatData);
+        }}
+      />
+
       {/* Sidebar Top Header */}
       <Header
         leftContent={
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <Avatar
               src={user?.avatarUrl}
               name={user?.displayName || 'My Profile'}
@@ -347,9 +374,37 @@ export default function Sidebar({
               isOnline={true}
               onClick={() => setIsProfileOpen(true)}
             />
-            <span className="font-semibold text-sm text-wa-light-text-primary dark:text-wa-dark-text-primary hidden sm:inline-block">
-              Chats
-            </span>
+            {/* Chats vs Channels Tab Switcher */}
+            <div className="flex items-center bg-black/5 dark:bg-white/5 p-0.5 rounded-xl border border-black/5 dark:border-white/5">
+              <button
+                type="button"
+                onClick={() => setSidebarTab('chats')}
+                className={cn(
+                  'px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all',
+                  sidebarTab === 'chats'
+                    ? 'bg-white dark:bg-[#202c33] text-[#00a884] shadow-xs'
+                    : 'text-wa-light-text-secondary dark:text-wa-dark-text-secondary hover:text-wa-light-text-primary'
+                )}
+                title="Chats"
+              >
+                <MessageSquare className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Chats</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setSidebarTab('channels')}
+                className={cn(
+                  'px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all',
+                  sidebarTab === 'channels'
+                    ? 'bg-white dark:bg-[#202c33] text-[#00a884] shadow-xs'
+                    : 'text-wa-light-text-secondary dark:text-wa-dark-text-secondary hover:text-wa-light-text-primary'
+                )}
+                title="Channels"
+              >
+                <Megaphone className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Channels</span>
+              </button>
+            </div>
           </div>
         }
         rightContent={
@@ -382,92 +437,108 @@ export default function Sidebar({
         }
       />
 
-      {/* PWA Install Promotion Banner */}
-      <InstallAppBanner />
-
-      {/* Web Push Notifications Permission Banner */}
-      <PushPermissionBanner />
-
-      {/* Search Input Box */}
-      <div className="px-3 py-2 border-b border-wa-light-border dark:border-wa-dark-border">
-        <SearchInput
-          value={searchQuery}
-          onChange={setSearchQuery}
-          placeholder="Search or start new chat"
+      {sidebarTab === 'channels' ? (
+        <ChannelsSidebarTab
+          activeChannelId={activeChatId}
+          onSelectChannel={(channelId) => {
+            const existing = chats.find((c) => c.id === channelId);
+            if (existing) {
+              onSelectChat(channelId, existing);
+            } else {
+              onSelectChat(channelId, { id: channelId, isGroup: true, isChannel: true });
+            }
+          }}
         />
-      </div>
+      ) : (
+        <>
+          {/* PWA Install Promotion Banner */}
+          <InstallAppBanner />
 
-      {/* Filter Tabs (All / Unread / Groups) */}
-      <div className="flex items-center gap-2 px-3 py-2 border-b border-wa-light-border dark:border-wa-dark-border text-xs">
-        <button
-          type="button"
-          onClick={() => setFilterType('all')}
-          className={cn(
-            'px-3 py-1 rounded-full font-medium transition-colors focus:outline-none',
-            filterType === 'all'
-              ? 'bg-wa-green/15 text-wa-green dark:bg-wa-green/20'
-              : 'bg-wa-light-hover dark:bg-wa-dark-hover text-wa-light-text-secondary dark:text-wa-dark-text-secondary'
-          )}
-        >
-          All
-        </button>
-        <button
-          type="button"
-          onClick={() => setFilterType('unread')}
-          className={cn(
-            'px-3 py-1 rounded-full font-medium transition-colors focus:outline-none',
-            filterType === 'unread'
-              ? 'bg-wa-green/15 text-wa-green dark:bg-wa-green/20'
-              : 'bg-wa-light-hover dark:bg-wa-dark-hover text-wa-light-text-secondary dark:text-wa-dark-text-secondary'
-          )}
-        >
-          Unread
-        </button>
-        <button
-          type="button"
-          onClick={() => setFilterType('groups')}
-          className={cn(
-            'px-3 py-1 rounded-full font-medium transition-colors focus:outline-none',
-            filterType === 'groups'
-              ? 'bg-wa-green/15 text-wa-green dark:bg-wa-green/20'
-              : 'bg-wa-light-hover dark:bg-wa-dark-hover text-wa-light-text-secondary dark:text-wa-dark-text-secondary'
-          )}
-        >
-          Groups
-        </button>
-      </div>
+          {/* Web Push Notifications Permission Banner */}
+          <PushPermissionBanner />
 
-      {/* Conversation List */}
-      <div className="flex-1 overflow-y-auto divide-y divide-wa-light-border/40 dark:divide-wa-dark-border/40">
-        {filteredChats.length === 0 ? (
-          <div className="p-6 text-center text-sm text-wa-light-text-muted dark:text-wa-dark-text-muted">
-            No chats found
+          {/* Search Input Box */}
+          <div className="px-3 py-2 border-b border-wa-light-border dark:border-wa-dark-border">
+            <SearchInput
+              value={searchQuery}
+              onChange={setSearchQuery}
+              placeholder="Search or start new chat"
+            />
           </div>
-        ) : (
-          filteredChats.map((chat) => {
-            const isSelected = activeChatId === chat.id;
-            const isChatOnline = chat.isGroup
-              ? false
-              : Boolean(
-                  (chat.otherUser?.id && isUserOnline(chat.otherUser.id)) ||
-                  isUserOnline(chat.username?.replace('@', '') || '')
-                );
-            const isTyping = Boolean(typingChats[chat.id]?.isTyping);
-            const typingUsername = typingChats[chat.id]?.username;
 
-            return (
-              <ConversationItem
-                key={chat.id}
-                chat={{ ...chat, isOnline: isChatOnline }}
-                isSelected={isSelected}
-                isTyping={isTyping}
-                typingUsername={typingUsername}
-                onSelect={(id) => onSelectChat(id, chat)}
-              />
-            );
-          })
-        )}
-      </div>
+          {/* Filter Tabs (All / Unread / Groups) */}
+          <div className="flex items-center gap-2 px-3 py-2 border-b border-wa-light-border dark:border-wa-dark-border text-xs">
+            <button
+              type="button"
+              onClick={() => setFilterType('all')}
+              className={cn(
+                'px-3 py-1 rounded-full font-medium transition-colors focus:outline-none',
+                filterType === 'all'
+                  ? 'bg-wa-green/15 text-wa-green dark:bg-wa-green/20'
+                  : 'bg-wa-light-hover dark:bg-wa-dark-hover text-wa-light-text-secondary dark:text-wa-dark-text-secondary'
+              )}
+            >
+              All
+            </button>
+            <button
+              type="button"
+              onClick={() => setFilterType('unread')}
+              className={cn(
+                'px-3 py-1 rounded-full font-medium transition-colors focus:outline-none',
+                filterType === 'unread'
+                  ? 'bg-wa-green/15 text-wa-green dark:bg-wa-green/20'
+                  : 'bg-wa-light-hover dark:bg-wa-dark-hover text-wa-light-text-secondary dark:text-wa-dark-text-secondary'
+              )}
+            >
+              Unread
+            </button>
+            <button
+              type="button"
+              onClick={() => setFilterType('groups')}
+              className={cn(
+                'px-3 py-1 rounded-full font-medium transition-colors focus:outline-none',
+                filterType === 'groups'
+                  ? 'bg-wa-green/15 text-wa-green dark:bg-wa-green/20'
+                  : 'bg-wa-light-hover dark:bg-wa-dark-hover text-wa-light-text-secondary dark:text-wa-dark-text-secondary'
+              )}
+            >
+              Groups
+            </button>
+          </div>
+
+          {/* Conversation List */}
+          <div className="flex-1 overflow-y-auto divide-y divide-wa-light-border/40 dark:divide-wa-dark-border/40">
+            {filteredChats.length === 0 ? (
+              <div className="p-6 text-center text-sm text-wa-light-text-muted dark:text-wa-dark-text-muted">
+                No chats found
+              </div>
+            ) : (
+              filteredChats.map((chat) => {
+                const isSelected = activeChatId === chat.id;
+                const isChatOnline = chat.isGroup
+                  ? false
+                  : Boolean(
+                      (chat.otherUser?.id && isUserOnline(chat.otherUser.id)) ||
+                      isUserOnline(chat.username?.replace('@', '') || '')
+                    );
+                const isTyping = Boolean(typingChats[chat.id]?.isTyping);
+                const typingUsername = typingChats[chat.id]?.username;
+
+                return (
+                  <ConversationItem
+                    key={chat.id}
+                    chat={{ ...chat, isOnline: isChatOnline }}
+                    isSelected={isSelected}
+                    isTyping={isTyping}
+                    typingUsername={typingUsername}
+                    onSelect={(id) => onSelectChat(id, chat)}
+                  />
+                );
+              })
+            )}
+          </div>
+        </>
+      )}
 
       {/* Settings Modal */}
       <Modal

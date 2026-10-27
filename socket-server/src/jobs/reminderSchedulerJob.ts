@@ -105,12 +105,11 @@ export function startReminderScheduler(): void {
           // If reminder target is offline, dispatch background web push
           const isTargetOnline = roomManager.isUserOnline(reminder.userId);
           if (!isTargetOnline) {
-            dispatchOfflinePush(
-              reminder.userId,
-              'Reminder',
-              `⏰ ${reminder.reminderText}`,
-              reminder.chatId
-            );
+            dispatchOfflinePush(reminder.userId, {
+              title: 'Reminder',
+              body: `⏰ ${reminder.reminderText}`,
+              chatId: reminder.chatId,
+            }).catch(() => {});
           }
 
           logger.info(`⏰ Dispatched reminder [${reminder.id}] to chat ${reminder.chatId}`);

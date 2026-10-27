@@ -2,7 +2,7 @@
 
 import React from 'react';
 import DropdownMenu, { DropdownMenuItem } from '@/components/ui/DropdownMenu';
-import { Reply, Smile, Copy, Trash2 } from 'lucide-react';
+import { Reply, Smile, Copy, Trash2, Star, Pin } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export interface MessageContextMenuProps {
@@ -11,6 +11,9 @@ export interface MessageContextMenuProps {
   onReact: () => void;
   onCopy?: () => void;
   onDelete: () => void;
+  onPin?: () => void;
+  onStar?: () => void;
+  isStarred?: boolean;
   className?: string;
 }
 
@@ -20,6 +23,9 @@ export default function MessageContextMenu({
   onReact,
   onCopy,
   onDelete,
+  onPin,
+  onStar,
+  isStarred = false,
   className,
 }: MessageContextMenuProps) {
   const items: DropdownMenuItem[] = [
@@ -35,6 +41,26 @@ export default function MessageContextMenu({
       icon: <Smile className="w-4 h-4" />,
       onClick: onReact,
     },
+    ...(onStar
+      ? [
+          {
+            id: 'star',
+            label: isStarred ? 'Unstar message' : 'Star message',
+            icon: <Star className={cn('w-4 h-4', isStarred && 'text-amber-500 fill-amber-500')} />,
+            onClick: onStar,
+          },
+        ]
+      : []),
+    ...(onPin
+      ? [
+          {
+            id: 'pin',
+            label: 'Pin message',
+            icon: <Pin className="w-4 h-4" />,
+            onClick: onPin,
+          },
+        ]
+      : []),
     ...(onCopy
       ? [
           {

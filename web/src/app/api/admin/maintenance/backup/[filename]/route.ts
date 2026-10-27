@@ -71,11 +71,9 @@ export async function DELETE(
       data: {
         userId: auth.user.id,
         action: 'EMERGENCY_BACKUP_DELETED',
-        targetType: 'SYSTEM',
-        targetId: filename,
-        metadata: {
-          filename,
-        },
+        resource: 'SYSTEM',
+        entityId: filename,
+        metadata: JSON.stringify({ filename }),
       },
     });
 

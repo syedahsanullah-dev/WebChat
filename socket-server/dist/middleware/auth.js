@@ -39,6 +39,7 @@ function authenticateUpgrade(request, socket, jwtSecret) {
                 userPayload = {
                     userId: String(decoded.userId || decoded.id || decoded.sub),
                     username: String(decoded.username || 'user'),
+                    systemRole: String(decoded.systemRole || 'USER'),
                 };
             }
             catch (err) {

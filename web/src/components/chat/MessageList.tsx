@@ -10,6 +10,7 @@ import Lightbox from './Lightbox';
 import DateDivider from './DateDivider';
 import E2EEHeaderBadge from './E2EEHeaderBadge';
 import StaticLocationBubble from '@/components/location/StaticLocationBubble';
+import PollMessageBubble from '@/components/polls/PollMessageBubble';
 import MessageStatusTick from './MessageStatusTick';
 import { getAuthorColor } from './GroupMessageBubble';
 import { Lock, Loader2 } from 'lucide-react';
@@ -18,6 +19,7 @@ import { cn } from '@/lib/utils';
 
 export interface MessageItem {
   id: string;
+  chatId?: string;
   tempId?: string;
   senderId: string;
   senderName?: string;
@@ -34,6 +36,9 @@ export interface MessageItem {
   latitude?: number | null;
   longitude?: number | null;
   locationAddress?: string | null;
+  poll?: any;
+  isStarred?: boolean;
+  isPinned?: boolean;
   status: string;
   createdAt: string;
 }
@@ -311,9 +316,36 @@ export default function MessageList({
                   </div>
                 </div>
               </div>
+            ) : msg.messageType === 'poll' ? (
+              <div
+                id={`msg-${msg.id}`}
+                className={cn(
+                  'flex w-full group relative select-text transition-colors duration-200 my-1',
+                  isMe ? 'justify-end' : 'justify-start'
+                )}
+              >
+                <PollMessageBubble
+                  initialPoll={
+                    msg.poll || {
+                      id: msg.id,
+                      chatId: '',
+                      creatorId: msg.senderId,
+                      creatorName: msg.senderName,
+                      question: msg.content,
+                      allowMultiple: false,
+                      isClosed: false,
+                      createdAt: msg.createdAt,
+                      options: [],
+                      totalVotes: 0,
+                    }
+                  }
+                  currentUserId={currentUserId}
+                />
+              </div>
             ) : (
               <MessageBubble
                 id={msg.id}
+                chatId={msg.chatId}
                 content={msg.content}
                 isMe={isMe}
                 status={msg.status}
@@ -325,6 +357,7 @@ export default function MessageList({
                 reactions={reactions}
                 isDeleted={msg.isDeleted}
                 isE2EE={msg.isE2EE}
+                isStarred={msg.isStarred}
                 searchQuery={searchQuery}
                 currentUserId={currentUserId}
                 onReply={() => onReply?.(msg)}

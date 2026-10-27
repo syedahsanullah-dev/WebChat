@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.handleMessageSend = handleMessageSend;
 exports.handleMessageRead = handleMessageRead;
+exports.dispatchOfflinePush = dispatchOfflinePush;
 const roomManager_js_1 = require("../lib/roomManager.js");
 const prisma_js_1 = require("../lib/prisma.js");
 const logger_js_1 = require("../lib/logger.js");
@@ -41,28 +42,36 @@ async function handleMessageSend(socket, payload) {
         }
     }
     try {
+        // Check if chat is a broadcast channel
+        const chatRecord = await prisma_js_1.prisma.chat.findUnique({
+            where: { id: payload.chatId },
+            select: { isChannel: true, isGroup: true, groupAdminId: true },
+        }).catch(() => null);
+        const isChannel = Boolean(chatRecord?.isChannel);
         // 1. Identify all chat recipients (for both 1-on-1 and group chats)
         let otherParticipantIds = [];
-        try {
-            const participants = await prisma_js_1.prisma.chatParticipant.findMany({
-                where: {
-                    chatId: payload.chatId,
-                    userId: { not: socket.userId },
-                },
-                select: { userId: true },
-            });
-            otherParticipantIds = participants.map((p) => p.userId);
-        }
-        catch (err) {
-            logger_js_1.logger.debug(`Could not look up participants from DB: ${err.message}`);
-        }
-        // Fallback if DB participants lookup returned empty
-        if (otherParticipantIds.length === 0 && payload.recipientId && payload.recipientId !== payload.chatId && !payload.recipientId.startsWith('chat-')) {
-            otherParticipantIds.push(payload.recipientId);
+        if (!isChannel) {
+            try {
+                const participants = await prisma_js_1.prisma.chatParticipant.findMany({
+                    where: {
+                        chatId: payload.chatId,
+                        userId: { not: socket.userId },
+                    },
+                    select: { userId: true },
+                });
+                otherParticipantIds = participants.map((p) => p.userId);
+            }
+            catch (err) {
+                logger_js_1.logger.debug(`Could not look up participants from DB: ${err.message}`);
+            }
+            // Fallback if DB participants lookup returned empty
+            if (otherParticipantIds.length === 0 && payload.recipientId && payload.recipientId !== payload.chatId && !payload.recipientId.startsWith('chat-')) {
+                otherParticipantIds.push(payload.recipientId);
+            }
         }
         // Check if at least one recipient is online
-        const hasOnlineRecipient = otherParticipantIds.some((uid) => roomManager_js_1.roomManager.isUserOnline(uid));
-        const initialStatus = hasOnlineRecipient ? 'delivered' : 'sent';
+        const hasOnlineRecipient = !isChannel && otherParticipantIds.some((uid) => roomManager_js_1.roomManager.isUserOnline(uid));
+        const initialStatus = isChannel ? 'sent' : (hasOnlineRecipient ? 'delivered' : 'sent');
         // 2. Persist message to DB
         let savedMessage = null;
         try {
@@ -214,8 +223,8 @@ async function handleMessageSend(socket, payload) {
                 }).catch((err) => logger_js_1.logger.debug(`Push dispatch failed for offline user ${targetUid}: ${err.message}`));
             }
         });
-        // Notify sender that message has been delivered if any recipient is online
-        if (hasOnlineRecipient) {
+        // Notify sender that message has been delivered if any recipient is online (skip for broadcast channels to prevent socket flood)
+        if (!isChannel && hasOnlineRecipient) {
             const deliveredEnvelope = {
                 type: 'message:status',
                 payload: {

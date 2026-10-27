@@ -9,8 +9,9 @@ import EmojiReactionPill from './EmojiReactionPill';
 import MessageContextMenu from './MessageContextMenu';
 import BotMessageBadge from './BotMessageBadge';
 import ReminderMessageBubble from './ReminderMessageBubble';
+import PinDurationModal from './PinDurationModal';
 import { format } from 'date-fns';
-import { Ban } from 'lucide-react';
+import { Ban, Star } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export interface QuotedMessageInfo {
@@ -32,6 +33,8 @@ export interface MessageBubbleProps {
   reactions?: Record<string, string[]> | null;
   isDeleted?: boolean;
   isE2EE?: boolean;
+  isStarred?: boolean;
+  chatId?: string;
   searchQuery?: string;
   currentUserId?: string;
   onReply?: () => void;
@@ -54,6 +57,8 @@ export default function MessageBubble({
   reactions,
   isDeleted = false,
   isE2EE = false,
+  isStarred = false,
+  chatId,
   searchQuery,
   currentUserId = '',
   onReply,
@@ -63,6 +68,21 @@ export default function MessageBubble({
   className,
 }: MessageBubbleProps) {
   const [showReactionsBar, setShowReactionsBar] = useState(false);
+  const [isPinModalOpen, setIsPinModalOpen] = useState(false);
+  const [isStarredState, setIsStarredState] = useState(isStarred);
+
+  const handleToggleStar = async () => {
+    const nextState = !isStarredState;
+    setIsStarredState(nextState);
+    try {
+      await fetch(`/api/messages/${id}/star`, {
+        method: nextState ? 'POST' : 'DELETE',
+      });
+    } catch (err) {
+      console.error('Failed to toggle star:', err);
+      setIsStarredState(!nextState);
+    }
+  };
 
   const dateObj = typeof createdAt === 'string' ? new Date(createdAt) : createdAt;
   const timeFormatted = !isNaN(dateObj.getTime()) ? format(dateObj, 'h:mm a') : '';
@@ -162,9 +182,12 @@ export default function MessageBubble({
           <div className="whitespace-pre-wrap">{renderHighlightedContent(content, searchQuery)}</div>
         )}
 
-        {/* Timestamp and Delivery Tick */}
+        {/* Timestamp, Star icon, and Delivery Tick */}
         <div className="flex items-center justify-end gap-1 mt-1 text-[10px] text-wa-light-text-muted dark:text-wa-dark-text-muted float-right ml-3 -mb-0.5 select-none">
           {isE2EE && !isDeleted && <E2EEBubbleIndicator />}
+          {isStarredState && !isDeleted && (
+            <Star className="w-3 h-3 text-amber-500 fill-amber-500 shrink-0" />
+          )}
           <span>{timeFormatted}</span>
           {isMe && !isDeleted && <MessageStatusTick status={status} />}
         </div>
@@ -178,8 +201,21 @@ export default function MessageBubble({
               onReact={() => setShowReactionsBar(true)}
               onCopy={handleCopy}
               onDelete={() => onDelete?.()}
+              onPin={() => setIsPinModalOpen(true)}
+              onStar={handleToggleStar}
+              isStarred={isStarredState}
             />
           </div>
+        )}
+
+        {/* Pin Duration Modal */}
+        {isPinModalOpen && (
+          <PinDurationModal
+            isOpen={isPinModalOpen}
+            chatId={chatId || ''}
+            messageId={id}
+            onClose={() => setIsPinModalOpen(false)}
+          />
         )}
 
         {/* Bottom Reaction Pill Badge */}

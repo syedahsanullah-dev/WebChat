@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export interface AuthTokenPayload {
   userId: string;
+  id: string;
   username: string;
   email: string;
   sessionToken?: string;
@@ -20,8 +21,12 @@ export function getJwtSecret(): string {
 /**
  * Signs a JWT with 7-day expiration
  */
-export function signToken(payload: AuthTokenPayload): string {
-  return jwt.sign(payload, getJwtSecret(), {
+export function signToken(payload: Partial<AuthTokenPayload> & { userId: string; username: string; email: string }): string {
+  const fullPayload: AuthTokenPayload = {
+    ...payload,
+    id: payload.id || payload.userId,
+  };
+  return jwt.sign(fullPayload, getJwtSecret(), {
     expiresIn: '7d',
   });
 }
@@ -31,9 +36,12 @@ export function signToken(payload: AuthTokenPayload): string {
  */
 export function verifyToken(token: string): AuthTokenPayload | null {
   try {
-    const decoded = jwt.verify(token, getJwtSecret());
+    const decoded = jwt.verify(token, getJwtSecret()) as any;
     if (typeof decoded === 'object' && decoded !== null && 'userId' in decoded) {
-      return decoded as AuthTokenPayload;
+      return {
+        ...decoded,
+        id: decoded.id || decoded.userId,
+      };
     }
     return null;
   } catch {
@@ -109,3 +117,5 @@ export function getAuthUserFromRequest(request: Request | NextRequest): AuthToke
   if (!token) return null;
   return verifyToken(token);
 }
+
+export const getUserFromRequest = getAuthUserFromRequest;

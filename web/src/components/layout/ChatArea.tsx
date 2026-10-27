@@ -13,6 +13,9 @@ import LocationPickerModal from '@/components/location/LocationPickerModal';
 import OfflineStatusBar from '@/components/chat/OfflineStatusBar';
 import ConnectionToast from '@/components/ui/ConnectionToast';
 import WebhooksManagementDrawer from '@/components/settings/WebhooksManagementDrawer';
+import ChannelReadOnlyBar from '@/components/channels/ChannelReadOnlyBar';
+import ChannelInfoDrawer from '@/components/channels/ChannelInfoDrawer';
+import PinnedMessagesStrip from '@/components/chat/PinnedMessagesStrip';
 import { useOfflineSync } from '@/hooks/useOfflineSync';
 import { QuotedMessageData } from '@/components/chat/QuotedReplyPreview';
 import Avatar from '@/components/ui/Avatar';
@@ -32,6 +35,7 @@ import { useCall } from '@/context/CallContext';
 import { getOrDeriveSharedKey } from '@/lib/crypto/keyExchange';
 import { encryptMessage } from '@/lib/crypto/e2eeCipher';
 import { Lock, Laptop, Trash2 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export interface ActiveChatInfo {
   id: string;
@@ -42,6 +46,9 @@ export interface ActiveChatInfo {
   lastSeen?: string;
   isGroup?: boolean;
   groupDescription?: string | null;
+  isChannel?: boolean;
+  isChannelAdmin?: boolean;
+  channelMetadata?: any;
   otherUser?: {
     id: string;
     username: string;
@@ -70,6 +77,7 @@ export default function ChatArea({
   const [compressionResult, setCompressionResult] = useState<CompressionResult | null>(null);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [isGroupInfoOpen, setIsGroupInfoOpen] = useState(false);
+  const [isChannelInfoOpen, setIsChannelInfoOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isSafetyModalOpen, setIsSafetyModalOpen] = useState(false);
   const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
@@ -438,12 +446,17 @@ export default function ChatArea({
           onStartCall={handleStartCall}
           onSearch={() => setIsSearchOpen(true)}
           onHeaderClick={() => {
-            if (activeChat.isGroup) {
+            if (activeChat.isChannel) {
+              setIsChannelInfoOpen((prev) => !prev);
+            } else if (activeChat.isGroup) {
               setIsGroupInfoOpen((prev) => !prev);
             }
           }}
           menuItems={menuItems}
         />
+
+        {/* Pinned Messages Header Strip */}
+        {activeChatId && <PinnedMessagesStrip chatId={activeChatId} />}
 
         {/* Offline Status Warning Bar */}
         <OfflineStatusBar />
@@ -472,22 +485,26 @@ export default function ChatArea({
           />
         )}
 
-        {/* Bottom Message Input Bar */}
-        <ChatInput
-          chatId={activeChatId}
-          onSendMessage={handleSendMessage}
-          onImageSelect={handleImageSelect}
-          onSendVoice={handleSendVoice}
-          onSelectLocation={() => setIsLocationModalOpen(true)}
-          onCommandFeedback={(feedback, isErr) => {
-            setCommandToast({ message: feedback, isError: isErr });
-            setTimeout(() => setCommandToast(null), 4000);
-          }}
-          onTyping={emitTyping}
-          replyingToMessage={replyingToMessage}
-          onCancelReply={() => setReplyingToMessage(null)}
-          disabled={!activeChatId}
-        />
+        {/* Bottom Message Input Bar or Channel Read-Only Bar */}
+        {activeChat.isChannel && !activeChat.isChannelAdmin ? (
+          <ChannelReadOnlyBar />
+        ) : (
+          <ChatInput
+            chatId={activeChatId}
+            onSendMessage={handleSendMessage}
+            onImageSelect={handleImageSelect}
+            onSendVoice={handleSendVoice}
+            onSelectLocation={() => setIsLocationModalOpen(true)}
+            onCommandFeedback={(feedback, isErr) => {
+              setCommandToast({ message: feedback, isError: isErr });
+              setTimeout(() => setCommandToast(null), 4000);
+            }}
+            onTyping={emitTyping}
+            replyingToMessage={replyingToMessage}
+            onCancelReply={() => setReplyingToMessage(null)}
+            disabled={!activeChatId}
+          />
+        )}
 
         {/* Image Preview & Caption Modal */}
         <ImagePreviewModal
@@ -612,6 +629,29 @@ export default function ChatArea({
           onClose={() => setIsWebhooksOpen(false)}
           chatId={activeChatId}
           chatTitle={activeChat?.name}
+        />
+      )}
+
+      {/* Broadcast Channel Info Drawer */}
+      {isChannelInfoOpen && activeChat?.isChannel && (
+        <ChannelInfoDrawer
+          channel={{
+            id: activeChat.id,
+            title: activeChat.name,
+            description: activeChat.groupDescription || null,
+            avatarUrl: activeChat.avatar || null,
+            publicSlug: activeChat.channelMetadata?.publicSlug || null,
+            isVerified: activeChat.channelMetadata?.isVerified || false,
+            subscriberCount: activeChat.channelMetadata?.subscriberCount || 1,
+            isSubscribed: true,
+            createdAt: activeChat.channelMetadata?.createdAt || new Date().toISOString(),
+          }}
+          isOpen={isChannelInfoOpen}
+          onClose={() => setIsChannelInfoOpen(false)}
+          onUnfollow={() => {
+            setIsChannelInfoOpen(false);
+            onBack();
+          }}
         />
       )}
 

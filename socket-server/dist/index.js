@@ -16,6 +16,8 @@ const auth_js_1 = require("./middleware/auth.js");
 const presenceHandler_js_1 = require("./handlers/presenceHandler.js");
 const router_js_1 = require("./router.js");
 const prisma_js_1 = require("./lib/prisma.js");
+const maintenanceGuard_js_1 = require("./middleware/maintenanceGuard.js");
+const reminderSchedulerJob_js_1 = require("./jobs/reminderSchedulerJob.js");
 // Load environment variables
 dotenv_1.default.config();
 const PORT = parseInt(process.env.PORT || '4000', 10);
@@ -113,6 +115,41 @@ exports.fastify.post('/internal/broadcast/dismiss', async (request, reply) => {
     logger_js_1.logger.info(`📢 System broadcast dismiss dispatched: ${payload?.id}`);
     return { success: true };
 });
+// Phase 36: Internal Maintenance Mode Manager
+exports.fastify.post('/internal/maintenance', async (request) => {
+    const body = request.body;
+    maintenanceGuard_js_1.maintenanceManager.setState({
+        enabled: Boolean(body?.enabled),
+        reason: body?.reason || null,
+        estimatedEnd: body?.estimatedEnd || null,
+    });
+    if (body?.enabled) {
+        maintenanceGuard_js_1.maintenanceManager.enforceMaintenanceKicks(exports.wss);
+    }
+    // Real-time broadcast maintenance state to all connected clients
+    roomManager_js_1.roomManager.broadcastAll({
+        type: 'system:maintenance',
+        payload: maintenanceGuard_js_1.maintenanceManager.getState(),
+    });
+    return { success: true, state: maintenanceGuard_js_1.maintenanceManager.getState() };
+});
+exports.fastify.get('/internal/maintenance', async () => {
+    return { success: true, state: maintenanceGuard_js_1.maintenanceManager.getState() };
+});
+// Phase 25/26: Internal Message Broadcast Dispatcher (triggered by webhooks, slash commands, or bots)
+exports.fastify.post('/internal/message', async (request, reply) => {
+    const body = request.body;
+    if (!body || !body.chatId || !body.message) {
+        return reply.status(400).send({ error: 'chatId and message are required' });
+    }
+    const envelope = {
+        type: 'message:new',
+        payload: body.message,
+    };
+    roomManager_js_1.roomManager.broadcastToRoom(`chat:${body.chatId}`, envelope);
+    logger_js_1.logger.info(`💬 Internal message broadcast dispatched to chat:${body.chatId} [type: ${body.message.messageType || 'text'}]`);
+    return { success: true, deliveredRoom: `chat:${body.chatId}` };
+});
 // Native ws WebSocketServer mounted with manual upgrade handling
 exports.wss = new ws_1.WebSocketServer({ noServer: true });
 // Attach upgrade listener to fastify.server
@@ -120,6 +157,16 @@ exports.fastify.server.on('upgrade', (request, socket, head) => {
     const user = (0, auth_js_1.authenticateUpgrade)(request, socket, JWT_SECRET);
     if (!user)
         return;
+    // Phase 36: Reject non-admin connections during Maintenance Mode with 503
+    if (maintenanceGuard_js_1.maintenanceManager.isMaintenanceActive() && !maintenanceGuard_js_1.maintenanceManager.isUserAdmin(user.systemRole)) {
+        logger_js_1.logger.warn(`Maintenance guard: rejecting WebSocket upgrade for non-admin user ${user.userId}`);
+        socket.write('HTTP/1.1 503 Service Unavailable\r\n' +
+            'Content-Type: text/plain\r\n' +
+            'Connection: close\r\n\r\n' +
+            'System Maintenance Active\n');
+        socket.destroy();
+        return;
+    }
     exports.wss.handleUpgrade(request, socket, head, (ws) => {
         exports.wss.emit('connection', ws, request, user);
     });
@@ -130,6 +177,7 @@ exports.wss.on('connection', (ws, _req, user) => {
     const userInfo = user || { userId: 'anonymous', username: 'anonymous' };
     authWs.userId = userInfo.userId;
     authWs.username = userInfo.username;
+    authWs.systemRole = userInfo.systemRole || 'USER';
     authWs.isAlive = true;
     authWs.rooms = new Set();
     // Process connect presence lifecycle and online broadcast
@@ -182,6 +230,8 @@ async function startServer() {
         prisma_js_1.prisma.user
             .updateMany({ data: { isOnline: false } })
             .catch((err) => logger_js_1.logger.debug(`Startup presence reset non-fatal: ${err.message}`));
+        // Start Phase 26 background reminder scheduler
+        (0, reminderSchedulerJob_js_1.startReminderScheduler)();
     }
     catch (err) {
         logger_js_1.logger.error('Failed to start server:', err);
@@ -191,6 +241,7 @@ async function startServer() {
 // Graceful shutdown
 const shutdown = async () => {
     logger_js_1.logger.info('Shutting down socket server...');
+    (0, reminderSchedulerJob_js_1.stopReminderScheduler)();
     clearInterval(heartbeatInterval);
     exports.wss.close();
     await exports.fastify.close();

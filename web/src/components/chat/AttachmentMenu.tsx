@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useRef, useEffect } from 'react';
-import { Image, FileText, Camera, MapPin } from 'lucide-react';
+import { Image, FileText, Camera, MapPin, BarChart2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export interface AttachmentMenuProps {
@@ -10,6 +10,7 @@ export interface AttachmentMenuProps {
   onSelectPhoto: () => void;
   onSelectDocument?: () => void;
   onSelectLocation?: () => void;
+  onSelectPoll?: () => void;
   className?: string;
 }
 
@@ -19,6 +20,7 @@ export default function AttachmentMenu({
   onSelectPhoto,
   onSelectDocument,
   onSelectLocation,
+  onSelectPoll,
   className,
 }: AttachmentMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null);
@@ -122,6 +124,30 @@ export default function AttachmentMenu({
             </p>
             <p className="text-xs text-wa-light-text-muted dark:text-wa-dark-text-muted">
               Share current location
+            </p>
+          </div>
+        </button>
+      )}
+
+      {/* Poll option */}
+      {onSelectPoll && (
+        <button
+          type="button"
+          onClick={() => {
+            onSelectPoll();
+            onClose();
+          }}
+          className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-wa-light-hover dark:hover:bg-wa-dark-hover transition-colors text-left group"
+        >
+          <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-yellow-500 to-amber-500 flex items-center justify-center text-white shadow-sm group-hover:scale-105 transition-transform">
+            <BarChart2 className="w-5 h-5" />
+          </div>
+          <div>
+            <p className="text-sm font-medium text-wa-light-text-primary dark:text-wa-dark-text-primary">
+              Poll
+            </p>
+            <p className="text-xs text-wa-light-text-muted dark:text-wa-dark-text-muted">
+              Create interactive poll
             </p>
           </div>
         </button>

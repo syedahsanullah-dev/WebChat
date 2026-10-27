@@ -31,13 +31,13 @@ export async function POST(request: NextRequest) {
       data: {
         userId: auth.user.id,
         action: 'EMERGENCY_BACKUP_CREATED',
-        targetType: 'SYSTEM',
-        targetId: backup.filename,
-        metadata: {
+        resource: 'SYSTEM',
+        entityId: backup.filename,
+        metadata: JSON.stringify({
           filename: backup.filename,
           sizeBytes: backup.sizeBytes,
           createdAt: backup.createdAt,
-        },
+        }),
       },
     });
 

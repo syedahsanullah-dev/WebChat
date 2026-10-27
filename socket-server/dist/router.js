@@ -8,6 +8,8 @@ const messageHandler_js_1 = require("./handlers/messageHandler.js");
 const reactionHandler_js_1 = require("./handlers/reactionHandler.js");
 const deleteHandler_js_1 = require("./handlers/deleteHandler.js");
 const groupHandler_js_1 = require("./handlers/groupHandler.js");
+const pollHandler_js_1 = require("./handlers/pollHandler.js");
+const pinHandler_js_1 = require("./handlers/pinHandler.js");
 const callSignalingHandler_js_1 = require("./handlers/callSignalingHandler.js");
 /**
  * Main WebSocket JSON Envelope message router
@@ -85,6 +87,16 @@ function routeWebSocketEnvelope(socket, envelope) {
         case 'audio-call:end':
             (0, callSignalingHandler_js_1.handleCallEnd)(socket, envelope.payload).catch((err) => {
                 logger_js_1.logger.error('Error executing handleCallEnd:', err);
+            });
+            break;
+        case 'poll:vote':
+            (0, pollHandler_js_1.handlePollVote)(socket, envelope.payload).catch((err) => {
+                logger_js_1.logger.error('Error executing handlePollVote:', err);
+            });
+            break;
+        case 'chat:pin':
+            (0, pinHandler_js_1.handleChatPin)(socket, envelope.payload).catch((err) => {
+                logger_js_1.logger.error('Error executing handleChatPin:', err);
             });
             break;
         default:

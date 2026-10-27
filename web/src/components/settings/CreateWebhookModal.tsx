@@ -101,7 +101,7 @@ export default function CreateWebhookModal({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} title="Add New Webhook Integration" size="md">
+    <Modal isOpen={isOpen} onClose={handleClose} title="Add New Webhook Integration" maxWidth="md">
       {createdWebhook ? (
         <div className="space-y-4 py-2">
           <div className="p-3 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded-lg text-emerald-800 dark:text-emerald-300 text-xs">

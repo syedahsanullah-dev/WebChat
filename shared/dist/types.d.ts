@@ -222,6 +222,7 @@ export interface MaintenanceState {
     reason?: string | null;
     estimatedEnd?: string | null;
     updatedAt?: string | null;
+    updatedBy?: string | null;
 }
 export interface BackupInfo {
     filename: string;

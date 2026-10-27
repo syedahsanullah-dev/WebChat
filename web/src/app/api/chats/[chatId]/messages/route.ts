@@ -57,7 +57,71 @@ export async function GET(
             updatedAt: true,
           },
         },
+        starredBy: {
+          where: { userId: currentUserId },
+          select: { id: true },
+        },
+        pinnedIn: {
+          where: { chatId },
+          select: { id: true, expiresAt: true },
+        },
       },
+    });
+
+    // Also fetch polls for this chat
+    const polls = await prisma.poll.findMany({
+      where: { chatId },
+      include: {
+        options: {
+          orderBy: { orderIdx: 'asc' },
+          include: {
+            votes: {
+              include: {
+                user: {
+                  select: { id: true, username: true, displayName: true, avatarUrl: true },
+                },
+              },
+            },
+          },
+        },
+        creator: {
+          select: { id: true, username: true, displayName: true, avatarUrl: true },
+        },
+      },
+    });
+
+    const pollMap = new Map<string, any>();
+    polls.forEach((poll) => {
+      const allVotes = poll.options.flatMap((o) => o.votes);
+      const totalVotes = allVotes.length;
+      const formatted = {
+        id: poll.id,
+        chatId: poll.chatId,
+        creatorId: poll.creatorId,
+        creatorName: poll.creator.displayName || poll.creator.username,
+        question: poll.question,
+        allowMultiple: poll.allowMultiple,
+        isClosed: poll.isClosed,
+        createdAt: poll.createdAt.toISOString(),
+        totalVotes,
+        hasVoted: allVotes.some((v) => v.userId === currentUserId),
+        options: poll.options.map((opt) => ({
+          id: opt.id,
+          pollId: opt.pollId,
+          text: opt.text,
+          orderIdx: opt.orderIdx,
+          voteCount: opt.votes.length,
+          percentage: totalVotes > 0 ? Math.round((opt.votes.length / totalVotes) * 100) : 0,
+          hasVoted: opt.votes.some((v) => v.userId === currentUserId),
+          voterAvatars: opt.votes
+            .map((v) => v.user.avatarUrl)
+            .filter((url): url is string => Boolean(url))
+            .slice(0, 3),
+          voterIds: opt.votes.map((v) => v.userId),
+        })),
+      };
+      pollMap.set(poll.id, formatted);
+      pollMap.set(poll.question, formatted);
     });
 
     let nextCursor: string | null = null;
@@ -93,6 +157,9 @@ export async function GET(
         locationAddress: msg.locationAddress ?? null,
         status: effectiveStatus,
         createdAt: msg.createdAt.toISOString(),
+        isStarred: Boolean(msg.starredBy && msg.starredBy.length > 0),
+        isPinned: Boolean(msg.pinnedIn && msg.pinnedIn.length > 0),
+        poll: msg.messageType === 'poll' ? pollMap.get(msg.content) || pollMap.get(msg.id) || null : null,
       };
     });
 

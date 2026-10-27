@@ -53,29 +53,39 @@ export async function handleMessageSend(
   }
 
   try {
+    // Check if chat is a broadcast channel
+    const chatRecord = await prisma.chat.findUnique({
+      where: { id: payload.chatId },
+      select: { isChannel: true, isGroup: true, groupAdminId: true },
+    }).catch(() => null);
+
+    const isChannel = Boolean(chatRecord?.isChannel);
+
     // 1. Identify all chat recipients (for both 1-on-1 and group chats)
     let otherParticipantIds: string[] = [];
-    try {
-      const participants = await prisma.chatParticipant.findMany({
-        where: {
-          chatId: payload.chatId,
-          userId: { not: socket.userId },
-        },
-        select: { userId: true },
-      });
-      otherParticipantIds = participants.map((p) => p.userId);
-    } catch (err) {
-      logger.debug(`Could not look up participants from DB: ${(err as Error).message}`);
-    }
+    if (!isChannel) {
+      try {
+        const participants = await prisma.chatParticipant.findMany({
+          where: {
+            chatId: payload.chatId,
+            userId: { not: socket.userId },
+          },
+          select: { userId: true },
+        });
+        otherParticipantIds = participants.map((p) => p.userId);
+      } catch (err) {
+        logger.debug(`Could not look up participants from DB: ${(err as Error).message}`);
+      }
 
-    // Fallback if DB participants lookup returned empty
-    if (otherParticipantIds.length === 0 && payload.recipientId && payload.recipientId !== payload.chatId && !payload.recipientId.startsWith('chat-')) {
-      otherParticipantIds.push(payload.recipientId);
+      // Fallback if DB participants lookup returned empty
+      if (otherParticipantIds.length === 0 && payload.recipientId && payload.recipientId !== payload.chatId && !payload.recipientId.startsWith('chat-')) {
+        otherParticipantIds.push(payload.recipientId);
+      }
     }
 
     // Check if at least one recipient is online
-    const hasOnlineRecipient = otherParticipantIds.some((uid) => roomManager.isUserOnline(uid));
-    const initialStatus = hasOnlineRecipient ? 'delivered' : 'sent';
+    const hasOnlineRecipient = !isChannel && otherParticipantIds.some((uid) => roomManager.isUserOnline(uid));
+    const initialStatus = isChannel ? 'sent' : (hasOnlineRecipient ? 'delivered' : 'sent');
 
     // 2. Persist message to DB
     let savedMessage: any = null;
@@ -239,8 +249,8 @@ export async function handleMessageSend(
       }
     });
 
-    // Notify sender that message has been delivered if any recipient is online
-    if (hasOnlineRecipient) {
+    // Notify sender that message has been delivered if any recipient is online (skip for broadcast channels to prevent socket flood)
+    if (!isChannel && hasOnlineRecipient) {
       const deliveredEnvelope: WsEnvelope<MessageStatusUpdatePayload> = {
         type: 'message:status',
         payload: {
@@ -320,7 +330,7 @@ export async function handleMessageRead(
 /**
  * Dispatches a background Web Push notification to an offline recipient via Server #1 Next.js API
  */
-async function dispatchOfflinePush(recipientId: string, payload: any): Promise<void> {
+export async function dispatchOfflinePush(recipientId: string, payload: any): Promise<void> {
   const nextApiUrl = process.env.NEXT_API_URL || 'https://chat.vusigma.com';
   const secret = process.env.INTERNAL_API_SECRET || process.env.JWT_SECRET || '';
 

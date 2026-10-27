@@ -5,6 +5,8 @@ import { handleMessageSend, handleMessageRead } from './handlers/messageHandler.
 import { handleMessageReaction } from './handlers/reactionHandler.js';
 import { handleMessageDelete } from './handlers/deleteHandler.js';
 import { handleGroupJoin, handleGroupLeave, handleGroupMemberUpdate } from './handlers/groupHandler.js';
+import { handlePollVote } from './handlers/pollHandler.js';
+import { handleChatPin } from './handlers/pinHandler.js';
 import {
   handleCallInvite,
   handleCallRing,
@@ -113,6 +115,18 @@ export function routeWebSocketEnvelope(
     case 'audio-call:end':
       handleCallEnd(socket, envelope.payload).catch((err) => {
         logger.error('Error executing handleCallEnd:', err);
+      });
+      break;
+
+    case 'poll:vote':
+      handlePollVote(socket, envelope.payload).catch((err) => {
+        logger.error('Error executing handlePollVote:', err);
+      });
+      break;
+
+    case 'chat:pin':
+      handleChatPin(socket, envelope.payload).catch((err) => {
+        logger.error('Error executing handleChatPin:', err);
       });
       break;
 

@@ -122,25 +122,25 @@
 - [x] Visual E2EE green padlock badges on chat header and message cards
 
 ## Phase 17: [Broadcast Announcement Channels & Channel Governance](phases/17_BROADCAST_ANNOUNCEMENT_CHANNELS.md)
-- [ ] One-way broadcast announcement channels with `ChannelMetadata` (slug, description, verified badge)
-- [ ] Channel creation modal with custom URL slug generation (`/channel/:slug`)
-- [ ] Granular publisher permissions: Admin rich composer vs subscriber read-only bottom bar
-- [ ] Channel directory and subscription management (subscribe, unsubscribe, follower count)
-- [ ] Optimized Fastify WebSocket channel broadcasting with zero read receipt / typing overhead
+- [x] One-way broadcast announcement channels with `ChannelMetadata` (slug, description, verified badge)
+- [x] Channel creation modal with custom URL slug generation (`/channel/:slug`)
+- [x] Granular publisher permissions: Admin rich composer vs subscriber read-only bottom bar
+- [x] Channel directory and subscription management (subscribe, unsubscribe, follower count)
+- [x] Optimized Fastify WebSocket channel broadcasting with zero read receipt / typing overhead
 
 ## Phase 18: [Interactive Real-Time Polls & Live Voting](phases/18_INTERACTIVE_REALTIME_POLLS.md)
-- [ ] Poll creation modal via chat attachment menu (Question, 2–12 options, "Allow multiple answers" toggle)
-- [ ] WhatsApp-style interactive poll message bubble with radio/checkbox options
-- [ ] Real-time WebSocket voting engine (`poll:vote` -> `poll:update`)
-- [ ] Animated CSS percentage progress bars updating dynamically for all participants
-- [ ] Voter roster breakdown drawer ("View votes") showing voter identities and timestamps
+- [x] Poll creation modal via chat attachment menu (Question, 2–12 options, "Allow multiple answers" toggle)
+- [x] WhatsApp-style interactive poll message bubble with radio/checkbox options
+- [x] Real-time WebSocket voting engine (`poll:vote` -> `poll:update`)
+- [x] Animated CSS percentage progress bars updating dynamically for all participants
+- [x] Voter roster breakdown drawer ("View votes") showing voter identities and timestamps
 
 ## Phase 19: [Pinned Messages Strip & Starred Message Bookmarks](phases/19_PINNED_AND_STARRED_MESSAGES.md)
-- [ ] Message context menu actions for "Pin message" (24h, 7d, 30d) and "Star message"
-- [ ] Pinned message banner strip beneath ChatHeader with multi-pin carousel
-- [ ] Smooth-scroll jump to pinned/starred message with temporary flashing highlight pulse
-- [ ] Starred message badge on bubbles and global searchable "Starred Messages" drawer
-- [ ] Fastify WebSocket broadcast for pin updates (`chat:pin_updated`)
+- [x] Message context menu actions for "Pin message" (24h, 7d, 30d) and "Star message"
+- [x] Pinned message banner strip beneath ChatHeader with multi-pin carousel
+- [x] Smooth-scroll jump to pinned/starred message with temporary flashing highlight pulse
+- [x] Starred message badge on bubbles and global searchable "Starred Messages" drawer
+- [x] Fastify WebSocket broadcast for pin updates (`chat:pin_updated`)
 
 ## Phase 20: [Enterprise Document Sharing & File Attachments](phases/20_ENTERPRISE_DOCUMENT_SHARING.md)
 - [ ] Document sharing for PDF, Excel (`.xlsx`, `.xls`), Word (`.docx`, `.doc`), and Zip archives up to 25MB
