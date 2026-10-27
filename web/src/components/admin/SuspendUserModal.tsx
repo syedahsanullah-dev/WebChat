@@ -5,11 +5,11 @@ import Modal from '@/components/ui/Modal';
 import Avatar from '@/components/ui/Avatar';
 import { ShieldAlert, Clock, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { UserAdminProfile } from '@shared/types';
+import { AdminUserView } from '@shared/types';
 
 export interface SuspendUserModalProps {
   isOpen: boolean;
-  user: UserAdminProfile | null;
+  user: AdminUserView | null;
   onClose: () => void;
   onSuccess?: () => void;
 }

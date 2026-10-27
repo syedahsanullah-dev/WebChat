@@ -11,7 +11,7 @@ import { cn } from '@/lib/utils';
 export interface DisappearingSettingsModalProps {
   isOpen: boolean;
   chatId: string;
-  currentDuration?: number | null;
+  currentDuration?: EphemeralDurationValue | number | null;
   onClose: () => void;
   onSaved?: (newDuration: EphemeralDurationValue) => void;
 }
@@ -25,7 +25,11 @@ export default function DisappearingSettingsModal({
 }: DisappearingSettingsModalProps) {
   const { send } = useWebSocket();
   const { user } = useAuth();
-  const [selectedDuration, setSelectedDuration] = useState<EphemeralDurationValue>(currentDuration);
+  const initialDuration =
+    currentDuration === 86400 || currentDuration === 604800 || currentDuration === 7776000
+      ? currentDuration
+      : null;
+  const [selectedDuration, setSelectedDuration] = useState<EphemeralDurationValue>(initialDuration);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 

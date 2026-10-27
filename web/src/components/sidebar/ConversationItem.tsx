@@ -104,7 +104,9 @@ export default function ConversationItem({
               {chat.name}
             </span>
             {chat.ephemeralDuration && chat.ephemeralDuration > 0 ? (
-              <Clock className="w-3 h-3 text-[#00a884] shrink-0" title="Disappearing messages active" />
+              <span title="Disappearing messages active" className="inline-flex items-center">
+                <Clock className="w-3 h-3 text-[#00a884] shrink-0" />
+              </span>
             ) : null}
           </div>
           <span

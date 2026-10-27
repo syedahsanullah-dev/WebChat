@@ -188,6 +188,8 @@ export interface AdminUserView {
   };
 }
 
+export type UserAdminProfile = AdminUserView;
+
 export type DlpAction = 'BLOCK' | 'WARN' | 'LOG';
 
 export interface DlpRuleDefinition {

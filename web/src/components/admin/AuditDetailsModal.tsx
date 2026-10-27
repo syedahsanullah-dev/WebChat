@@ -46,7 +46,7 @@ export default function AuditDetailsModal({ isOpen, onClose, log }: AuditDetails
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Audit Event Metadata Inspector" size="lg">
+    <Modal isOpen={isOpen} onClose={onClose} title="Audit Event Metadata Inspector" maxWidth="lg">
       <div className="space-y-4 py-2">
         <div className="grid grid-cols-2 gap-3 p-3 bg-wa-light-chat-bg dark:bg-wa-dark-chat-bg rounded-lg border border-wa-light-border dark:border-wa-dark-border text-xs">
           <div>

@@ -10,6 +10,7 @@ export interface ModalProps {
   title?: string;
   children: React.ReactNode;
   maxWidth?: 'sm' | 'md' | 'lg' | 'xl';
+  size?: 'sm' | 'md' | 'lg' | 'xl';
   showCloseButton?: boolean;
   className?: string;
 }
@@ -26,11 +27,13 @@ export default function Modal({
   onClose,
   title,
   children,
-  maxWidth = 'md',
+  maxWidth,
+  size,
   showCloseButton = true,
   className,
 }: ModalProps) {
   const dialogRef = useRef<HTMLDivElement>(null);
+  const effectiveSize = (size || maxWidth || 'md') as keyof typeof maxWidthClasses;
 
   // Body scroll lock and Escape key listener
   useEffect(() => {
@@ -75,7 +78,7 @@ export default function Modal({
         aria-labelledby={title ? 'modal-title' : undefined}
         className={cn(
           'w-full rounded-xl bg-wa-light-sidebar dark:bg-wa-dark-sidebar border border-wa-light-border dark:border-wa-dark-border shadow-2xl overflow-hidden transform transition-all animate-in zoom-in-95 duration-200 flex flex-col',
-          maxWidthClasses[maxWidth],
+          maxWidthClasses[effectiveSize] || maxWidthClasses.md,
           className
         )}
       >

@@ -51,7 +51,7 @@ async function handleMessageSend(socket, payload) {
         const senderStatus = await prisma_js_1.prisma.user.findUnique({
             where: { id: socket.userId },
             select: { isSuspended: true, mutedUntil: true },
-        });
+        }).catch(() => null);
         if (senderStatus?.isSuspended) {
             socket.send(JSON.stringify({
                 type: 'error',

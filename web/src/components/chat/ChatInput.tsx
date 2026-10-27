@@ -34,6 +34,7 @@ export default function ChatInput({
   chatId,
   onSendMessage,
   onImageSelect,
+  onSendDocument,
   onSendVoice,
   onSelectLocation,
   onCommandFeedback,

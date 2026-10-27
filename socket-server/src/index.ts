@@ -175,14 +175,6 @@ fastify.post('/internal/message', async (request, reply) => {
 });
 
 // Phase 33: Internal Moderation Action Endpoints
-fastify.post('/internal/kick', async (request, reply) => {
-  const { userId, reason } = (request.body || {}) as any;
-  if (!userId) return reply.status(400).send({ error: 'userId is required' });
-  roomManager.kickUser(userId, reason || 'Account suspended by moderation');
-  logger.info(`User ${userId} was forcefully kicked via internal moderation API`);
-  return { success: true };
-});
-
 fastify.post('/internal/mute', async (request, reply) => {
   const { userId, mutedUntil, reason } = (request.body || {}) as any;
   if (!userId || !mutedUntil) return reply.status(400).send({ error: 'userId and mutedUntil are required' });

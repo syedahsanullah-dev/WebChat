@@ -174,15 +174,15 @@ export async function resolveAbuseReport(
     data: {
       userId: adminUserId,
       action: 'ABUSE_REPORT_RESOLVED',
-      targetType: 'ABUSE_REPORT',
-      targetId: reportId,
-      metadata: {
+      resource: 'ABUSE_REPORT',
+      entityId: reportId,
+      metadata: JSON.stringify({
         reportId,
         reportedUserId: report.reportedUserId,
         action,
         notes,
         category: report.category,
-      },
+      }),
     },
   });
 

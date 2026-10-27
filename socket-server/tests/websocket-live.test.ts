@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
 import { WebSocket } from 'ws';
 import jwt from 'jsonwebtoken';
 import { fastify, startServer } from '../src/index.js';
@@ -12,20 +12,25 @@ function createTestToken(userId: string, username: string): string {
   return jwt.sign({ userId, username }, JWT_SECRET, { expiresIn: '1h' });
 }
 
-function waitForMessage(ws: WebSocket): Promise<WsEnvelope> {
+function waitForMessage(ws: WebSocket, filter?: (msg: WsEnvelope) => boolean): Promise<WsEnvelope> {
   return new Promise((resolve, reject) => {
     const timer = setTimeout(() => {
       reject(new Error('Timeout waiting for message'));
     }, 4000);
 
-    ws.once('message', (data) => {
-      clearTimeout(timer);
+    const onMessage = (data: any) => {
       try {
-        resolve(JSON.parse(data.toString()));
+        const parsed = JSON.parse(data.toString());
+        if (!filter || filter(parsed)) {
+          clearTimeout(timer);
+          ws.off('message', onMessage);
+          resolve(parsed);
+        }
       } catch (err) {
-        reject(err);
+        // continue listening
       }
-    });
+    };
+    ws.on('message', onMessage);
   });
 }
 
@@ -34,6 +39,10 @@ describe('Empirical Challenger: Live Native WebSocket Wire Protocol Suite', () =
     process.env.PORT = String(TEST_PORT);
     process.env.HOST = '127.0.0.1';
     await fastify.listen({ port: TEST_PORT, host: '127.0.0.1' });
+  });
+
+  beforeEach(() => {
+    roomManager.clear();
   });
 
   afterAll(async () => {
@@ -107,7 +116,7 @@ describe('Empirical Challenger: Live Native WebSocket Wire Protocol Suite', () =
       },
     });
 
-    const welcomeMsg = await waitForMessage(ws);
+    const welcomeMsg = await waitForMessage(ws, (m) => m.type === 'user:online');
     expect(welcomeMsg.type).toBe('user:online');
     expect(welcomeMsg.payload.userId).toBe('user-cookie-1');
     expect(welcomeMsg.payload.username).toBe('CookieUser');
@@ -121,14 +130,14 @@ describe('Empirical Challenger: Live Native WebSocket Wire Protocol Suite', () =
     const ws = new WebSocket(`ws://127.0.0.1:${TEST_PORT}?token=${token}`);
 
     // First message received on connection is user:online presence confirmation
-    const welcomeMsg = await waitForMessage(ws);
+    const welcomeMsg = await waitForMessage(ws, (m) => m.type === 'user:online');
     expect(welcomeMsg.type).toBe('user:online');
     expect(welcomeMsg.payload.userId).toBe('user-jwt-1');
     expect(welcomeMsg.payload.username).toBe('Alice');
 
     // Send ping envelope
     ws.send(JSON.stringify({ type: 'ping', payload: {} }));
-    const pongMsg = await waitForMessage(ws);
+    const pongMsg = await waitForMessage(ws, (m) => m.type === 'pong');
     expect(pongMsg.type).toBe('pong');
     expect(typeof pongMsg.payload.timestamp).toBe('number');
 
@@ -142,21 +151,21 @@ describe('Empirical Challenger: Live Native WebSocket Wire Protocol Suite', () =
 
     // 1. User 1 opens Tab 1
     const wsU1Tab1 = new WebSocket(`ws://127.0.0.1:${TEST_PORT}?token=${tokenUser1}`);
-    await waitForMessage(wsU1Tab1); // initial user:online
+    await waitForMessage(wsU1Tab1, (m) => m.type === 'user:online');
 
     expect(roomManager.isUserOnline('u-alice')).toBe(true);
     expect(roomManager.getUserSocketCount('u-alice')).toBe(1);
 
     // 2. User 1 opens Tab 2
     const wsU1Tab2 = new WebSocket(`ws://127.0.0.1:${TEST_PORT}?token=${tokenUser1}`);
-    await waitForMessage(wsU1Tab2); // initial user:online
+    await waitForMessage(wsU1Tab2, (m) => m.type === 'user:online');
 
     expect(roomManager.isUserOnline('u-alice')).toBe(true);
     expect(roomManager.getUserSocketCount('u-alice')).toBe(2);
 
     // 3. User 2 opens Tab 1
     const wsU2 = new WebSocket(`ws://127.0.0.1:${TEST_PORT}?token=${tokenUser2}`);
-    await waitForMessage(wsU2); // initial user:online
+    await waitForMessage(wsU2, (m) => m.type === 'user:online');
 
     expect(roomManager.isUserOnline('u-bob')).toBe(true);
     expect(roomManager.getOnlineUserCount()).toBe(2);
