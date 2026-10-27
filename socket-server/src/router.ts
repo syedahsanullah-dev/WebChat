@@ -135,6 +135,15 @@ export function routeWebSocketEnvelope(
       });
       break;
 
+    case 'chat:ephemeral_update':
+      if (envelope.payload?.chatId) {
+        roomManager.broadcastToRoom(`chat:${envelope.payload.chatId}`, {
+          type: 'chat:ephemeral_updated',
+          payload: envelope.payload,
+        });
+      }
+      break;
+
     case 'location:live_start':
       handleLiveLocationStart(socket, envelope.payload).catch((err) => {
         logger.error('Error executing handleLiveLocationStart:', err);

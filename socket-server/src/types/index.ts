@@ -35,6 +35,7 @@ export type WsEventType =
   | 'poll:update'
   | 'chat:pin'
   | 'chat:pin_updated'
+  | 'chat:ephemeral_update'
   | 'chat:ephemeral_updated'
   | 'webhook:received'
   | 'location:live_start'
@@ -95,6 +96,12 @@ export interface MessageSendPayload {
   latitude?: number | null;
   longitude?: number | null;
   locationAddress?: string | null;
+  documentName?: string | null;
+  documentSize?: number | null;
+  documentMime?: string | null;
+  isCodeBlock?: boolean;
+  codeLanguage?: string | null;
+  expiresAt?: string | null;
 }
 
 export interface MessageAckPayload {
@@ -108,6 +115,12 @@ export interface MessageAckPayload {
   latitude?: number | null;
   longitude?: number | null;
   locationAddress?: string | null;
+  documentName?: string | null;
+  documentSize?: number | null;
+  documentMime?: string | null;
+  isCodeBlock?: boolean;
+  codeLanguage?: string | null;
+  expiresAt?: string | null;
 }
 
 export interface MessageReadPayload {

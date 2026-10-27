@@ -36,6 +36,10 @@ export async function GET(
     const messages = await prisma.message.findMany({
       where: {
         chatId,
+        OR: [
+          { expiresAt: null },
+          { expiresAt: { gt: new Date() } },
+        ],
       },
       take: limit + 1,
       skip: cursor ? 1 : 0,
@@ -155,6 +159,15 @@ export async function GET(
         latitude: msg.latitude ?? null,
         longitude: msg.longitude ?? null,
         locationAddress: msg.locationAddress ?? null,
+        liveLocationId: msg.liveLocationId ?? null,
+        documentName: msg.documentName ?? null,
+        documentSize: msg.documentSize ?? null,
+        documentMime: msg.documentMime ?? null,
+        isCodeBlock: Boolean(msg.isCodeBlock),
+        codeLanguage: msg.codeLanguage ?? null,
+        expiresAt: msg.expiresAt ? msg.expiresAt.toISOString() : null,
+        senderName: msg.sender?.displayName || msg.sender?.username,
+        senderAvatarUrl: msg.sender?.avatarUrl ?? null,
         status: effectiveStatus,
         createdAt: msg.createdAt.toISOString(),
         isStarred: Boolean(msg.starredBy && msg.starredBy.length > 0),

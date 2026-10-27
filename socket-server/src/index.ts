@@ -14,6 +14,7 @@ import { WsEnvelope } from './types/index.js';
 import { maintenanceManager } from './middleware/maintenanceGuard.js';
 import { startReminderScheduler, stopReminderScheduler } from './jobs/reminderSchedulerJob.js';
 import { startLiveLocationCleanupJob, stopLiveLocationCleanupJob } from './jobs/liveLocationCleanupJob.js';
+import { startEphemeralCleanupJob, stopEphemeralCleanupJob } from './jobs/ephemeralCleanupJob.js';
 
 // Load environment variables
 dotenv.config();
@@ -269,6 +270,8 @@ export async function startServer(): Promise<void> {
     startReminderScheduler();
     // Start Phase 38 live location auto-expiration background daemon
     startLiveLocationCleanupJob();
+    // Start Phase 22 ephemeral auto-purge background daemon
+    startEphemeralCleanupJob();
   } catch (err) {
     logger.error('Failed to start server:', err);
     process.exit(1);
@@ -280,6 +283,7 @@ const shutdown = async () => {
   logger.info('Shutting down socket server...');
   stopReminderScheduler();
   stopLiveLocationCleanupJob();
+  stopEphemeralCleanupJob();
   clearInterval(heartbeatInterval);
   wss.close();
   await fastify.close();

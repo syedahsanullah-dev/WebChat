@@ -113,3 +113,78 @@ select {
 .pr-safe {
   padding-right: env(safe-area-inset-right, 0px);
 }
+
+/* ==========================================================================
+   Prism.js WhatsApp Dark Mode Syntax Highlighting Theme (Phase 21)
+   ========================================================================== */
+.token.comment,
+.token.prolog,
+.token.doctype,
+.token.cdata {
+  color: #8696a0;
+  font-style: italic;
+}
+
+.token.punctuation {
+  color: #aebac1;
+}
+
+.token.namespace {
+  opacity: 0.7;
+}
+
+.token.property,
+.token.tag,
+.token.boolean,
+.token.number,
+.token.constant,
+.token.symbol,
+.token.deleted {
+  color: #f15c6d;
+}
+
+.token.selector,
+.token.attr-name,
+.token.string,
+.token.char,
+.token.builtin,
+.token.inserted {
+  color: #25d366;
+}
+
+.token.operator,
+.token.entity,
+.token.url,
+.language-css .token.string,
+.style .token.string {
+  color: #53bdeb;
+}
+
+.token.atrule,
+.token.attr-value,
+.token.keyword {
+  color: #53bdeb;
+  font-weight: 500;
+}
+
+.token.function,
+.token.class-name {
+  color: #e9edef;
+  font-weight: 500;
+}
+
+.token.regex,
+.token.important,
+.token.variable {
+  color: #e388ec;
+}
+
+.token.important,
+.token.bold {
+  font-weight: bold;
+}
+
+.token.italic {
+  font-style: italic;
+}
+

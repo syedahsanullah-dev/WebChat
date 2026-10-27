@@ -143,26 +143,26 @@
 - [x] Fastify WebSocket broadcast for pin updates (`chat:pin_updated`)
 
 ## Phase 20: [Enterprise Document Sharing & File Attachments](phases/20_ENTERPRISE_DOCUMENT_SHARING.md)
-- [ ] Document sharing for PDF, Excel (`.xlsx`, `.xls`), Word (`.docx`, `.doc`), and Zip archives up to 25MB
-- [ ] Local Hostinger NVMe storage pipeline (`/public/uploads/docs/`) with UUID filenames
-- [ ] Mime-type whitelist validation and drag-and-drop viewport upload listener
-- [ ] Color-coded document message cards (PDF red, Excel green, Word blue, Zip orange) with file size
-- [ ] In-app PDF preview modal using native browser rendering without external plugins
+- [x] Document sharing for PDF, Excel (`.xlsx`, `.xls`), Word (`.docx`, `.doc`), and Zip archives up to 25MB
+- [x] Local Hostinger NVMe storage pipeline (`/public/uploads/docs/`) with UUID filenames
+- [x] Mime-type whitelist validation and drag-and-drop viewport upload listener
+- [x] Color-coded document message cards (PDF red, Excel green, Word blue, Zip orange) with file size
+- [x] In-app PDF preview modal using native browser rendering without external plugins
 
 ## Phase 21: [Markdown Code Blocks & Syntax Highlighting](phases/21_MARKDOWN_CODE_BLOCKS_AND_SYNTAX_HIGHLIGHTING.md)
-- [ ] Markdown fenced code block parser (` ```language ... ``` `) and inline backtick handler
-- [ ] Prism.js syntax highlighting with dark theme matching WhatsApp dark design tokens
-- [ ] Language badge pill (TypeScript, Python, SQL, HTML, JSON, Bash, Go, Rust, Java, C++)
-- [ ] Monospaced code card with line numbers and horizontal scrolling viewport
-- [ ] One-click "Copy Code" button with checkmark animation
+- [x] Markdown fenced code block parser (` ```language ... ``` `) and inline backtick handler
+- [x] Prism.js syntax highlighting with dark theme matching WhatsApp dark design tokens
+- [x] Language badge pill (TypeScript, Python, SQL, HTML, JSON, Bash, Go, Rust, Java, C++)
+- [x] Monospaced code card with line numbers and horizontal scrolling viewport
+- [x] One-click "Copy Code" button with checkmark animation
 
 ## Phase 22: [Ephemeral & Disappearing Messages](phases/22_EPHEMERAL_AND_DISAPPEARING_MESSAGES.md)
-- [ ] Disappearing messages duration picker per chat (Off, 24 Hours, 7 Days, 90 Days)
-- [ ] In-chat system announcement pills and clock badge indicator on avatars and timestamps
-- [ ] Message creation timestamp hook calculating `expiresAt = NOW() + duration`
-- [ ] Fastify 24/7 background cleanup daemon running every 15 minutes purging expired rows
-- [ ] Automated safe disk unlinking (`fs.unlinkSync`) of expired images, voice notes, and documents
-- [ ] Legal hold bypass respecting active compliance holds
+- [x] Disappearing messages duration picker per chat (Off, 24 Hours, 7 Days, 90 Days)
+- [x] In-chat system announcement pills and clock badge indicator on avatars and timestamps
+- [x] Message creation timestamp hook calculating `expiresAt = NOW() + duration`
+- [x] Fastify 24/7 background cleanup daemon running every 15 minutes purging expired rows
+- [x] Automated safe disk unlinking (`fs.unlinkSync`) of expired images, voice notes, and documents
+- [x] Legal hold bypass respecting active compliance holds
 
 ---
 
@@ -291,9 +291,9 @@
 - [x] Zero paid Google Maps / Mapbox APIs ($0.00 / mo)
 
 ## Phase 38: [Real-Time Live Location Tracking & Collaborative Maps](phases/38_REALTIME_LIVE_LOCATION_TRACKING.md)
-- [ ] Live duration selector (15 Minutes, 1 Hour, 8 Hours) with optional commentary
-- [ ] Battery-friendly GPS watcher throttled to 8 seconds or 10-meter minimum displacement
-- [ ] Fastify WebSocket live streaming envelopes (`location:live_start`, `update`, `stop`, `ended`)
-- [ ] Live location bubble with moving avatar pin, directional heading arrow, and live countdown timer
-- [ ] Collaborative multi-user group map automatically adjusting bounds to fit all sharing members
-- [ ] Fastify 60-second auto-expiration daemon terminating expired live locations
+- [x] Live duration selector (15 Minutes, 1 Hour, 8 Hours) with optional commentary
+- [x] Battery-friendly GPS watcher throttled to 8 seconds or 10-meter minimum displacement
+- [x] Fastify WebSocket live streaming envelopes (`location:live_start`, `update`, `stop`, `ended`)
+- [x] Live location bubble with moving avatar pin, directional heading arrow, and live countdown timer
+- [x] Collaborative multi-user group map automatically adjusting bounds to fit all sharing members
+- [x] Fastify 60-second auto-expiration daemon terminating expired live locations

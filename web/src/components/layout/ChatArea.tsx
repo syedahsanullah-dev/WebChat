@@ -15,6 +15,7 @@ import ConnectionToast from '@/components/ui/ConnectionToast';
 import WebhooksManagementDrawer from '@/components/settings/WebhooksManagementDrawer';
 import LegalHoldBanner from '@/components/chat/LegalHoldBanner';
 import ExportChatModal from '@/components/chat/ExportChatModal';
+import DisappearingSettingsModal from '@/components/chat/DisappearingSettingsModal';
 import ChannelReadOnlyBar from '@/components/channels/ChannelReadOnlyBar';
 import ChannelInfoDrawer from '@/components/channels/ChannelInfoDrawer';
 import PinnedMessagesStrip from '@/components/chat/PinnedMessagesStrip';
@@ -33,10 +34,13 @@ import { useMessages } from '@/hooks/useMessages';
 import { useReactions } from '@/hooks/useReactions';
 import { useInChatSearch } from '@/hooks/useInChatSearch';
 import { useAuth } from '@/context/AuthContext';
+import { useWebSocket } from '@/context/WebSocketContext';
+import { useLiveLocationTracker } from '@/hooks/useLiveLocationTracker';
 import { useCall } from '@/context/CallContext';
 import { getOrDeriveSharedKey } from '@/lib/crypto/keyExchange';
 import { encryptMessage } from '@/lib/crypto/e2eeCipher';
-import { Lock, Laptop, Trash2 } from 'lucide-react';
+import { validateDocumentFile } from '@/lib/fileValidation';
+import { Lock, Laptop, Trash2, FileText } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export interface ActiveChatInfo {
@@ -85,10 +89,15 @@ export default function ChatArea({
   const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
   const [isWebhooksOpen, setIsWebhooksOpen] = useState(false);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [isDisappearingModalOpen, setIsDisappearingModalOpen] = useState(false);
+  const [ephemeralDuration, setEphemeralDuration] = useState<number | null>(
+    (activeChatData as any)?.ephemeralDuration ?? null
+  );
   const [isLegalHold, setIsLegalHold] = useState(false);
   const [commandToast, setCommandToast] = useState<{ message: string; isError?: boolean } | null>(null);
   const [replyingToMessage, setReplyingToMessage] = useState<QuotedMessageData | null>(null);
   const [deletingMessage, setDeletingMessage] = useState<MessageItem | null>(null);
+  const [isDraggingOver, setIsDraggingOver] = useState(false);
   const mainRef = useRef<HTMLElement>(null);
 
   // Local-first offline sync hook
@@ -173,6 +182,35 @@ export default function ChatArea({
 
   // In-chat search hook
   const inChatSearch = useInChatSearch(messages);
+
+  const { send, subscribe } = useWebSocket();
+
+  useEffect(() => {
+    setEphemeralDuration((activeChatData as any)?.ephemeralDuration ?? null);
+  }, [activeChatId, activeChatData]);
+
+  useEffect(() => {
+    if (!activeChatId) return;
+    const unsub = subscribe<any>('chat:ephemeral_updated', (payload) => {
+      if (payload?.chatId === activeChatId) {
+        setEphemeralDuration(payload.duration ?? null);
+      }
+    });
+    return () => {
+      unsub?.();
+    };
+  }, [activeChatId, subscribe]);
+  const [activeLiveSession, setActiveLiveSession] = useState<{
+    liveLocationId: string | null;
+    isSharing: boolean;
+  }>({ liveLocationId: null, isSharing: false });
+
+  useLiveLocationTracker({
+    chatId: activeChatId || '',
+    liveLocationId: activeLiveSession.liveLocationId,
+    isSharing: activeLiveSession.isSharing,
+    onStopSharing: () => setActiveLiveSession({ liveLocationId: null, isSharing: false }),
+  });
 
   const handleStartCall = () => {
     if (!activeChat) return;
@@ -367,6 +405,136 @@ export default function ChatArea({
     setReplyingToMessage(null);
   };
 
+  const handleShareLiveLocation = async (durationMinutes: number, comment?: string) => {
+    if (!activeChatId) return;
+
+    if (typeof navigator === 'undefined' || !navigator.geolocation) {
+      alert('Geolocation is not supported by your browser.');
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        try {
+          const res = await fetch('/api/location/live/start', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              chatId: activeChatId,
+              latitude: pos.coords.latitude,
+              longitude: pos.coords.longitude,
+              heading: pos.coords.heading,
+              speed: pos.coords.speed,
+              accuracy: pos.coords.accuracy,
+              durationMinutes,
+              comment,
+            }),
+          });
+
+          if (res.ok) {
+            const data = await res.json();
+            if (data.liveLocation?.id) {
+              setActiveLiveSession({
+                liveLocationId: data.liveLocation.id,
+                isSharing: true,
+              });
+
+              send({
+                type: 'location:live_start',
+                payload: {
+                  chatId: activeChatId,
+                  latitude: pos.coords.latitude,
+                  longitude: pos.coords.longitude,
+                  durationMinutes,
+                  comment,
+                  heading: pos.coords.heading,
+                  speed: pos.coords.speed,
+                  accuracy: pos.coords.accuracy,
+                },
+              });
+            }
+          }
+        } catch (err) {
+          console.error('Failed to start live location sharing:', err);
+        }
+      },
+      (err) => {
+        console.error('GPS permission error:', err);
+        alert('Could not acquire your current location to start live sharing.');
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  };
+
+  const handleSendDocument = (doc: { url: string; name: string; size: number; mime: string }) => {
+    if (!activeChatId) return;
+
+    sendMessage({
+      messageType: 'document',
+      content: doc.name,
+      mediaUrl: doc.url,
+      mediaSize: doc.size,
+      documentName: doc.name,
+      documentSize: doc.size,
+      documentMime: doc.mime,
+      replyToId: replyingToMessage?.id || null,
+    });
+    setReplyingToMessage(null);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!isDraggingOver) setIsDraggingOver(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.currentTarget.contains(e.relatedTarget as Node)) return;
+    setIsDraggingOver(false);
+  };
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingOver(false);
+
+    const file = e.dataTransfer.files?.[0];
+    if (!file || !activeChatId) return;
+
+    if (file.type.startsWith('image/')) {
+      handleImageSelect(file);
+      return;
+    }
+
+    const validation = validateDocumentFile(file.size, file.name, file.type);
+    if (!validation.isValid) {
+      setCommandToast({ message: validation.error || 'Invalid file', isError: true });
+      return;
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const res = await fetch('/api/uploads/document', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({}));
+        throw new Error(errJson.error || 'Failed to upload document');
+      }
+
+      const data = await res.json();
+      handleSendDocument(data);
+    } catch (err: any) {
+      console.error('[ChatArea] Document drop upload error:', err);
+      setCommandToast({ message: err.message || 'Upload failed', isError: true });
+    }
+  };
+
   const menuItems: DropdownMenuItem[] = [
     {
       id: 'info',
@@ -391,6 +559,11 @@ export default function ChatArea({
       id: 'export-chat',
       label: 'Export chat',
       onClick: () => setIsExportModalOpen(true),
+    },
+    {
+      id: 'disappearing-messages',
+      label: 'Disappearing messages',
+      onClick: () => setIsDisappearingModalOpen(true),
     },
     ...(user?.systemRole === 'SUPER_ADMIN' || user?.systemRole === 'ADMIN'
       ? [
@@ -471,7 +644,25 @@ export default function ChatArea({
 
   // 2. Active Chat View
   return (
-    <div className="h-full w-full flex flex-col overflow-hidden relative min-h-0 min-w-0">
+    <div
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+      className="h-full w-full flex flex-col overflow-hidden relative min-h-0 min-w-0"
+    >
+      {/* Translucent Green Drag & Drop Overlay */}
+      {isDraggingOver && (
+        <div className="absolute inset-0 z-50 bg-[#00a884]/20 border-2 border-dashed border-[#00a884] backdrop-blur-xs flex flex-col items-center justify-center pointer-events-none select-none animate-in fade-in duration-150">
+          <FileText className="w-16 h-16 text-[#00a884] mb-2 animate-bounce" />
+          <p className="text-lg font-semibold text-wa-light-text-primary dark:text-white">
+            Drop document to share
+          </p>
+          <p className="text-xs text-wa-light-text-muted dark:text-wa-dark-text-muted mt-1">
+            Supports PDF, Excel, Word, PPT, Zip up to 25MB
+          </p>
+        </div>
+      )}
+
       <main
         ref={mainRef}
         className="flex-1 min-h-0 min-w-0 flex flex-col bg-wa-light-bg dark:bg-wa-dark-bg overflow-hidden relative transition-colors h-full"
@@ -492,6 +683,8 @@ export default function ChatArea({
           isTyping={isTyping}
           typingUsername={typingUsername}
           isE2EE={!activeChat.isGroup}
+          isEphemeral={Boolean(ephemeralDuration)}
+          ephemeralDuration={ephemeralDuration}
           onBack={onBack}
           onStartCall={handleStartCall}
           onSearch={() => setIsSearchOpen(true)}
@@ -546,6 +739,7 @@ export default function ChatArea({
             chatId={activeChatId}
             onSendMessage={handleSendMessage}
             onImageSelect={handleImageSelect}
+            onSendDocument={handleSendDocument}
             onSendVoice={handleSendVoice}
             onSelectLocation={() => setIsLocationModalOpen(true)}
             onCommandFeedback={(feedback, isErr) => {
@@ -647,11 +841,12 @@ export default function ChatArea({
         />
       )}
 
-      {/* Current Static Location Picker Modal */}
+      {/* Current Static & Live Location Picker Modal */}
       <LocationPickerModal
         isOpen={isLocationModalOpen}
         onClose={() => setIsLocationModalOpen(false)}
         onSendLocation={handleSendLocation}
+        onShareLiveLocation={handleShareLiveLocation}
       />
 
       {/* Slash Command Execution Feedback Toast */}
@@ -721,6 +916,17 @@ export default function ChatArea({
       {/* Offline Sync Reconnection Toast */}
       {syncedCount > 0 && (
         <ConnectionToast messageCount={syncedCount} onDismiss={clearSyncedToast} />
+      )}
+
+      {/* Disappearing Messages Settings Modal */}
+      {activeChatId && (
+        <DisappearingSettingsModal
+          isOpen={isDisappearingModalOpen}
+          chatId={activeChatId}
+          currentDuration={ephemeralDuration}
+          onClose={() => setIsDisappearingModalOpen(false)}
+          onSaved={(newDur) => setEphemeralDuration(newDur)}
+        />
       )}
     </div>
   );

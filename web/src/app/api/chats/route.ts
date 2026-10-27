@@ -101,12 +101,15 @@ export async function GET(request: NextRequest) {
                 ? '📷 Photo'
                 : latestMsg.messageType === 'voice'
                 ? '🎤 Voice note'
+                : latestMsg.messageType === 'document'
+                ? `📄 ${latestMsg.documentName || 'Document'}`
                 : latestMsg.content || ''
               : '',
             lastMessageSenderId: latestMsg ? latestMsg.senderId : null,
             lastMessageAt: chat.lastMessageAt.toISOString(),
             unreadCount,
             isOnline: false,
+            ephemeralDuration: chat.ephemeralDuration ?? null,
           };
         }
 
@@ -143,12 +146,15 @@ export async function GET(request: NextRequest) {
               ? '📷 Photo'
               : latestMsg.messageType === 'voice'
               ? '🎤 Voice note'
+              : latestMsg.messageType === 'document'
+              ? `📄 ${latestMsg.documentName || 'Document'}`
               : latestMsg.content || ''
             : '',
           lastMessageSenderId: latestMsg ? latestMsg.senderId : null,
           lastMessageAt: chat.lastMessageAt.toISOString(),
           unreadCount,
           isOnline: otherUser ? otherUser.isOnline : false,
+          ephemeralDuration: chat.ephemeralDuration ?? null,
         };
       })
     );

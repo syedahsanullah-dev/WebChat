@@ -10,7 +10,10 @@ import Lightbox from './Lightbox';
 import DateDivider from './DateDivider';
 import E2EEHeaderBadge from './E2EEHeaderBadge';
 import StaticLocationBubble from '@/components/location/StaticLocationBubble';
+import LiveLocationBubble from '@/components/location/LiveLocationBubble';
 import PollMessageBubble from '@/components/polls/PollMessageBubble';
+import DocumentMessageBubble from './DocumentMessageBubble';
+import EphemeralSystemPill from './EphemeralSystemPill';
 import MessageStatusTick from './MessageStatusTick';
 import { getAuthorColor } from './GroupMessageBubble';
 import { Lock, Loader2 } from 'lucide-react';
@@ -35,7 +38,16 @@ export interface MessageItem {
   e2eeIv?: string | null;
   latitude?: number | null;
   longitude?: number | null;
+  heading?: number | null;
   locationAddress?: string | null;
+  liveLocationId?: string | null;
+  expiresAt?: string | null;
+  documentName?: string | null;
+  documentSize?: number | null;
+  documentMime?: string | null;
+  isCodeBlock?: boolean;
+  codeLanguage?: string | null;
+  senderAvatarUrl?: string | null;
   poll?: any;
   isStarred?: boolean;
   isPinned?: boolean;
@@ -200,10 +212,15 @@ export default function MessageList({
 
         // System messages: centered announcement pill
         if (msg.messageType === 'system') {
+          const isEphemeralNotice = msg.content?.toLowerCase().includes('disappearing messages');
           return (
             <React.Fragment key={msg.id || msg.tempId || index}>
               {showDateDivider && <DateDivider date={currentDate} />}
-              <SystemMessageBubble id={msg.id} content={msg.content} createdAt={msg.createdAt} />
+              {isEphemeralNotice ? (
+                <EphemeralSystemPill content={msg.content} />
+              ) : (
+                <SystemMessageBubble id={msg.id} content={msg.content} createdAt={msg.createdAt} />
+              )}
             </React.Fragment>
           );
         }
@@ -214,9 +231,12 @@ export default function MessageList({
 
         const isImage = !isVoice && (msg.messageType === 'image' || Boolean(msg.mediaUrl));
 
+        const isLiveLocation = msg.messageType === 'live_location';
+
         const isLocation =
-          msg.messageType === 'location' ||
-          (typeof msg.latitude === 'number' && typeof msg.longitude === 'number');
+          !isLiveLocation &&
+          (msg.messageType === 'location' ||
+            (typeof msg.latitude === 'number' && typeof msg.longitude === 'number'));
 
         let waveformPeaks: number[] | null = msg.waveform || null;
         if (!waveformPeaks && msg.content && msg.content.startsWith('[') && msg.content.endsWith(']')) {
@@ -287,6 +307,46 @@ export default function MessageList({
                 onJumpToOriginal={handleJumpToOriginal}
                 onOpenLightbox={(src, caption) => setLightboxData({ src, caption })}
               />
+            ) : isLiveLocation && typeof msg.latitude === 'number' && typeof msg.longitude === 'number' ? (
+              <div
+                id={`msg-${msg.id}`}
+                className={cn(
+                  'flex w-full group relative select-text transition-colors duration-200',
+                  isMe ? 'justify-end' : 'justify-start'
+                )}
+              >
+                <div
+                  className={cn(
+                    'relative max-w-[85%] sm:max-w-[70%] rounded-2xl shadow-xs transition-shadow duration-150 overflow-hidden',
+                    isMe
+                      ? 'bg-wa-light-outgoing dark:bg-wa-dark-outgoing rounded-tr-xs'
+                      : 'bg-wa-light-incoming dark:bg-wa-dark-incoming rounded-tl-xs'
+                  )}
+                >
+                  <LiveLocationBubble
+                    liveLocationId={msg.liveLocationId || msg.id}
+                    chatId={msg.chatId || ''}
+                    initialLatitude={msg.latitude}
+                    initialLongitude={msg.longitude}
+                    initialHeading={msg.heading ?? null}
+                    comment={msg.content !== 'Live Location' ? msg.content : null}
+                    expiresAt={
+                      msg.expiresAt ||
+                      new Date(new Date(msg.createdAt).getTime() + 60 * 60 * 1000).toISOString()
+                    }
+                    senderId={msg.senderId}
+                    senderName={msg.senderName}
+                    senderAvatarUrl={msg.senderAvatarUrl}
+                    currentUserId={currentUserId}
+                    timestamp={msg.createdAt}
+                    isOutgoing={isMe}
+                  />
+                  <div className="flex items-center justify-end gap-1 px-3 pb-1.5 pt-0.5 text-[10px] text-wa-light-text-secondary dark:text-wa-dark-text-secondary select-none">
+                    <span>{format(new Date(msg.createdAt), 'h:mm a')}</span>
+                    {isMe && <MessageStatusTick status={msg.status as any} />}
+                  </div>
+                </div>
+              </div>
             ) : isLocation && typeof msg.latitude === 'number' && typeof msg.longitude === 'number' ? (
               <div
                 id={`msg-${msg.id}`}
@@ -342,6 +402,28 @@ export default function MessageList({
                   currentUserId={currentUserId}
                 />
               </div>
+            ) : msg.messageType === 'document' ? (
+              <DocumentMessageBubble
+                id={msg.id}
+                documentName={msg.documentName || msg.content || 'Document'}
+                documentSize={msg.documentSize || msg.mediaSize}
+                documentMime={msg.documentMime}
+                mediaUrl={msg.mediaUrl || ''}
+                isMe={isMe}
+                status={msg.status}
+                createdAt={msg.createdAt}
+                senderName={msg.senderName}
+                replyToId={msg.replyToId}
+                replyToMessage={quotedMsg}
+                reactions={reactions}
+                isStarred={msg.isStarred}
+                expiresAt={msg.expiresAt}
+                currentUserId={currentUserId}
+                onReply={() => onReply?.(msg)}
+                onReact={(emoji) => onReact?.(msg.id, emoji)}
+                onDelete={() => onDelete?.(msg)}
+                onJumpToOriginal={handleJumpToOriginal}
+              />
             ) : (
               <MessageBubble
                 id={msg.id}
@@ -358,6 +440,7 @@ export default function MessageList({
                 isDeleted={msg.isDeleted}
                 isE2EE={msg.isE2EE}
                 isStarred={msg.isStarred}
+                expiresAt={msg.expiresAt}
                 searchQuery={searchQuery}
                 currentUserId={currentUserId}
                 onReply={() => onReply?.(msg)}

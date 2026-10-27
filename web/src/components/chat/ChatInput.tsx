@@ -7,6 +7,7 @@ import AudioRecorder from './AudioRecorder';
 import QuotedReplyPreview, { QuotedMessageData } from './QuotedReplyPreview';
 import SlashCommandPopover from './SlashCommandPopover';
 import CreatePollModal from '@/components/polls/CreatePollModal';
+import FileUploadProgressBar from './FileUploadProgressBar';
 import { validateDocumentFile } from '@/lib/fileValidation';
 import { useAudioRecorder, RecordedAudioResult } from '@/hooks/useAudioRecorder';
 import { AVAILABLE_COMMANDS } from '@/lib/slashCommandParser';
@@ -54,6 +55,7 @@ export default function ChatInput({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const docInputRef = useRef<HTMLInputElement>(null);
   const [isUploadingDoc, setIsUploadingDoc] = useState(false);
+  const [uploadingDocName, setUploadingDocName] = useState('');
 
   // Check if current text is starting a slash command
   const isSlashCommand = text.startsWith('/') && !text.includes(' ') && !isPopoverDismissed;
@@ -192,6 +194,7 @@ export default function ChatInput({
 
     try {
       setIsUploadingDoc(true);
+      setUploadingDocName(file.name);
       const formData = new FormData();
       formData.append('file', file);
       const res = await fetch('/api/uploads/document', {
@@ -244,6 +247,15 @@ export default function ChatInput({
         replyMessage={replyingToMessage || null}
         onCancel={() => onCancelReply?.()}
       />
+
+      {/* Document Uploading Progress Bar */}
+      {isUploadingDoc && (
+        <FileUploadProgressBar
+          filename={uploadingDocName}
+          progressPercent={70}
+          onCancel={() => setIsUploadingDoc(false)}
+        />
+      )}
 
       <footer
         className={cn(

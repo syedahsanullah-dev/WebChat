@@ -4,6 +4,7 @@ import React from 'react';
 import Avatar from '@/components/ui/Avatar';
 import ConversationSnippet from '@/components/sidebar/ConversationSnippet';
 import { format, isToday, isYesterday } from 'date-fns';
+import { Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export interface ConversationItemData {
@@ -16,6 +17,7 @@ export interface ConversationItemData {
   unreadCount?: number;
   isOnline?: boolean;
   isGroup?: boolean;
+  ephemeralDuration?: number | null;
   otherUser?: {
     id: string;
     username: string;
@@ -78,18 +80,33 @@ export default function ConversationItem({
         className
       )}
     >
-      <Avatar
-        name={chat.name}
-        src={chat.avatar}
-        size="lg"
-        isOnline={chat.isOnline}
-      />
+      <div className="relative shrink-0">
+        <Avatar
+          name={chat.name}
+          src={chat.avatar}
+          size="lg"
+          isOnline={chat.isOnline}
+        />
+        {chat.ephemeralDuration && chat.ephemeralDuration > 0 ? (
+          <div
+            className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full bg-wa-light-sidebar dark:bg-[#202c33] border border-black/10 dark:border-white/10 flex items-center justify-center text-[#00a884]"
+            title="Disappearing messages active"
+          >
+            <Clock className="w-2.5 h-2.5" />
+          </div>
+        ) : null}
+      </div>
 
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between mb-1">
-          <span className="font-medium text-sm text-wa-light-text-primary dark:text-wa-dark-text-primary truncate">
-            {chat.name}
-          </span>
+          <div className="flex items-center gap-1 min-w-0">
+            <span className="font-medium text-sm text-wa-light-text-primary dark:text-wa-dark-text-primary truncate">
+              {chat.name}
+            </span>
+            {chat.ephemeralDuration && chat.ephemeralDuration > 0 ? (
+              <Clock className="w-3 h-3 text-[#00a884] shrink-0" title="Disappearing messages active" />
+            ) : null}
+          </div>
           <span
             className={cn(
               'text-xs flex-shrink-0 ml-2',

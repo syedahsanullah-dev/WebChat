@@ -10,6 +10,8 @@ import MessageContextMenu from './MessageContextMenu';
 import BotMessageBadge from './BotMessageBadge';
 import ReminderMessageBubble from './ReminderMessageBubble';
 import PinDurationModal from './PinDurationModal';
+import MessageTextRenderer from './MessageTextRenderer';
+import EphemeralClockBadge from './EphemeralClockBadge';
 import { format } from 'date-fns';
 import { Ban, Star } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -34,6 +36,7 @@ export interface MessageBubbleProps {
   isDeleted?: boolean;
   isE2EE?: boolean;
   isStarred?: boolean;
+  expiresAt?: string | Date | null;
   chatId?: string;
   searchQuery?: string;
   currentUserId?: string;
@@ -58,6 +61,7 @@ export default function MessageBubble({
   isDeleted = false,
   isE2EE = false,
   isStarred = false,
+  expiresAt,
   chatId,
   searchQuery,
   currentUserId = '',
@@ -179,14 +183,17 @@ export default function MessageBubble({
             <span>This message was deleted</span>
           </div>
         ) : (
-          <div className="whitespace-pre-wrap">{renderHighlightedContent(content, searchQuery)}</div>
+          <MessageTextRenderer content={content} searchQuery={searchQuery} />
         )}
 
-        {/* Timestamp, Star icon, and Delivery Tick */}
+        {/* Timestamp, Star icon, Ephemeral clock, and Delivery Tick */}
         <div className="flex items-center justify-end gap-1 mt-1 text-[10px] text-wa-light-text-muted dark:text-wa-dark-text-muted float-right ml-3 -mb-0.5 select-none">
           {isE2EE && !isDeleted && <E2EEBubbleIndicator />}
           {isStarredState && !isDeleted && (
             <Star className="w-3 h-3 text-amber-500 fill-amber-500 shrink-0" />
+          )}
+          {expiresAt && !isDeleted && (
+            <EphemeralClockBadge size="xs" />
           )}
           <span>{timeFormatted}</span>
           {isMe && !isDeleted && <MessageStatusTick status={status} />}

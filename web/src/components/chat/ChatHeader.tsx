@@ -6,7 +6,7 @@ import Avatar from '@/components/ui/Avatar';
 import DropdownMenu, { DropdownMenuItem } from '@/components/ui/DropdownMenu';
 import TypingDots from './TypingDots';
 import { formatLastSeen } from '@/hooks/usePresence';
-import { ArrowLeft, Phone, Search, Lock } from 'lucide-react';
+import { ArrowLeft, Phone, Search, Lock, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export interface ChatHeaderProps {
@@ -18,6 +18,8 @@ export interface ChatHeaderProps {
   isTyping?: boolean;
   typingUsername?: string | null;
   isE2EE?: boolean;
+  isEphemeral?: boolean;
+  ephemeralDuration?: number | null;
   onBack: () => void;
   onStartCall: () => void;
   onSearch?: () => void;
@@ -34,12 +36,16 @@ export default function ChatHeader({
   isTyping = false,
   typingUsername,
   isE2EE = true,
+  isEphemeral,
+  ephemeralDuration,
   onBack,
   onStartCall,
   onSearch,
   onHeaderClick,
   menuItems,
 }: ChatHeaderProps) {
+  const hasEphemeral = isEphemeral || (ephemeralDuration !== null && ephemeralDuration !== undefined && ephemeralDuration > 0);
+
   // Determine subtitle status
   const renderStatus = () => {
     if (isTyping) {
@@ -47,6 +53,15 @@ export default function ChatHeader({
         <span className="inline-flex items-center gap-1.5 text-xs text-wa-green font-medium">
           <span>{typingUsername ? `${typingUsername} is typing` : 'typing'}</span>
           <TypingDots size="sm" />
+        </span>
+      );
+    }
+
+    if (hasEphemeral && !subtitle) {
+      return (
+        <span className="inline-flex items-center gap-1 text-xs text-wa-light-text-secondary dark:text-wa-dark-text-secondary truncate">
+          <Clock className="w-3 h-3 text-[#00a884]" />
+          <span>disappearing messages on</span>
         </span>
       );
     }
@@ -105,6 +120,11 @@ export default function ChatHeader({
                 {isE2EE && (
                   <span title="End-to-end encrypted" className="text-wa-green flex-shrink-0">
                     <Lock className="w-3.5 h-3.5" />
+                  </span>
+                )}
+                {hasEphemeral && (
+                  <span title="Disappearing messages active" className="text-wa-light-text-secondary dark:text-wa-dark-text-secondary flex-shrink-0">
+                    <Clock className="w-3.5 h-3.5" />
                   </span>
                 )}
               </div>

@@ -37,6 +37,12 @@ export interface MessageItem {
   latitude?: number | null;
   longitude?: number | null;
   locationAddress?: string | null;
+  documentName?: string | null;
+  documentSize?: number | null;
+  documentMime?: string | null;
+  isCodeBlock?: boolean;
+  codeLanguage?: string | null;
+  expiresAt?: string | null;
   status: 'pending' | 'sent' | 'delivered' | 'read' | string;
   createdAt: string;
 }
@@ -44,10 +50,15 @@ export interface MessageItem {
 export interface SendMessageOptions {
   content?: string;
   plaintextContent?: string;
-  messageType?: 'text' | 'image' | 'voice' | 'system' | 'location' | string;
+  messageType?: 'text' | 'image' | 'voice' | 'system' | 'location' | 'document' | string;
   mediaUrl?: string | null;
   mediaSize?: number | null;
   mediaDuration?: number | null;
+  documentName?: string | null;
+  documentSize?: number | null;
+  documentMime?: string | null;
+  isCodeBlock?: boolean;
+  codeLanguage?: string | null;
   replyToId?: string | null;
   isE2EE?: boolean;
   e2eeIv?: string | null;
@@ -295,13 +306,18 @@ export function useMessages({ chatId, recipientId }: UseMessagesOptions) {
       const latitude = isOptions && input.latitude !== undefined && input.latitude !== null ? Number(input.latitude) : null;
       const longitude = isOptions && input.longitude !== undefined && input.longitude !== null ? Number(input.longitude) : null;
       const locationAddress = isOptions && input.locationAddress ? input.locationAddress : null;
+      const documentName = isOptions ? (input.documentName || null) : null;
+      const documentSize = isOptions ? (input.documentSize || null) : null;
+      const documentMime = isOptions ? (input.documentMime || null) : null;
+      const isCodeBlock = isOptions ? Boolean(input.isCodeBlock) : false;
+      const codeLanguage = isOptions ? (input.codeLanguage || null) : null;
       const hasCoordinates = latitude !== null && longitude !== null;
       const messageType = isOptions
-        ? (input.messageType || (hasCoordinates ? 'location' : mediaUrl ? 'image' : 'text'))
+        ? (input.messageType || (hasCoordinates ? 'location' : documentName ? 'document' : mediaUrl ? 'image' : 'text'))
         : 'text';
       const isLocation = messageType === 'location' || hasCoordinates;
 
-      if (!content.trim() && !mediaUrl && !isLocation) return;
+      if (!content.trim() && !mediaUrl && !isLocation && !documentName) return;
 
       const tempId = typeof crypto !== 'undefined' && crypto.randomUUID
         ? crypto.randomUUID()
@@ -320,6 +336,11 @@ export function useMessages({ chatId, recipientId }: UseMessagesOptions) {
         mediaUrl,
         mediaSize,
         mediaDuration,
+        documentName,
+        documentSize,
+        documentMime,
+        isCodeBlock,
+        codeLanguage,
         replyToId,
         isDeleted: false,
         isE2EE,
@@ -375,6 +396,11 @@ export function useMessages({ chatId, recipientId }: UseMessagesOptions) {
           latitude: latitude || undefined,
           longitude: longitude || undefined,
           locationAddress: locationAddress || undefined,
+          documentName: documentName || undefined,
+          documentSize: documentSize || undefined,
+          documentMime: documentMime || undefined,
+          isCodeBlock: isCodeBlock || undefined,
+          codeLanguage: codeLanguage || undefined,
         },
       });
     },
@@ -407,6 +433,12 @@ export function useMessages({ chatId, recipientId }: UseMessagesOptions) {
               latitude: (payload as any).latitude !== undefined ? (payload as any).latitude : msg.latitude,
               longitude: (payload as any).longitude !== undefined ? (payload as any).longitude : msg.longitude,
               locationAddress: (payload as any).locationAddress !== undefined ? (payload as any).locationAddress : msg.locationAddress,
+              documentName: (payload as any).documentName !== undefined ? (payload as any).documentName : msg.documentName,
+              documentSize: (payload as any).documentSize !== undefined ? (payload as any).documentSize : msg.documentSize,
+              documentMime: (payload as any).documentMime !== undefined ? (payload as any).documentMime : msg.documentMime,
+              isCodeBlock: (payload as any).isCodeBlock !== undefined ? (payload as any).isCodeBlock : msg.isCodeBlock,
+              codeLanguage: (payload as any).codeLanguage !== undefined ? (payload as any).codeLanguage : msg.codeLanguage,
+              expiresAt: (payload as any).expiresAt !== undefined ? (payload as any).expiresAt : msg.expiresAt,
               createdAt: payload.createdAt || msg.createdAt,
             };
           }
@@ -479,6 +511,12 @@ export function useMessages({ chatId, recipientId }: UseMessagesOptions) {
           latitude: (payload as any).latitude ?? null,
           longitude: (payload as any).longitude ?? null,
           locationAddress: (payload as any).locationAddress ?? null,
+          documentName: (payload as any).documentName ?? null,
+          documentSize: (payload as any).documentSize ?? null,
+          documentMime: (payload as any).documentMime ?? null,
+          isCodeBlock: Boolean((payload as any).isCodeBlock),
+          codeLanguage: (payload as any).codeLanguage ?? null,
+          expiresAt: (payload as any).expiresAt ?? null,
           status: payload.status || 'sent',
           createdAt:
             payload.createdAt instanceof Date
