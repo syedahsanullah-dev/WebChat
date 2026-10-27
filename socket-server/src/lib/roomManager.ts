@@ -77,6 +77,32 @@ export class RoomManager {
     }
   }
 
+  getUserSockets(userId: string): AuthenticatedWebSocket[] {
+    const sockets = this.userSockets.get(userId);
+    return sockets ? Array.from(sockets) : [];
+  }
+
+  kickUser(userId: string, reason: string = 'Account suspended'): void {
+    const sockets = this.userSockets.get(userId);
+    if (!sockets) return;
+    const kickEnvelope = JSON.stringify({
+      type: 'user:kick',
+      payload: { userId, reason },
+    });
+    for (const socket of Array.from(sockets)) {
+      if (socket.readyState === WebSocket.OPEN) {
+        try {
+          socket.send(kickEnvelope);
+          socket.close(4002, 'Account Suspended');
+        } catch {
+          socket.terminate();
+        }
+      }
+      this.leaveAll(socket);
+    }
+    this.userSockets.delete(userId);
+  }
+
   broadcastAll(data: any, excludeSocket?: AuthenticatedWebSocket): void {
     const message = typeof data === 'string' ? data : JSON.stringify(data);
     for (const sockets of this.userSockets.values()) {

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getAuthUserFromRequest } from '@/lib/auth';
+import { checkUserSuspension } from '@/lib/moderationAuth';
 
 export async function GET(request: NextRequest) {
   try {
@@ -23,6 +24,9 @@ export async function GET(request: NextRequest) {
         about: true,
         systemRole: true,
         isSuspended: true,
+        suspendedAt: true,
+        suspendedUntil: true,
+        suspensionReason: true,
         isOnline: true,
         lastSeen: true,
         createdAt: true,
@@ -34,6 +38,22 @@ export async function GET(request: NextRequest) {
         { error: 'User account not found' },
         { status: 404 }
       );
+    }
+
+    if (user.isSuspended) {
+      const suspension = await checkUserSuspension(user as any);
+      if (suspension.isSuspended) {
+        return NextResponse.json(
+          {
+            error: 'ACCOUNT_SUSPENDED',
+            message: 'Your account has been suspended by an administrator.',
+            reason: suspension.reason,
+            suspendedUntil: suspension.suspendedUntil,
+            isPermanent: suspension.isPermanent,
+          },
+          { status: 403 }
+        );
+      }
     }
 
     return NextResponse.json({ user }, { status: 200 });

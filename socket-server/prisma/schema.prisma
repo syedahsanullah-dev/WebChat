@@ -41,12 +41,21 @@ model User {
   starredMessages  StarredMessage[]
   systemRole       String            @default("USER") @db.VarChar(20) // "SUPER_ADMIN", "ADMIN", "MODERATOR", "USER"
   isSuspended      Boolean           @default(false)
+  suspendedAt      DateTime?
+  suspendedUntil   DateTime? // null = permanent ban
+  suspensionReason String?           @db.VarChar(255)
+  suspendedById    String?
   auditLogs        AuditLog[]
   broadcasts       SystemBroadcast[]
   liveLocations    LiveLocation[]
+  mutedUntil       DateTime?
+  reportsFiled     AbuseReport[]     @relation("ReportFiledBy")
+  reportsAgainst   AbuseReport[]     @relation("ReportFiledAgainst")
+  reportsResolved  AbuseReport[]     @relation("ReportResolvedBy")
 
   @@index([systemRole], map: "idx_users_system_role")
   @@index([isSuspended], map: "idx_users_suspended")
+  @@index([isSuspended, suspendedUntil], map: "idx_users_suspended_until")
   @@index([createdAt(sort: Desc)], map: "idx_users_created")
   @@map("users")
 }
@@ -92,6 +101,7 @@ model Chat {
   channelMetadata ChannelMetadata?
   pinnedMessages  PinnedMessage[]
   liveLocations   LiveLocation[]
+  abuseReports    AbuseReport[]
 
   @@index([lastMessageAt(sort: Desc)], map: "idx_chats_last_message_at")
   @@map("chats")
@@ -145,6 +155,7 @@ model Message {
   statuses       MessageStatus[]
   pinnedIn       PinnedMessage[]
   starredBy      StarredMessage[]
+  abuseReports   AbuseReport[]
 
   @@index([chatId, createdAt(sort: Desc)], map: "idx_messages_chat_created")
   @@index([expiresAt], map: "idx_messages_expires_at")
@@ -442,4 +453,32 @@ model LiveLocation {
   @@index([expiresAt, isActive], map: "idx_live_location_expires")
   @@map("live_locations")
 }
+
+model AbuseReport {
+  id               String    @id @default(uuid())
+  reporterId       String
+  reportedUserId   String
+  chatId           String
+  messageId        String?
+  category         String    @db.VarChar(50) // "SPAM", "HARASSMENT", "PHISHING", "INAPPROPRIATE", "OTHER"
+  reason           String    @db.VarChar(500)
+  status           String    @default("PENDING") @db.VarChar(20) // "PENDING", "RESOLVED", "DISMISSED"
+  resolvedById     String?
+  resolutionAction String?   @db.VarChar(50) // "DELETE_MESSAGE", "WARN_USER", "MUTE_USER", "SUSPEND_USER", "DISMISSED"
+  resolutionNotes  String?   @db.Text
+  createdAt        DateTime  @default(now())
+  resolvedAt       DateTime?
+
+  reporter     User     @relation("ReportFiledBy", fields: [reporterId], references: [id], onDelete: Cascade)
+  reportedUser User     @relation("ReportFiledAgainst", fields: [reportedUserId], references: [id], onDelete: Cascade)
+  resolvedBy   User?    @relation("ReportResolvedBy", fields: [resolvedById], references: [id], onDelete: SetNull)
+  chat         Chat     @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  message      Message? @relation(fields: [messageId], references: [id], onDelete: SetNull)
+
+  @@index([status, createdAt(sort: Desc)], map: "idx_reports_status_created")
+  @@index([reportedUserId], map: "idx_reports_reported_user")
+  @@index([chatId], map: "idx_reports_chat")
+  @@map("abuse_reports")
+}
+
 

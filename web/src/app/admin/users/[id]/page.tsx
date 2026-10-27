@@ -5,6 +5,8 @@ import Link from 'next/link';
 import Avatar from '@/components/ui/Avatar';
 import RoleBadge from '@/components/admin/RoleBadge';
 import ChangeRoleModal from '@/components/admin/ChangeRoleModal';
+import SuspendUserModal from '@/components/admin/SuspendUserModal';
+import UnsuspendUserModal from '@/components/admin/UnsuspendUserModal';
 import { useAuth } from '@/context/AuthContext';
 import { SystemRole } from '@shared/types';
 import {
@@ -22,6 +24,8 @@ import {
   XCircle,
   FileText,
   Loader2,
+  ShieldAlert,
+  UserCheck,
 } from 'lucide-react';
 
 interface UserDetailPayload {
@@ -75,6 +79,8 @@ export default function UserDetailsPage({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
+  const [isSuspendModalOpen, setIsSuspendModalOpen] = useState(false);
+  const [isUnsuspendModalOpen, setIsUnsuspendModalOpen] = useState(false);
 
   const fetchUserDetails = useCallback(async () => {
     setLoading(true);
@@ -173,14 +179,36 @@ export default function UserDetailsPage({
           </div>
         </div>
 
-        <button
-          onClick={() => setIsRoleModalOpen(true)}
-          type="button"
-          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#00a884] hover:bg-[#008f6f] text-white text-xs font-semibold shadow-xs transition-all self-stretch sm:self-auto justify-center"
-        >
-          <Shield className="w-3.5 h-3.5" />
-          <span>Elevate / Modify Role</span>
-        </button>
+        <div className="flex items-center gap-2 self-stretch sm:self-auto flex-wrap">
+          {userData.isSuspended ? (
+            <button
+              onClick={() => setIsUnsuspendModalOpen(true)}
+              type="button"
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-xs transition-all justify-center"
+            >
+              <UserCheck className="w-3.5 h-3.5" />
+              <span>Unsuspend Account</span>
+            </button>
+          ) : (
+            <button
+              onClick={() => setIsSuspendModalOpen(true)}
+              type="button"
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold shadow-xs transition-all justify-center"
+            >
+              <ShieldAlert className="w-3.5 h-3.5" />
+              <span>Suspend & Kick</span>
+            </button>
+          )}
+
+          <button
+            onClick={() => setIsRoleModalOpen(true)}
+            type="button"
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#00a884] hover:bg-[#008f6f] text-white text-xs font-semibold shadow-xs transition-all justify-center"
+          >
+            <Shield className="w-3.5 h-3.5" />
+            <span>Elevate / Modify Role</span>
+          </button>
+        </div>
       </div>
 
       {/* Main Profile Grid */}
@@ -379,6 +407,44 @@ export default function UserDetailsPage({
         }}
         actorRole={currentUser?.systemRole || 'ADMIN'}
         onSave={handleSaveRole}
+      />
+
+      {/* Suspend User Modal */}
+      <SuspendUserModal
+        isOpen={isSuspendModalOpen}
+        user={{
+          id: userData.id,
+          username: userData.username,
+          displayName: userData.displayName,
+          email: userData.email,
+          systemRole: userData.systemRole,
+          isSuspended: userData.isSuspended,
+          avatarUrl: userData.avatarUrl,
+          createdAt: userData.createdAt,
+        }}
+        onClose={() => setIsSuspendModalOpen(false)}
+        onSuccess={() => {
+          fetchUserDetails();
+        }}
+      />
+
+      {/* Unsuspend User Modal */}
+      <UnsuspendUserModal
+        isOpen={isUnsuspendModalOpen}
+        user={{
+          id: userData.id,
+          username: userData.username,
+          displayName: userData.displayName,
+          email: userData.email,
+          systemRole: userData.systemRole,
+          isSuspended: userData.isSuspended,
+          avatarUrl: userData.avatarUrl,
+          createdAt: userData.createdAt,
+        }}
+        onClose={() => setIsUnsuspendModalOpen(false)}
+        onSuccess={() => {
+          fetchUserDetails();
+        }}
       />
     </div>
   );

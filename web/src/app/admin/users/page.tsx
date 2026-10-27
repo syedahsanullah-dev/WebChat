@@ -4,6 +4,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import UserFilterToolbar from '@/components/admin/UserFilterToolbar';
 import UserDataGrid from '@/components/admin/UserDataGrid';
 import ChangeRoleModal from '@/components/admin/ChangeRoleModal';
+import SuspendUserModal from '@/components/admin/SuspendUserModal';
+import UnsuspendUserModal from '@/components/admin/UnsuspendUserModal';
 import { useAuth } from '@/context/AuthContext';
 import { AdminUserView, SystemRole } from '@shared/types';
 import { Users, CheckCircle2, AlertCircle, RefreshCw } from 'lucide-react';
@@ -25,6 +27,14 @@ export default function AdminUsersPage() {
   // Role Modal state
   const [targetUserForRole, setTargetUserForRole] = useState<AdminUserView | null>(null);
   const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
+
+  // Suspend Modal state
+  const [targetUserForSuspend, setTargetUserForSuspend] = useState<AdminUserView | null>(null);
+  const [isSuspendModalOpen, setIsSuspendModalOpen] = useState(false);
+
+  // Unsuspend Modal state
+  const [targetUserForUnsuspend, setTargetUserForUnsuspend] = useState<AdminUserView | null>(null);
+  const [isUnsuspendModalOpen, setIsUnsuspendModalOpen] = useState(false);
 
   // Toast alert
   const [toastMessage, setToastMessage] = useState<{
@@ -79,6 +89,16 @@ export default function AdminUsersPage() {
   const handleOpenRoleModal = (userToEdit: AdminUserView) => {
     setTargetUserForRole(userToEdit);
     setIsRoleModalOpen(true);
+  };
+
+  const handleOpenSuspendModal = (userToSuspend: AdminUserView) => {
+    setTargetUserForSuspend(userToSuspend);
+    setIsSuspendModalOpen(true);
+  };
+
+  const handleOpenUnsuspendModal = (userToUnsuspend: AdminUserView) => {
+    setTargetUserForUnsuspend(userToUnsuspend);
+    setIsUnsuspendModalOpen(true);
   };
 
   const handleSaveRole = async (userId: string, newRole: SystemRole, reason: string) => {
@@ -188,6 +208,8 @@ export default function AdminUsersPage() {
           setCurrentPage(1);
         }}
         onOpenRoleModal={handleOpenRoleModal}
+        onOpenSuspendModal={handleOpenSuspendModal}
+        onOpenUnsuspendModal={handleOpenUnsuspendModal}
       />
 
       {/* Role Delegation Modal */}
@@ -197,6 +219,34 @@ export default function AdminUsersPage() {
         targetUser={targetUserForRole}
         actorRole={currentUser?.systemRole || 'ADMIN'}
         onSave={handleSaveRole}
+      />
+
+      {/* Suspend User Modal */}
+      <SuspendUserModal
+        isOpen={isSuspendModalOpen}
+        user={targetUserForSuspend}
+        onClose={() => setIsSuspendModalOpen(false)}
+        onSuccess={() => {
+          setToastMessage({
+            text: `User @${targetUserForSuspend?.username} has been suspended`,
+            type: 'success',
+          });
+          fetchUsers();
+        }}
+      />
+
+      {/* Unsuspend User Modal */}
+      <UnsuspendUserModal
+        isOpen={isUnsuspendModalOpen}
+        user={targetUserForUnsuspend}
+        onClose={() => setIsUnsuspendModalOpen(false)}
+        onSuccess={() => {
+          setToastMessage({
+            text: `User @${targetUserForUnsuspend?.username} has been unsuspended`,
+            type: 'success',
+          });
+          fetchUsers();
+        }}
       />
     </div>
   );

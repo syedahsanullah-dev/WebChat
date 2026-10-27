@@ -173,6 +173,10 @@ export interface AdminUserView {
   about?: string;
   systemRole: SystemRole;
   isSuspended: boolean;
+  suspendedAt?: string | Date | null;
+  suspendedUntil?: string | Date | null;
+  suspensionReason?: string | null;
+  suspendedById?: string | null;
   isOnline?: boolean;
   lastSeen?: string | Date | null;
   createdAt: string | Date;
@@ -543,6 +547,55 @@ export interface LiveLocationStopPayload {
   chatId: string;
   userId?: string;
 }
+
+export type AbuseReportCategory = 'SPAM' | 'HARASSMENT' | 'PHISHING' | 'INAPPROPRIATE' | 'OTHER';
+export type AbuseReportStatus = 'PENDING' | 'RESOLVED' | 'DISMISSED';
+export type ModerationAction =
+  | 'DELETE_MESSAGE'
+  | 'WARN_USER'
+  | 'MUTE_USER'
+  | 'SUSPEND_USER'
+  | 'DISMISSED';
+
+export interface AbuseReportItem {
+  id: string;
+  reporterId: string;
+  reporterName: string;
+  reporterUsername?: string;
+  reportedUserId: string;
+  reportedUserName: string;
+  reportedUserUsername?: string;
+  reportedUserAvatar?: string | null;
+  reportedUserSuspended?: boolean;
+  chatId: string;
+  messageId?: string | null;
+  messageContent?: string | null;
+  category: AbuseReportCategory;
+  reason: string;
+  status: AbuseReportStatus;
+  resolutionAction?: ModerationAction | null;
+  resolutionNotes?: string | null;
+  resolvedById?: string | null;
+  resolvedByName?: string | null;
+  createdAt: string;
+  resolvedAt?: string | null;
+  contextMessages?: Array<{
+    id: string;
+    senderId: string;
+    senderName: string;
+    content: string;
+    createdAt: string;
+    isTarget?: boolean;
+  }>;
+}
+
+export interface ResolveReportPayload {
+  action: ModerationAction;
+  notes?: string;
+  muteDurationHours?: number; // default 24
+  suspensionDuration?: string; // 24h, 7d, 30d, permanent
+}
+
 
 
 

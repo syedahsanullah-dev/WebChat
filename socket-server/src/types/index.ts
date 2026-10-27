@@ -44,7 +44,10 @@ export type WsEventType =
   | 'location:live_updated'
   | 'location:live_stop'
   | 'location:live_stopped'
-  | 'location:live_ended';
+  | 'location:live_ended'
+  | 'user:kick'
+  | 'user:mute'
+  | 'user:warn';
 
 export interface WsEnvelope<T = any> {
   type: WsEventType;
@@ -373,4 +376,13 @@ export interface LiveLocationStopPayload {
   liveLocationId: string;
   chatId: string;
 }
+
+export interface UserKickPayload {
+  userId: string;
+  reason: string;
+  suspendedUntil?: string | null;
+  suspendedAt?: string;
+  permanent?: boolean;
+}
+
 

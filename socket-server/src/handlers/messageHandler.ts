@@ -58,6 +58,35 @@ export async function handleMessageSend(
   }
 
   try {
+    // Check if user is suspended or muted
+    const senderStatus = await prisma.user.findUnique({
+      where: { id: socket.userId },
+      select: { isSuspended: true, mutedUntil: true },
+    });
+
+    if (senderStatus?.isSuspended) {
+      socket.send(
+        JSON.stringify({
+          type: 'error',
+          payload: { message: 'Your account is suspended.', code: 'USER_SUSPENDED' },
+        })
+      );
+      return;
+    }
+
+    if (senderStatus?.mutedUntil && new Date(senderStatus.mutedUntil) > new Date()) {
+      socket.send(
+        JSON.stringify({
+          type: 'error',
+          payload: {
+            message: `You are temporarily muted until ${new Date(senderStatus.mutedUntil).toLocaleTimeString()}.`,
+            code: 'USER_MUTED',
+          },
+        })
+      );
+      return;
+    }
+
     // Check if chat is a broadcast channel and fetch ephemeral duration
     const chatRecord = await prisma.chat.findUnique({
       where: { id: payload.chatId },

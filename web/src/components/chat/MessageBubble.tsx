@@ -10,6 +10,7 @@ import MessageContextMenu from './MessageContextMenu';
 import BotMessageBadge from './BotMessageBadge';
 import ReminderMessageBubble from './ReminderMessageBubble';
 import PinDurationModal from './PinDurationModal';
+import ReportMessageModal from './ReportMessageModal';
 import MessageTextRenderer from './MessageTextRenderer';
 import EphemeralClockBadge from './EphemeralClockBadge';
 import { format } from 'date-fns';
@@ -37,6 +38,7 @@ export interface MessageBubbleProps {
   isE2EE?: boolean;
   isStarred?: boolean;
   expiresAt?: string | Date | null;
+  senderId?: string;
   chatId?: string;
   searchQuery?: string;
   currentUserId?: string;
@@ -62,6 +64,7 @@ export default function MessageBubble({
   isE2EE = false,
   isStarred = false,
   expiresAt,
+  senderId,
   chatId,
   searchQuery,
   currentUserId = '',
@@ -73,6 +76,7 @@ export default function MessageBubble({
 }: MessageBubbleProps) {
   const [showReactionsBar, setShowReactionsBar] = useState(false);
   const [isPinModalOpen, setIsPinModalOpen] = useState(false);
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [isStarredState, setIsStarredState] = useState(isStarred);
 
   const handleToggleStar = async () => {
@@ -210,6 +214,7 @@ export default function MessageBubble({
               onDelete={() => onDelete?.()}
               onPin={() => setIsPinModalOpen(true)}
               onStar={handleToggleStar}
+              onReport={!isMe ? () => setIsReportModalOpen(true) : undefined}
               isStarred={isStarredState}
             />
           </div>
@@ -222,6 +227,19 @@ export default function MessageBubble({
             chatId={chatId || ''}
             messageId={id}
             onClose={() => setIsPinModalOpen(false)}
+          />
+        )}
+
+        {/* Report Message Modal */}
+        {isReportModalOpen && (
+          <ReportMessageModal
+            isOpen={isReportModalOpen}
+            chatId={chatId || ''}
+            reportedUserId={senderId || ''}
+            reportedUserName={authorName || 'User'}
+            messageId={id}
+            messageSnippet={content}
+            onClose={() => setIsReportModalOpen(false)}
           />
         )}
 

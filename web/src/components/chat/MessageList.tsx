@@ -428,6 +428,7 @@ export default function MessageList({
               <MessageBubble
                 id={msg.id}
                 chatId={msg.chatId}
+                senderId={msg.senderId}
                 content={msg.content}
                 isMe={isMe}
                 status={msg.status}

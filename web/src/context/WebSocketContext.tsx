@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useEffect, useRef, useState, useCallback } from 'react';
 import { useAuth } from './AuthContext';
 import { WsEnvelope, WsEventType } from '@shared/events';
+import AccountSuspendedModal from '@/components/auth/AccountSuspendedModal';
 
 export type WebSocketStatus = 'connecting' | 'connected' | 'disconnected' | 'error';
 
@@ -21,6 +22,12 @@ const INITIAL_RECONNECT_DELAY_MS = 1000;
 export function WebSocketProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
   const [status, setStatus] = useState<WebSocketStatus>('disconnected');
+  const [kickData, setKickData] = useState<{
+    isOpen: boolean;
+    reason?: string | null;
+    suspendedUntil?: string | null;
+    isPermanent?: boolean;
+  }>({ isOpen: false });
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const reconnectDelayRef = useRef(INITIAL_RECONNECT_DELAY_MS);
@@ -134,6 +141,19 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
             send({ type: 'pong', payload: { timestamp: Date.now() } });
           }
 
+          // Handle user:kick account suspension
+          if (envelope.type === 'user:kick') {
+            const payload = envelope.payload;
+            console.warn('[WebSocket] Account suspended / kicked:', payload);
+            isManuallyClosedRef.current = true;
+            setKickData({
+              isOpen: true,
+              reason: payload?.reason,
+              suspendedUntil: payload?.suspendedUntil,
+              isPermanent: payload?.permanent ?? !payload?.suspendedUntil,
+            });
+          }
+
           // Handle remote session revocation
           if (envelope.type === 'session:revoked') {
             console.warn('[WebSocket] Session was remotely revoked.');
@@ -152,6 +172,32 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
               if (typeof window !== 'undefined') {
                 window.location.href = '/maintenance';
               }
+            }
+          }
+
+          // Handle user:warn moderation notice
+          if (envelope.type === 'user:warn') {
+            const payload = envelope.payload;
+            console.warn('[WebSocket] Moderation warning received:', payload);
+            if (typeof window !== 'undefined') {
+              alert(
+                `⚠️ Official Moderation Warning:\n\n${
+                  payload?.reason || 'You have received a moderation warning for violating community guidelines.'
+                }`
+              );
+            }
+          }
+
+          // Handle user:mute moderation action
+          if (envelope.type === 'user:mute') {
+            const payload = envelope.payload;
+            console.warn('[WebSocket] User was muted:', payload);
+            if (typeof window !== 'undefined') {
+              alert(
+                `🔇 Account Notice:\n\nYou have been temporarily muted until ${new Date(
+                  payload?.mutedUntil
+                ).toLocaleString()}.\nReason: ${payload?.reason || 'Violation of community guidelines.'}`
+              );
             }
           }
 
@@ -190,6 +236,18 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
       ws.onclose = (event: CloseEvent) => {
         wsRef.current = null;
         setStatus('disconnected');
+
+        // If closed with 4002 (Account Suspended / Banned)
+        if (event.code === 4002) {
+          console.warn('[WebSocket] Closed due to Account Suspension (code 4002).');
+          isManuallyClosedRef.current = true;
+          setKickData((prev) => ({
+            ...prev,
+            isOpen: true,
+            reason: prev.reason || 'Your account has been suspended by an administrator.',
+          }));
+          return;
+        }
 
         // If closed with 4003 (Maintenance Mode), redirect to /maintenance
         if (event.code === 4003) {
@@ -238,7 +296,17 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
     subscribe,
   };
 
-  return <WebSocketContext.Provider value={value}>{children}</WebSocketContext.Provider>;
+  return (
+    <WebSocketContext.Provider value={value}>
+      {children}
+      <AccountSuspendedModal
+        isOpen={kickData.isOpen}
+        reason={kickData.reason}
+        suspendedUntil={kickData.suspendedUntil}
+        isPermanent={kickData.isPermanent}
+      />
+    </WebSocketContext.Provider>
+  );
 }
 
 const fallbackWebSocketContext: WebSocketContextValue = {

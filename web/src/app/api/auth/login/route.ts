@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { LoginSchema } from '@/lib/validations';
 import { signToken, setAuthCookie } from '@/lib/auth';
 import { createSession } from '@/lib/sessionManager';
+import { checkUserSuspension } from '@/lib/moderationAuth';
 
 export async function POST(request: NextRequest) {
   try {
@@ -49,6 +50,21 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: 'Invalid username/email or password' },
         { status: 401 }
+      );
+    }
+
+    // Phase 32: Banned user login guard
+    const suspension = await checkUserSuspension(user);
+    if (suspension.isSuspended) {
+      return NextResponse.json(
+        {
+          error: 'ACCOUNT_SUSPENDED',
+          message: 'Your account has been suspended by an administrator.',
+          reason: suspension.reason,
+          suspendedUntil: suspension.suspendedUntil,
+          isPermanent: suspension.isPermanent,
+        },
+        { status: 403 }
       );
     }
 

@@ -15,6 +15,7 @@ import { maintenanceManager } from './middleware/maintenanceGuard.js';
 import { startReminderScheduler, stopReminderScheduler } from './jobs/reminderSchedulerJob.js';
 import { startLiveLocationCleanupJob, stopLiveLocationCleanupJob } from './jobs/liveLocationCleanupJob.js';
 import { startEphemeralCleanupJob, stopEphemeralCleanupJob } from './jobs/ephemeralCleanupJob.js';
+import { internalKickRoutes } from './routes/internalKick.js';
 
 // Load environment variables
 dotenv.config();
@@ -36,6 +37,7 @@ fastify.register(cors, {
 });
 
 fastify.register(cookie);
+fastify.register(internalKickRoutes);
 
 // Health check endpoint
 fastify.get('/health', async () => {
@@ -171,6 +173,54 @@ fastify.post('/internal/message', async (request, reply) => {
 
   return { success: true, deliveredRoom: `chat:${body.chatId}` };
 });
+
+// Phase 33: Internal Moderation Action Endpoints
+fastify.post('/internal/kick', async (request, reply) => {
+  const { userId, reason } = (request.body || {}) as any;
+  if (!userId) return reply.status(400).send({ error: 'userId is required' });
+  roomManager.kickUser(userId, reason || 'Account suspended by moderation');
+  logger.info(`User ${userId} was forcefully kicked via internal moderation API`);
+  return { success: true };
+});
+
+fastify.post('/internal/mute', async (request, reply) => {
+  const { userId, mutedUntil, reason } = (request.body || {}) as any;
+  if (!userId || !mutedUntil) return reply.status(400).send({ error: 'userId and mutedUntil are required' });
+  roomManager.sendToUser(userId, {
+    type: 'user:mute',
+    payload: { userId, mutedUntil, reason: reason || 'Muted by moderation' },
+  });
+  logger.info(`User ${userId} muted until ${mutedUntil}`);
+  return { success: true };
+});
+
+fastify.post('/internal/warn', async (request, reply) => {
+  const { userId, reason, reportId } = (request.body || {}) as any;
+  if (!userId || !reason) return reply.status(400).send({ error: 'userId and reason are required' });
+  roomManager.sendToUser(userId, {
+    type: 'user:warn',
+    payload: { userId, reason, reportId },
+  });
+  logger.info(`Moderation warning dispatched to user ${userId}`);
+  return { success: true };
+});
+
+fastify.post('/internal/delete-message', async (request, reply) => {
+  const { messageId, chatId, deletedBy } = (request.body || {}) as any;
+  if (!messageId || !chatId) return reply.status(400).send({ error: 'messageId and chatId are required' });
+  const deleteEnvelope = {
+    type: 'message:delete',
+    payload: {
+      messageId,
+      chatId,
+      deletedBy: deletedBy || 'Moderator',
+    },
+  };
+  roomManager.broadcastToRoom(`chat:${chatId}`, deleteEnvelope);
+  roomManager.broadcastToRoom(chatId, deleteEnvelope);
+  return { success: true };
+});
+
 
 // Native ws WebSocketServer mounted with manual upgrade handling
 export const wss = new WebSocketServer({ noServer: true });

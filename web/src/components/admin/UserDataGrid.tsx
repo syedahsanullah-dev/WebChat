@@ -14,6 +14,8 @@ import {
   XCircle,
   MessageSquare,
   Smartphone,
+  ShieldAlert,
+  UserCheck,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -27,6 +29,8 @@ export interface UserDataGridProps {
   onPageChange: (page: number) => void;
   onLimitChange: (limit: number) => void;
   onOpenRoleModal: (user: AdminUserView) => void;
+  onOpenSuspendModal?: (user: AdminUserView) => void;
+  onOpenUnsuspendModal?: (user: AdminUserView) => void;
 }
 
 export default function UserDataGrid({
@@ -39,6 +43,8 @@ export default function UserDataGrid({
   onPageChange,
   onLimitChange,
   onOpenRoleModal,
+  onOpenSuspendModal,
+  onOpenUnsuspendModal,
 }: UserDataGridProps) {
   if (users.length === 0 && !loading) {
     return (
@@ -173,6 +179,28 @@ export default function UserDataGrid({
                       <Eye className="w-3 h-3 text-sky-500" />
                       <span>Details</span>
                     </Link>
+
+                    {user.isSuspended ? (
+                      <button
+                        onClick={() => onOpenUnsuspendModal?.(user)}
+                        type="button"
+                        className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-[#e9edef] dark:border-white/10 hover:border-emerald-500 text-[11px] font-medium text-wa-light-text-primary dark:text-wa-dark-text-primary hover:bg-emerald-500/10 transition-colors"
+                        title="Reactivate Account"
+                      >
+                        <UserCheck className="w-3 h-3 text-emerald-500" />
+                        <span>Unsuspend</span>
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => onOpenSuspendModal?.(user)}
+                        type="button"
+                        className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-[#e9edef] dark:border-white/10 hover:border-rose-500 text-[11px] font-medium text-wa-light-text-primary dark:text-wa-dark-text-primary hover:bg-rose-500/10 transition-colors"
+                        title="Suspend Account"
+                      >
+                        <ShieldAlert className="w-3 h-3 text-rose-500" />
+                        <span>Suspend</span>
+                      </button>
+                    )}
                   </div>
                 </td>
               </tr>
