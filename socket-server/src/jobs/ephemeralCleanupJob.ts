@@ -8,7 +8,7 @@ import { WsEnvelope } from '../types/index.js';
 let cleanupInterval: NodeJS.Timeout | null = null;
 
 /**
- * Resolves local file path on Hostinger NVMe disk for a given media URL.
+ * Resolves local file path on disk for a given media URL.
  */
 function resolveMediaDiskPath(mediaUrl: string): string | null {
   if (!mediaUrl) return null;
@@ -32,8 +32,8 @@ function resolveMediaDiskPath(mediaUrl: string): string | null {
 
 /**
  * 24/7 background ephemeral cleanup daemon running every 15 minutes.
- * Permanently purges expired messages and deletes local NVMe disk media files,
- * respecting active Legal Hold governance.
+ * Permanently purges expired messages and deletes local disk media files,
+ * respecting active Legal Hold status.
  */
 export function startEphemeralCleanupJob(intervalMs: number = 900000): void {
   if (cleanupInterval) return;
