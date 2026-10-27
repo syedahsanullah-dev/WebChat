@@ -56,7 +56,7 @@ fastify.get('/health', async () => {
   };
 });
 
-// Metrics telemetry endpoint (consumed by Server #1 Super Admin console)
+// Metrics endpoint (consumed by Server #1 Admin console)
 fastify.get('/metrics', async () => {
   const memory = process.memoryUsage();
   return {
