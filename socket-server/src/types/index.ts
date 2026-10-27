@@ -30,7 +30,10 @@ export type WsEventType =
   | 'session:revoked'
   | 'error'
   | 'system:broadcast'
-  | 'system:broadcast_dismiss';
+  | 'system:broadcast_dismiss'
+  | 'poll:vote'
+  | 'poll:update'
+  | 'webhook:received';
 
 export interface WsEnvelope<T = any> {
   type: WsEventType;

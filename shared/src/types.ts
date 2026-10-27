@@ -245,3 +245,174 @@ export interface OutboxMessage {
   queuedAt: number;
 }
 
+export interface MaintenanceState {
+  enabled: boolean;
+  reason?: string | null;
+  estimatedEnd?: string | null;
+  updatedAt?: string | null;
+}
+
+export interface BackupInfo {
+  filename: string;
+  sizeBytes: number;
+  createdAt: string;
+  url?: string;
+}
+
+export type WebhookDirection = 'INBOUND' | 'OUTBOUND';
+
+export interface WebhookInfo {
+  id: string;
+  chatId: string;
+  creatorId: string;
+  name: string;
+  token: string;
+  secret?: string;
+  direction: WebhookDirection;
+  targetUrl?: string | null;
+  events: string;
+  isActive: boolean;
+  lastFiredAt?: string | Date | null;
+  createdAt: string | Date;
+  updatedAt: string | Date;
+  incomingUrl?: string;
+}
+
+export interface InboundWebhookBody {
+  text: string;
+  author?: string;
+  avatarUrl?: string;
+}
+
+export interface SlashCommandDefinition {
+  command: string;
+  syntax: string;
+  description: string;
+  adminOnly?: boolean;
+  example: string;
+}
+
+export interface ScheduledReminderPayload {
+  id: string;
+  chatId: string;
+  userId: string;
+  reminderText: string;
+  remindAt: string | Date;
+  isTriggered: boolean;
+  triggeredAt?: string | Date | null;
+  createdAt: string | Date;
+  user?: {
+    id: string;
+    username: string;
+    displayName: string;
+  };
+}
+
+export interface PollOptionItem {
+  id: string;
+  text: string;
+  orderIdx: number;
+  votesCount: number;
+  hasVoted?: boolean;
+}
+
+export interface PollDetails {
+  id: string;
+  chatId: string;
+  creatorId: string;
+  question: string;
+  allowMultiple: boolean;
+  isClosed: boolean;
+  createdAt: string | Date;
+  options: PollOptionItem[];
+  totalVotes: number;
+}
+
+export interface ChannelMetadataPayload {
+  id: string;
+  chatId: string;
+  isBroadcastOnly: boolean;
+  subscriberCount: number;
+  publicSlug?: string | null;
+  description?: string | null;
+  isVerified: boolean;
+  createdAt: string | Date;
+  updatedAt: string | Date;
+}
+
+export interface ChannelView {
+  id: string; // chatId
+  title: string;
+  description?: string | null;
+  avatarUrl?: string | null;
+  publicSlug?: string | null;
+  isVerified: boolean;
+  subscriberCount: number;
+  isSubscribed?: boolean;
+  isAdmin?: boolean;
+  lastMessageAt?: string | Date;
+  createdAt?: string | Date;
+}
+
+export interface PollOptionPayload {
+  id: string;
+  pollId: string;
+  text: string;
+  orderIdx: number;
+  voteCount: number;
+  percentage?: number;
+  hasVoted?: boolean;
+  voterAvatars?: string[];
+}
+
+export interface PollPayload {
+  id: string;
+  chatId: string;
+  creatorId: string;
+  creatorName?: string;
+  question: string;
+  allowMultiple: boolean;
+  isClosed: boolean;
+  createdAt: string | Date;
+  options: PollOptionPayload[];
+  totalVotes: number;
+  hasVoted?: boolean;
+}
+
+export interface PollVoterDetail {
+  userId: string;
+  username: string;
+  displayName: string;
+  avatarUrl?: string | null;
+  votedAt: string | Date;
+}
+
+export interface PinnedMessageItem {
+  id: string; // pin id
+  chatId: string;
+  messageId: string;
+  pinnedById: string;
+  pinnedByName?: string;
+  expiresAt?: string | Date | null;
+  pinnedAt: string | Date;
+  messageSnippet?: string;
+  messageSenderName?: string;
+}
+
+export interface StarredMessageItem {
+  id: string; // star id
+  userId: string;
+  messageId: string;
+  chatId: string;
+  chatTitle?: string;
+  starredAt: string | Date;
+  senderName?: string;
+  senderAvatarUrl?: string | null;
+  content?: string | null;
+  mediaUrl?: string | null;
+  messageType?: string;
+  createdAt: string | Date;
+}
+
+
+

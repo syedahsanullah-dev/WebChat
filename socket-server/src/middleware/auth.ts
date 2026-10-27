@@ -6,6 +6,7 @@ import { logger } from '../lib/logger.js';
 export interface AuthenticatedUser {
   userId: string;
   username: string;
+  systemRole?: string;
 }
 
 export function parseCookies(cookieHeader?: string): Record<string, string> {
@@ -45,6 +46,7 @@ export function authenticateUpgrade(
         userPayload = {
           userId: String(decoded.userId || decoded.id || decoded.sub),
           username: String(decoded.username || 'user'),
+          systemRole: String(decoded.systemRole || 'USER'),
         };
       } catch (err) {
         logger.warn(`WebSocket JWT verification failed: ${(err as Error).message}`);

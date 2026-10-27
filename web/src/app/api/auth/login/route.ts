@@ -70,6 +70,7 @@ export async function POST(request: NextRequest) {
       email: user.email,
       sessionToken,
       sessionId,
+      systemRole: user.systemRole || 'USER',
     });
 
     // Sanitized user object

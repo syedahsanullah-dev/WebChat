@@ -97,6 +97,7 @@ export async function POST(request: NextRequest) {
       email: newUser.email,
       sessionToken,
       sessionId,
+      systemRole: 'USER',
     });
 
     // Prepare response with HTTP-only cookie

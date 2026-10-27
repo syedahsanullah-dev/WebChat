@@ -16,6 +16,7 @@ import {
   ShieldCheck,
   ArrowLeft,
   Server,
+  Wrench,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -69,6 +70,13 @@ export default function AdminSidebar() {
       icon: ShieldCheck,
       exact: false,
       badge: 'Phase 34',
+    },
+    {
+      label: 'Maintenance & Backups',
+      href: '/admin/maintenance',
+      icon: Wrench,
+      exact: false,
+      badge: 'Phase 36',
     },
   ];
 

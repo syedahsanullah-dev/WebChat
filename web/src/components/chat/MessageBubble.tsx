@@ -7,6 +7,8 @@ import QuotedMessageSnippet from './QuotedMessageSnippet';
 import ReactionHoverBar from './ReactionHoverBar';
 import EmojiReactionPill from './EmojiReactionPill';
 import MessageContextMenu from './MessageContextMenu';
+import BotMessageBadge from './BotMessageBadge';
+import ReminderMessageBubble from './ReminderMessageBubble';
 import { format } from 'date-fns';
 import { Ban } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -23,6 +25,8 @@ export interface MessageBubbleProps {
   isMe: boolean;
   status?: MessageStatusType | string;
   createdAt: string | Date;
+  messageType?: string;
+  authorName?: string;
   replyToId?: string | null;
   replyToMessage?: QuotedMessageInfo | null;
   reactions?: Record<string, string[]> | null;
@@ -43,6 +47,8 @@ export default function MessageBubble({
   isMe,
   status = 'sent',
   createdAt,
+  messageType,
+  authorName,
   replyToId,
   replyToMessage,
   reactions,
@@ -60,6 +66,15 @@ export default function MessageBubble({
 
   const dateObj = typeof createdAt === 'string' ? new Date(createdAt) : createdAt;
   const timeFormatted = !isNaN(dateObj.getTime()) ? format(dateObj, 'h:mm a') : '';
+
+  // If this is a scheduled reminder system bot message, render specialized reminder card
+  if (messageType === 'system_bot' && (content.startsWith('⏰') || content.includes('Reminder for @'))) {
+    return (
+      <div id={`msg-${id}`} className={cn('flex w-full justify-center my-1', className)}>
+        <ReminderMessageBubble content={content} createdAt={createdAt} />
+      </div>
+    );
+  }
 
   const handleCopy = () => {
     if (content && typeof navigator !== 'undefined') {
@@ -115,6 +130,16 @@ export default function MessageBubble({
             }}
             isMe={isMe}
           />
+        )}
+
+        {/* Bot Author and Badge Header */}
+        {(messageType === 'system_bot' || authorName) && !isDeleted && (
+          <div className="flex items-center gap-1.5 mb-1 pb-0.5 border-b border-black/5 dark:border-white/5">
+            <span className="text-xs font-semibold text-wa-light-text-primary dark:text-wa-dark-text-primary">
+              {authorName || 'Bot'}
+            </span>
+            <BotMessageBadge size="sm" />
+          </div>
         )}
 
         {/* Quoted Reply Snippet */}

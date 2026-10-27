@@ -143,6 +143,18 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
             }
           }
 
+          // Handle system maintenance mode activation
+          if (envelope.type === 'system:maintenance') {
+            const payload = envelope.payload;
+            if (payload && payload.enabled) {
+              console.warn('[WebSocket] System maintenance initiated:', payload);
+              isManuallyClosedRef.current = true;
+              if (typeof window !== 'undefined') {
+                window.location.href = '/maintenance';
+              }
+            }
+          }
+
           // Dispatch to type-specific subscribers
           const handlers = listenersRef.current.get(envelope.type);
           if (handlers) {
@@ -175,9 +187,19 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
         setStatus('error');
       };
 
-      ws.onclose = () => {
+      ws.onclose = (event: CloseEvent) => {
         wsRef.current = null;
         setStatus('disconnected');
+
+        // If closed with 4003 (Maintenance Mode), redirect to /maintenance
+        if (event.code === 4003) {
+          console.warn('[WebSocket] Closed due to Maintenance Mode (code 4003).');
+          isManuallyClosedRef.current = true;
+          if (typeof window !== 'undefined') {
+            window.location.href = '/maintenance';
+          }
+          return;
+        }
 
         // Reconnect with exponential backoff if not manually logged out
         if (!isManuallyClosedRef.current && user) {

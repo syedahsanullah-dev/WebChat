@@ -33,6 +33,12 @@ model User {
   sessions         UserSession[]
   publicKey        UserPublicKey?
   pushSubscriptions UserPushSubscription[]
+  webhooksCreated  Webhook[]           @relation("WebhookCreator")
+  reminders        ScheduledReminder[]
+  pollsCreated     Poll[]              @relation("PollCreator")
+  pollVotes        PollVote[]
+  pinnedMessages   PinnedMessage[]
+  starredMessages  StarredMessage[]
   systemRole       String            @default("USER") @db.VarChar(20) // "SUPER_ADMIN", "ADMIN", "MODERATOR", "USER"
   isSuspended      Boolean           @default(false)
   auditLogs        AuditLog[]
@@ -61,6 +67,7 @@ model Contact {
 model Chat {
   id               String   @id @default(uuid())
   isGroup          Boolean  @default(false)
+  isChannel        Boolean  @default(false)
   groupTitle       String?  @db.VarChar(100)
   groupDescription String?  @db.VarChar(500)
   groupAvatarUrl   String?  @db.VarChar(500)
@@ -70,10 +77,15 @@ model Chat {
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
-  admin        User?             @relation("GroupAdmin", fields: [groupAdminId], references: [id], onDelete: SetNull)
-  participants ChatParticipant[]
-  messages     Message[]
-  callLogs     CallLog[]
+  admin           User?               @relation("GroupAdmin", fields: [groupAdminId], references: [id], onDelete: SetNull)
+  participants    ChatParticipant[]
+  messages        Message[]
+  callLogs        CallLog[]
+  webhooks        Webhook[]
+  reminders       ScheduledReminder[]
+  polls           Poll[]
+  channelMetadata ChannelMetadata?
+  pinnedMessages  PinnedMessage[]
 
   @@index([lastMessageAt(sort: Desc)], map: "idx_chats_last_message_at")
   @@map("chats")
@@ -113,9 +125,11 @@ model Message {
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
-  chat     Chat            @relation(fields: [chatId], references: [id], onDelete: Cascade)
-  sender   User            @relation(fields: [senderId], references: [id], onDelete: Cascade)
-  statuses MessageStatus[]
+  chat           Chat            @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  sender         User            @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  statuses       MessageStatus[]
+  pinnedIn       PinnedMessage[]
+  starredBy      StarredMessage[]
 
   @@index([chatId, createdAt(sort: Desc)], map: "idx_messages_chat_created")
   @@map("messages")
@@ -246,4 +260,145 @@ model UserPushSubscription {
 
   @@index([userId], map: "idx_push_user")
   @@map("user_push_subscriptions")
+}
+
+model SystemSetting {
+  id          String   @id @default(uuid())
+  key         String   @unique(map: "idx_system_settings_key") @db.VarChar(50)
+  value       String   @db.Text
+  description String?  @db.VarChar(255)
+  updatedAt   DateTime @updatedAt
+
+  @@map("system_settings")
+}
+
+model Webhook {
+  id          String    @id @default(uuid())
+  chatId      String
+  creatorId   String
+  name        String    @db.VarChar(100)
+  token       String    @unique(map: "idx_webhook_token") @db.VarChar(64)
+  secret      String    @db.VarChar(64)
+  direction   String    @default("INBOUND") @db.VarChar(20) // "INBOUND" or "OUTBOUND"
+  targetUrl   String?   @db.VarChar(500)                    // Only for OUTBOUND
+  events      String    @default("message:created") @db.VarChar(255)
+  isActive    Boolean   @default(true)
+  lastFiredAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  chat    Chat @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  creator User @relation("WebhookCreator", fields: [creatorId], references: [id], onDelete: Cascade)
+
+  @@index([chatId], map: "idx_webhooks_chat")
+  @@map("webhooks")
+}
+
+model ScheduledReminder {
+  id           String    @id @default(uuid())
+  chatId       String
+  userId       String
+  reminderText String    @db.VarChar(500)
+  remindAt     DateTime
+  isTriggered  Boolean   @default(false)
+  triggeredAt  DateTime?
+  createdAt    DateTime  @default(now())
+
+  chat Chat @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([remindAt, isTriggered], map: "idx_reminders_trigger")
+  @@map("scheduled_reminders")
+}
+
+model Poll {
+  id            String       @id @default(uuid())
+  chatId        String
+  creatorId     String
+  question      String       @db.VarChar(500)
+  allowMultiple Boolean      @default(false)
+  isClosed      Boolean      @default(false)
+  createdAt     DateTime     @default(now())
+
+  chat    Chat         @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  creator User         @relation("PollCreator", fields: [creatorId], references: [id], onDelete: Cascade)
+  options PollOption[]
+  votes   PollVote[]
+
+  @@index([chatId, createdAt(sort: Desc)], map: "idx_polls_chat_created")
+  @@map("polls")
+}
+
+model PollOption {
+  id       String     @id @default(uuid())
+  pollId   String
+  text     String     @db.VarChar(255)
+  orderIdx Int        @default(0)
+
+  poll  Poll       @relation(fields: [pollId], references: [id], onDelete: Cascade)
+  votes PollVote[]
+
+  @@map("poll_options")
+}
+
+model PollVote {
+  id        String     @id @default(uuid())
+  pollId    String
+  optionId  String
+  userId    String
+  createdAt DateTime   @default(now())
+
+  poll   Poll       @relation(fields: [pollId], references: [id], onDelete: Cascade)
+  option PollOption @relation(fields: [optionId], references: [id], onDelete: Cascade)
+  user   User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([pollId, optionId, userId], map: "idx_poll_option_user_unique")
+  @@map("poll_votes")
+}
+
+model ChannelMetadata {
+  id              String   @id @default(uuid())
+  chatId          String   @unique(map: "idx_channel_chat_id")
+  isBroadcastOnly Boolean  @default(true)
+  subscriberCount Int      @default(0)
+  publicSlug      String?  @unique(map: "idx_channel_slug") @db.VarChar(50)
+  description     String?  @db.VarChar(500)
+  isVerified      Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  chat Chat @relation(fields: [chatId], references: [id], onDelete: Cascade)
+
+  @@map("channel_metadata")
+}
+
+model PinnedMessage {
+  id         String    @id @default(uuid())
+  chatId     String
+  messageId  String
+  pinnedById String
+  expiresAt  DateTime? // Optional duration auto-unpin
+  pinnedAt   DateTime  @default(now())
+
+  chat     Chat    @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  message  Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  pinnedBy User    @relation(fields: [pinnedById], references: [id], onDelete: Cascade)
+
+  @@unique([chatId, messageId], map: "idx_chat_pinned_unique")
+  @@index([chatId, pinnedAt(sort: Desc)], map: "idx_pinned_chat_time")
+  @@map("pinned_messages")
+}
+
+model StarredMessage {
+  id        String   @id @default(uuid())
+  userId    String
+  messageId String
+  starredAt DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, messageId], map: "idx_user_starred_unique")
+  @@index([userId, starredAt(sort: Desc)], map: "idx_starred_user_time")
+  @@map("starred_messages")
 }

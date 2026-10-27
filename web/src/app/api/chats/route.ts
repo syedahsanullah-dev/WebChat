@@ -56,6 +56,7 @@ export async function GET(request: NextRequest) {
             },
           },
         },
+        channelMetadata: true,
       },
     });
 
@@ -74,16 +75,23 @@ export async function GET(request: NextRequest) {
           },
         });
 
-        // Check if group conversation or 1-on-1 direct chat
-        if (chat.isGroup) {
+        // Check if channel or group conversation or 1-on-1 direct chat
+        if (chat.isGroup || chat.isChannel) {
           const latestMsg = chat.messages[0] || null;
+          const isAdmin =
+            chat.groupAdminId === currentUserId ||
+            participantRecord?.role === 'admin';
+
           return {
             id: chat.id,
-            isGroup: true,
-            name: chat.groupTitle || 'Group Chat',
-            username: '',
+            isGroup: chat.isGroup,
+            isChannel: Boolean(chat.isChannel),
+            isChannelAdmin: isAdmin,
+            channelMetadata: chat.channelMetadata || null,
+            name: chat.groupTitle || (chat.isChannel ? 'Broadcast Channel' : 'Group Chat'),
+            username: chat.channelMetadata?.publicSlug ? `@${chat.channelMetadata.publicSlug}` : '',
             avatar: chat.groupAvatarUrl,
-            groupDescription: chat.groupDescription,
+            groupDescription: chat.channelMetadata?.description || chat.groupDescription,
             groupAdminId: chat.groupAdminId,
             otherUser: null,
             lastMessage: latestMsg

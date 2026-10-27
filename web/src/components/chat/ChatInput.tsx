@@ -5,14 +5,19 @@ import { Smile, Paperclip, Send, Mic } from 'lucide-react';
 import AttachmentMenu from './AttachmentMenu';
 import AudioRecorder from './AudioRecorder';
 import QuotedReplyPreview, { QuotedMessageData } from './QuotedReplyPreview';
+import SlashCommandPopover from './SlashCommandPopover';
 import { useAudioRecorder, RecordedAudioResult } from '@/hooks/useAudioRecorder';
+import { AVAILABLE_COMMANDS } from '@/lib/slashCommandParser';
+import { SlashCommandDefinition } from '@shared/types';
 import { cn } from '@/lib/utils';
 
 export interface ChatInputProps {
+  chatId?: string;
   onSendMessage: (text: string) => void;
   onImageSelect?: (file: File) => void;
   onSendVoice?: (result: RecordedAudioResult) => void;
   onSelectLocation?: () => void;
+  onCommandFeedback?: (feedback: string, isError?: boolean) => void;
   onTyping?: () => void;
   replyingToMessage?: QuotedMessageData | null;
   onCancelReply?: () => void;
@@ -22,10 +27,12 @@ export interface ChatInputProps {
 }
 
 export default function ChatInput({
+  chatId,
   onSendMessage,
   onImageSelect,
   onSendVoice,
   onSelectLocation,
+  onCommandFeedback,
   onTyping,
   replyingToMessage,
   onCancelReply,
@@ -36,8 +43,18 @@ export default function ChatInput({
   const [text, setText] = useState('');
   const [isAttachmentOpen, setIsAttachmentOpen] = useState(false);
   const [isProcessingAudio, setIsProcessingAudio] = useState(false);
+  const [popoverSelectedIndex, setPopoverSelectedIndex] = useState(0);
+  const [isPopoverDismissed, setIsPopoverDismissed] = useState(false);
+  const [isExecutingCommand, setIsExecutingCommand] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Check if current text is starting a slash command
+  const isSlashCommand = text.startsWith('/') && !text.includes(' ') && !isPopoverDismissed;
+
+  const filteredCommands = AVAILABLE_COMMANDS.filter((c) =>
+    c.command.toLowerCase().includes(text.slice(1).toLowerCase())
+  );
 
   const {
     isRecording,
@@ -59,9 +76,44 @@ export default function ChatInput({
     }
   }, [text]);
 
-  const handleSend = () => {
+  const handleSelectCommand = (cmd: SlashCommandDefinition) => {
+    setText(`${cmd.command} `);
+    setIsPopoverDismissed(true);
+    if (textareaRef.current) {
+      textareaRef.current.focus();
+    }
+  };
+
+  const handleSend = async () => {
     const trimmed = text.trim();
     if (!trimmed || disabled) return;
+
+    // Check if user is submitting a slash command
+    if (trimmed.startsWith('/') && chatId) {
+      setIsExecutingCommand(true);
+      setText('');
+      if (textareaRef.current) {
+        textareaRef.current.style.height = 'auto';
+      }
+      try {
+        const res = await fetch('/api/commands/execute', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ chatId, text: trimmed }),
+        });
+        const data = await res.json();
+        if (res.ok) {
+          onCommandFeedback?.(data.feedback || 'Command executed successfully', false);
+        } else {
+          onCommandFeedback?.(data.error || 'Failed to execute command', true);
+        }
+      } catch (err: any) {
+        onCommandFeedback?.(err?.message || 'Error executing command', true);
+      } finally {
+        setIsExecutingCommand(false);
+      }
+      return;
+    }
 
     onSendMessage(trimmed);
     setText('');
@@ -74,6 +126,29 @@ export default function ChatInput({
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (isSlashCommand && filteredCommands.length > 0) {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        setPopoverSelectedIndex((prev) => (prev + 1) % filteredCommands.length);
+        return;
+      }
+      if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        setPopoverSelectedIndex((prev) => (prev - 1 + filteredCommands.length) % filteredCommands.length);
+        return;
+      }
+      if (e.key === 'Tab' || (e.key === 'Enter' && !e.shiftKey)) {
+        e.preventDefault();
+        handleSelectCommand(filteredCommands[popoverSelectedIndex % filteredCommands.length]);
+        return;
+      }
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        setIsPopoverDismissed(true);
+        return;
+      }
+    }
+
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSend();
@@ -81,7 +156,11 @@ export default function ChatInput({
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setText(e.target.value);
+    const val = e.target.value;
+    setText(val);
+    if (val.startsWith('/')) {
+      setIsPopoverDismissed(false);
+    }
     onTyping?.();
   };
 
@@ -153,6 +232,16 @@ export default function ChatInput({
         />
       ) : (
         <>
+          {/* Slash Command Autocomplete Popover */}
+          {isSlashCommand && (
+            <SlashCommandPopover
+              query={text}
+              selectedIndex={popoverSelectedIndex}
+              onSelectCommand={handleSelectCommand}
+              onClose={() => setIsPopoverDismissed(true)}
+            />
+          )}
+
           {/* Attachment Menu Popup */}
           <AttachmentMenu
             isOpen={isAttachmentOpen}

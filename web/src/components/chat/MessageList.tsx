@@ -318,6 +318,8 @@ export default function MessageList({
                 isMe={isMe}
                 status={msg.status}
                 createdAt={msg.createdAt}
+                messageType={msg.messageType}
+                authorName={msg.senderName}
                 replyToId={msg.replyToId}
                 replyToMessage={quotedMsg}
                 reactions={reactions}

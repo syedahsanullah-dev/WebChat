@@ -183,18 +183,18 @@
 - [x] Automatic FIFO reconciliation queue flushing upon socket reconnection and updating ticks
 
 ## Phase 25: [Inbound & Outbound Webhooks Engine](phases/25_INBOUND_AND_OUTBOUND_WEBHOOKS.md)
-- [ ] Webhook management API and drawer for group admins with HMAC SHA-256 secret tokens
-- [ ] Public inbound webhook endpoint (`POST /api/webhooks/incoming/:token`) for CI/CD alerts (GitHub, Jira)
-- [ ] Distinct purple `[BOT]` badge and Markdown formatting for webhook messages
-- [ ] Outbound event webhook dispatcher notifying external URLs on new messages
-- [ ] Webhook test trigger and delivery logging
+- [x] Webhook management API and drawer for group admins with HMAC SHA-256 secret tokens
+- [x] Public inbound webhook endpoint (`POST /api/webhooks/incoming/:token`) for CI/CD alerts (GitHub, Jira)
+- [x] Distinct purple `[BOT]` badge and Markdown formatting for webhook messages
+- [x] Outbound event webhook dispatcher notifying external URLs on new messages
+- [x] Webhook test trigger and delivery logging
 
 ## Phase 26: [Chatbots & Slash Commands Engine](phases/26_CHATBOTS_AND_SLASH_COMMANDS.md)
-- [ ] In-chat slash command popover autocomplete triggered by typing `/` in `ChatInput`
-- [ ] Built-in commands: `/poll`, `/remind`, `/announce`, `/help` with argument parser
-- [ ] Natural language time parser converting `10m`, `2h`, `tomorrow 9am` into UTC timestamps
-- [ ] `ScheduledReminder` database model and reminder message bubble with alarm clock icon
-- [ ] Fastify 24/7 background scheduler (every 30s) dispatching due reminders into chat with audio chime
+- [x] In-chat slash command popover autocomplete triggered by typing `/` in `ChatInput`
+- [x] Built-in commands: `/poll`, `/remind`, `/announce`, `/help` with argument parser
+- [x] Natural language time parser converting `10m`, `2h`, `tomorrow 9am` into UTC timestamps
+- [x] `ScheduledReminder` database model and reminder message bubble with alarm clock icon
+- [x] Fastify 24/7 background scheduler (every 30s) dispatching due reminders into chat with audio chime
 
 ---
 
@@ -273,11 +273,11 @@
 - [x] Active broadcast API for newly connected users and broadcast history manager
 
 ## Phase 36: [Maintenance Mode & Emergency Database Backups](phases/36_MAINTENANCE_MODE_AND_EMERGENCY_BACKUPS.md)
-- [ ] Maintenance Mode toggle with administrative bypass in Next.js `middleware.ts`
-- [ ] Public Maintenance Mode splash page with brand logo, explanation, and live countdown timer
-- [ ] Fastify WebSocket maintenance guard rejecting non-admin connections with code 4003
-- [ ] On-demand emergency database backup trigger executing native Hostinger `mysqldump | gzip`
-- [ ] Secure backup storage outside `public_html` with download link table
+- [x] Maintenance Mode toggle with administrative bypass in Next.js `middleware.ts`
+- [x] Public Maintenance Mode splash page with brand logo, explanation, and live countdown timer
+- [x] Fastify WebSocket maintenance guard rejecting non-admin connections with code 4003
+- [x] On-demand emergency database backup trigger executing native Hostinger `mysqldump | gzip`
+- [x] Secure backup storage outside `public_html` with download link table
 
 ---
 

@@ -3,6 +3,7 @@ import { WebSocket } from 'ws';
 export interface AuthenticatedWebSocket extends WebSocket {
   userId: string;
   username: string;
+  systemRole?: string;
   isAlive: boolean;
   rooms: Set<string>;
 }

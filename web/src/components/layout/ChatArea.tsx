@@ -12,6 +12,7 @@ import SafetyNumberModal from '@/components/security/SafetyNumberModal';
 import LocationPickerModal from '@/components/location/LocationPickerModal';
 import OfflineStatusBar from '@/components/chat/OfflineStatusBar';
 import ConnectionToast from '@/components/ui/ConnectionToast';
+import WebhooksManagementDrawer from '@/components/settings/WebhooksManagementDrawer';
 import { useOfflineSync } from '@/hooks/useOfflineSync';
 import { QuotedMessageData } from '@/components/chat/QuotedReplyPreview';
 import Avatar from '@/components/ui/Avatar';
@@ -72,6 +73,8 @@ export default function ChatArea({
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isSafetyModalOpen, setIsSafetyModalOpen] = useState(false);
   const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
+  const [isWebhooksOpen, setIsWebhooksOpen] = useState(false);
+  const [commandToast, setCommandToast] = useState<{ message: string; isError?: boolean } | null>(null);
   const [replyingToMessage, setReplyingToMessage] = useState<QuotedMessageData | null>(null);
   const [deletingMessage, setDeletingMessage] = useState<MessageItem | null>(null);
   const mainRef = useRef<HTMLElement>(null);
@@ -353,6 +356,11 @@ export default function ChatArea({
       label: 'Search messages',
       onClick: () => setIsSearchOpen(true),
     },
+    {
+      id: 'webhooks',
+      label: 'Integrations & Webhooks',
+      onClick: () => setIsWebhooksOpen(true),
+    },
     ...(!activeChat?.isGroup
       ? [
           {
@@ -466,10 +474,15 @@ export default function ChatArea({
 
         {/* Bottom Message Input Bar */}
         <ChatInput
+          chatId={activeChatId}
           onSendMessage={handleSendMessage}
           onImageSelect={handleImageSelect}
           onSendVoice={handleSendVoice}
           onSelectLocation={() => setIsLocationModalOpen(true)}
+          onCommandFeedback={(feedback, isErr) => {
+            setCommandToast({ message: feedback, isError: isErr });
+            setTimeout(() => setCommandToast(null), 4000);
+          }}
           onTyping={emitTyping}
           replyingToMessage={replyingToMessage}
           onCancelReply={() => setReplyingToMessage(null)}
@@ -570,6 +583,37 @@ export default function ChatArea({
         onClose={() => setIsLocationModalOpen(false)}
         onSendLocation={handleSendLocation}
       />
+
+      {/* Slash Command Execution Feedback Toast */}
+      {commandToast && (
+        <div
+          className={cn(
+            'fixed top-16 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-lg shadow-lg text-xs font-medium flex items-center gap-2 animate-in fade-in slide-in-from-top-2 duration-200 select-none',
+            commandToast.isError
+              ? 'bg-rose-600 text-white'
+              : 'bg-emerald-600 text-white'
+          )}
+        >
+          <span>{commandToast.message}</span>
+          <button
+            type="button"
+            onClick={() => setCommandToast(null)}
+            className="ml-2 hover:opacity-80 text-white font-bold cursor-pointer"
+          >
+            ✕
+          </button>
+        </div>
+      )}
+
+      {/* Webhooks & Integrations Management Drawer */}
+      {activeChatId && (
+        <WebhooksManagementDrawer
+          isOpen={isWebhooksOpen}
+          onClose={() => setIsWebhooksOpen(false)}
+          chatId={activeChatId}
+          chatTitle={activeChat?.name}
+        />
+      )}
 
       {/* Offline Sync Reconnection Toast */}
       {syncedCount > 0 && (

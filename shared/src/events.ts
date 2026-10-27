@@ -32,7 +32,12 @@ export type WsEventType =
   | 'session:revoked'
   | 'error'
   | 'system:broadcast'
-  | 'system:broadcast_dismiss';
+  | 'system:broadcast_dismiss'
+  | 'system:maintenance'
+  | 'poll:vote'
+  | 'poll:update'
+  | 'chat:pin'
+  | 'chat:pin_updated';
 
 export interface WsEnvelope<T = any> {
   type: WsEventType;
@@ -285,3 +290,44 @@ export interface SystemBroadcastPayload {
 export interface SystemBroadcastDismissPayload {
   id: string;
 }
+
+export interface SystemMaintenancePayload {
+  enabled: boolean;
+  reason?: string | null;
+  estimatedEnd?: string | null;
+  updatedAt?: string | null;
+}
+
+export interface PollVotePayload {
+  pollId: string;
+  optionId: string;
+  chatId?: string;
+}
+
+export interface PollUpdatePayload {
+  pollId: string;
+  chatId: string;
+  options: Array<{
+    id: string;
+    text: string;
+    orderIdx: number;
+    voteCount: number;
+    percentage: number;
+    voterIds: string[];
+  }>;
+  totalVotes: number;
+}
+
+export interface ChatPinPayload {
+  chatId: string;
+  messageId: string;
+  durationSeconds?: number;
+}
+
+export interface ChatPinUpdatedPayload {
+  chatId: string;
+  action: 'pinned' | 'unpinned';
+  messageId: string;
+  pinnedMessage?: any;
+}
+

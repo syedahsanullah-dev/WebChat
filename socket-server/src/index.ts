@@ -11,6 +11,8 @@ import { handleUserConnect, handleUserDisconnect } from './handlers/presenceHand
 import { routeWebSocketEnvelope } from './router.js';
 import { prisma } from './lib/prisma.js';
 import { WsEnvelope } from './types/index.js';
+import { maintenanceManager } from './middleware/maintenanceGuard.js';
+import { startReminderScheduler, stopReminderScheduler } from './jobs/reminderSchedulerJob.js';
 
 // Load environment variables
 dotenv.config();
@@ -124,6 +126,50 @@ fastify.post('/internal/broadcast/dismiss', async (request, reply) => {
   return { success: true };
 });
 
+// Phase 36: Internal Maintenance Mode Manager
+fastify.post('/internal/maintenance', async (request) => {
+  const body = request.body as any;
+  maintenanceManager.setState({
+    enabled: Boolean(body?.enabled),
+    reason: body?.reason || null,
+    estimatedEnd: body?.estimatedEnd || null,
+  });
+
+  if (body?.enabled) {
+    maintenanceManager.enforceMaintenanceKicks(wss);
+  }
+
+  // Real-time broadcast maintenance state to all connected clients
+  roomManager.broadcastAll({
+    type: 'system:maintenance',
+    payload: maintenanceManager.getState(),
+  });
+
+  return { success: true, state: maintenanceManager.getState() };
+});
+
+fastify.get('/internal/maintenance', async () => {
+  return { success: true, state: maintenanceManager.getState() };
+});
+
+// Phase 25/26: Internal Message Broadcast Dispatcher (triggered by webhooks, slash commands, or bots)
+fastify.post('/internal/message', async (request, reply) => {
+  const body = request.body as any;
+  if (!body || !body.chatId || !body.message) {
+    return reply.status(400).send({ error: 'chatId and message are required' });
+  }
+
+  const envelope: WsEnvelope = {
+    type: 'message:new',
+    payload: body.message,
+  };
+
+  roomManager.broadcastToRoom(`chat:${body.chatId}`, envelope);
+  logger.info(`💬 Internal message broadcast dispatched to chat:${body.chatId} [type: ${body.message.messageType || 'text'}]`);
+
+  return { success: true, deliveredRoom: `chat:${body.chatId}` };
+});
+
 // Native ws WebSocketServer mounted with manual upgrade handling
 export const wss = new WebSocketServer({ noServer: true });
 
@@ -132,17 +178,31 @@ fastify.server.on('upgrade', (request, socket, head) => {
   const user = authenticateUpgrade(request, socket, JWT_SECRET);
   if (!user) return;
 
+  // Phase 36: Reject non-admin connections during Maintenance Mode with 503
+  if (maintenanceManager.isMaintenanceActive() && !maintenanceManager.isUserAdmin(user.systemRole)) {
+    logger.warn(`Maintenance guard: rejecting WebSocket upgrade for non-admin user ${user.userId}`);
+    socket.write(
+      'HTTP/1.1 503 Service Unavailable\r\n' +
+      'Content-Type: text/plain\r\n' +
+      'Connection: close\r\n\r\n' +
+      'System Maintenance Active\n'
+    );
+    socket.destroy();
+    return;
+  }
+
   wss.handleUpgrade(request, socket, head, (ws) => {
     wss.emit('connection', ws, request, user);
   });
 });
 
 // WebSocket Connection handler
-wss.on('connection', (ws: WebSocket, _req: IncomingMessage, user?: { userId: string; username: string }) => {
+wss.on('connection', (ws: WebSocket, _req: IncomingMessage, user?: { userId: string; username: string; systemRole?: string }) => {
   const authWs = ws as AuthenticatedWebSocket;
   const userInfo = user || { userId: 'anonymous', username: 'anonymous' };
   authWs.userId = userInfo.userId;
   authWs.username = userInfo.username;
+  authWs.systemRole = userInfo.systemRole || 'USER';
   authWs.isAlive = true;
   authWs.rooms = new Set<string>();
 
@@ -203,6 +263,9 @@ export async function startServer(): Promise<void> {
     prisma.user
       .updateMany({ data: { isOnline: false } })
       .catch((err) => logger.debug(`Startup presence reset non-fatal: ${err.message}`));
+
+    // Start Phase 26 background reminder scheduler
+    startReminderScheduler();
   } catch (err) {
     logger.error('Failed to start server:', err);
     process.exit(1);
@@ -212,6 +275,7 @@ export async function startServer(): Promise<void> {
 // Graceful shutdown
 const shutdown = async () => {
   logger.info('Shutting down socket server...');
+  stopReminderScheduler();
   clearInterval(heartbeatInterval);
   wss.close();
   await fastify.close();

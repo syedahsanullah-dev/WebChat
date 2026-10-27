@@ -28,7 +28,7 @@ function base64UrlDecode(str: string): Uint8Array {
 export async function verifyJwtEdge(
   token: string,
   secret: string
-): Promise<{ userId: string; username: string; email: string } | null> {
+): Promise<{ userId: string; username: string; email: string; systemRole?: string } | null> {
   try {
     const parts = token.split('.');
     if (parts.length !== 3) return null;
@@ -78,6 +78,7 @@ export async function verifyJwtEdge(
       userId: payload.userId,
       username: payload.username,
       email: payload.email,
+      systemRole: payload.systemRole,
     };
   } catch {
     return null;

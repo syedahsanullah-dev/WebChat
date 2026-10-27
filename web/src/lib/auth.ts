@@ -7,6 +7,7 @@ export interface AuthTokenPayload {
   email: string;
   sessionToken?: string;
   sessionId?: string;
+  systemRole?: string;
 }
 
 export const AUTH_COOKIE_NAME = 'auth_token';
