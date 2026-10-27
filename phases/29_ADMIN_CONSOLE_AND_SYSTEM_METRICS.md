@@ -1,18 +1,18 @@
-# Phase 29: Super Admin Console & Infrastructure Telemetry
+﻿# Phase 29: Admin Console & Infrastructure Metrics
 
 ## 1. Phase Overview & Objectives
 **Target Workspace**: `web/` (Server #1) & `socket-server/` (Server #2)  
-**Primary Goal**: Build an enterprise Super Admin Console and real-time Infrastructure Telemetry dashboard at **$0.00 additional monthly cost**. Administrators and infrastructure operators can monitor live server performance metrics directly from the `/admin` web interface, including Fastify Server #2 live RAM usage (RSS, Heap Used in MB), active concurrent WebSocket connection counts, MySQL row counts, and system uptime.
+**Primary Goal**: Build an Admin Console and real-time Infrastructure Metrics dashboard at **$0.00 additional monthly cost**. Administrators can monitor live server performance metrics directly from the `/admin` web interface, including Fastify Server #2 live RAM usage (RSS, Heap Used in MB), active concurrent WebSocket connection counts, MySQL row counts, and system uptime.
 
 > [!IMPORTANT]
-> **Zero Friction & Verification Guardrail**: Strictly **NO OTP**, **NO SMS**, and **NO phone verification**. Administrative access is enforced strictly via the user's verified `systemRole: "SUPER_ADMIN" | "ADMIN"` in HTTP-only session cookies.
+> **Authentication Guardrail**: Strictly **NO OTP**, **NO SMS**, and **NO phone verification**. Administrative access is enforced strictly via the user's verified `systemRole: "SUPER_ADMIN" | "ADMIN"` in HTTP-only session cookies.
 
 ---
 
 ## 2. Context & Prerequisites
 - **Previous Phase**: [`28_COMPLIANCE_DATA_EXPORT_AND_LEGAL_HOLD.md`](28_COMPLIANCE_DATA_EXPORT_AND_LEGAL_HOLD.md) (Compliance and audit foundations established).
 - **Environment**: Next.js 15 Standalone, Fastify 4+ & Native `ws` daemon, Hostinger MySQL via Prisma (`connection_limit=10`).
-- **Telemetry Standard**: Server #2 exposes a secured internal health/telemetry endpoint consumed by Server #1 with zero third-party monitoring agents (No Datadog, No New Relic).
+- **Metrics Standard**: Server #2 exposes a secured internal health/metrics endpoint consumed by Server #1 with zero third-party monitoring agents (No Datadog, No New Relic).
 
 ---
 
@@ -29,12 +29,12 @@ WebChat/
 │   │   │   └── api/
 │   │   │       └── admin/
 │   │   │           └── metrics/
-│   │   │               └── route.ts         # GET /api/admin/metrics (combines Fastify & MySQL telemetry)
+│   │   │               └── route.ts         # GET /api/admin/metrics (combines Fastify & MySQL metrics)
 │   │   ├── components/
 │   │   │   └── admin/
 │   │   │       ├── AdminSidebar.tsx         # Navigation: Overview, Users, Moderation, Storage, Audit, Broadcasts
 │   │   │       ├── MetricStatCard.tsx       # Reusable card with icon, title, value, status indicator
-│   │   │       ├── MemoryTelemetryCard.tsx  # Fastify RAM visual gauge (RSS vs Heap Used)
+│   │   │       ├── MemoryMetricsCard.tsx  # Fastify RAM visual gauge (RSS vs Heap Used)
 │   │   │       └── ActiveSocketsCard.tsx    # Live WebSocket connection count card
 │   │   └── lib/
 │   │       └── adminAuth.ts                 # Next.js middleware / helper enforcing SUPER_ADMIN or ADMIN role
@@ -49,7 +49,7 @@ WebChat/
 
 ---
 
-## 4. Telemetry Aggregation Architecture
+## 4. Metrics Aggregation Architecture
 
 ```mermaid
 flowchart LR
@@ -85,7 +85,7 @@ flowchart LR
     - Fetch user from MySQL.
     - If `systemRole !== 'SUPER_ADMIN' && systemRole !== 'ADMIN'`:
       - Redirect to `/chat` with an unauthorized toast notice.
-- [ ] **2. Fastify Server #2 Internal Telemetry Endpoint (`socket-server/src/routes/health.ts`)**:
+- [ ] **2. Fastify Server #2 Internal Metrics Endpoint (`socket-server/src/routes/health.ts`)**:
   - Register Fastify route `GET /metrics`:
     - Secured via internal shared secret header `X-Internal-Secret: ${INTERNAL_API_SECRET}`.
     - Calculates current Node.js memory usage in Megabytes:
@@ -114,7 +114,7 @@ flowchart LR
   - `GET /api/admin/metrics`:
     - Authenticate admin user.
     - Concurrently fetch:
-      1. Fastify telemetry from Server #2 via internal HTTP GET.
+      1. Fastify metrics from Server #2 via internal HTTP GET.
       2. MySQL row counts via `prisma.$transaction([prisma.user.count(), prisma.chat.count(), prisma.message.count()])`.
       3. Messages sent in the last 24 hours (`createdAt >= yesterday`).
     - Return consolidated JSON response.
@@ -126,7 +126,7 @@ flowchart LR
       - Bottom: Logged-in admin pill with "Back to Chat" shortcut.
     - Top Bar: System status indicator (Green *"All systems operational"*), Hostinger server time, and Auto-refresh toggle (10s, 30s, Off).
 - [ ] **5. Overview Dashboard Cards (`admin/page.tsx`)**:
-  - **Memory Telemetry Card**:
+  - **Memory Metrics Card**:
     - Displays Fastify Server #2 RAM consumption: e.g. `29 MB / 1024 MB`.
     - Visual color-coded progress bar (Green < 60 MB, Yellow 60–100 MB, Red > 100 MB).
     - Subtitle: *"Fastify 4+ & Native ws Daemon (~70% lower than Socket.io)"*.
@@ -143,7 +143,7 @@ flowchart LR
 ## 7. Quality Gate & Verification Criteria
 
 1. Navigating to `/admin` as a standard user (`systemRole: "USER"`) is blocked and redirects away.
-2. Navigating to `/admin` as an admin (`systemRole: "ADMIN"`) loads the dashboard with full telemetry.
+2. Navigating to `/admin` as an admin (`systemRole: "ADMIN"`) loads the dashboard with full metrics.
 3. Fastify Server #2 memory report reflects actual low-memory usage (~25–35 MB RAM).
 4. Opening new chat sessions increments the active WebSocket connection count in real time.
 5. Database counters accurately reflect the counts in the MySQL database.
@@ -152,4 +152,4 @@ flowchart LR
 ---
 
 ## 8. Autonomous Multi-Agent Handoff Instructions
-The next phase is [`30_STORAGE_GOVERNANCE_AND_ORPHAN_CLEANER.md`](30_STORAGE_GOVERNANCE_AND_ORPHAN_CLEANER.md). That agent will build Hostinger NVMe storage governance, media usage breakdowns, and an automated orphan file detection and purge engine.
+The next phase is [`30_STORAGE_GOVERNANCE_AND_ORPHAN_CLEANER.md`](30_STORAGE_GOVERNANCE_AND_ORPHAN_CLEANER.md). That agent will build Hostinger storage management, media usage breakdowns, and an automated orphan file detection and purge engine.

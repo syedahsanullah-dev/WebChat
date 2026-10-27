@@ -1,4 +1,4 @@
-# Phase 03: Authentication & Profile System (Username & Email)
+﻿# Phase 03: Authentication & Profile System (Username & Email)
 
 ## 1. Phase Overview & Objectives
 **Target Workspace**: `web/` (Server #1)  

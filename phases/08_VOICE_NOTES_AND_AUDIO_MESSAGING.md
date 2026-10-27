@@ -1,4 +1,4 @@
-# Phase 08: Voice Notes & Audio Messaging
+﻿# Phase 08: Voice Notes & Audio Messaging
 
 ## 1. Phase Overview & Objectives
 **Target Workspace**: `web/` (Server #1)  

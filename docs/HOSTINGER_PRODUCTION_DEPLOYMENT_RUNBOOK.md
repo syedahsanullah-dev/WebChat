@@ -1,4 +1,4 @@
-# Hostinger Production Deployment, Operations & Zero-Cost Monitoring Runbook
+# Hostinger Production Deployment, Operations & System Monitoring Runbook
 
 > **Target Architecture**: Dual-Server Node.js on Hostinger Web Hosting  
 > **Target Added Monthly Cost**: **$0.00 / month** (strictly within existing subscription)  
@@ -124,7 +124,7 @@ bash scripts/backup-db.sh
 
 ---
 
-## 6. Zero-Cost Local Error Logging & Log Rotation
+## 6. Local Error Logging & Log Rotation
 
 Winston file transports are implemented across both servers to rotate logs daily on Hostinger NVMe storage without relying on external paid logging services (e.g. Datadog or Papertrail):
 

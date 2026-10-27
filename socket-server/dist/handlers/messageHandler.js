@@ -19,14 +19,19 @@ async function handleMessageSend(socket, payload) {
     const mediaUrl = payload.mediaUrl || payload.fileUrl || null;
     const mediaSize = payload.mediaSize ?? payload.fileSize ?? null;
     const mediaDuration = payload.mediaDuration ?? payload.duration ?? null;
+    const documentName = payload.documentName || payload.fileName || null;
+    const documentSize = payload.documentSize ?? payload.fileSize ?? null;
+    const documentMime = payload.documentMime || null;
+    const isCodeBlock = Boolean(payload.isCodeBlock);
+    const codeLanguage = payload.codeLanguage || null;
     const isLocation = (payload.messageType === 'location' || payload.type === 'location') ||
         (payload.latitude !== undefined && payload.latitude !== null);
-    if (!payload?.chatId || (!payload.content && !mediaUrl && !isLocation)) {
+    if (!payload?.chatId || (!payload.content && !mediaUrl && !isLocation && !documentName)) {
         return;
     }
     const messageType = isLocation
         ? 'location'
-        : (payload.messageType || payload.type || (mediaUrl ? 'image' : 'text')).toLowerCase();
+        : (payload.messageType || payload.type || (documentName ? 'document' : mediaUrl ? 'image' : 'text')).toLowerCase();
     const tempId = payload.tempId;
     const isE2EE = Boolean(payload.isE2EE);
     const e2eeIv = payload.e2eeIv || null;
@@ -42,12 +47,38 @@ async function handleMessageSend(socket, payload) {
         }
     }
     try {
-        // Check if chat is a broadcast channel
+        // Check if user is suspended or muted
+        const senderStatus = await prisma_js_1.prisma.user.findUnique({
+            where: { id: socket.userId },
+            select: { isSuspended: true, mutedUntil: true },
+        });
+        if (senderStatus?.isSuspended) {
+            socket.send(JSON.stringify({
+                type: 'error',
+                payload: { message: 'Your account is suspended.', code: 'USER_SUSPENDED' },
+            }));
+            return;
+        }
+        if (senderStatus?.mutedUntil && new Date(senderStatus.mutedUntil) > new Date()) {
+            socket.send(JSON.stringify({
+                type: 'error',
+                payload: {
+                    message: `You are temporarily muted until ${new Date(senderStatus.mutedUntil).toLocaleTimeString()}.`,
+                    code: 'USER_MUTED',
+                },
+            }));
+            return;
+        }
+        // Check if chat is a broadcast channel and fetch ephemeral duration
         const chatRecord = await prisma_js_1.prisma.chat.findUnique({
             where: { id: payload.chatId },
-            select: { isChannel: true, isGroup: true, groupAdminId: true },
+            select: { isChannel: true, isGroup: true, groupAdminId: true, ephemeralDuration: true },
         }).catch(() => null);
         const isChannel = Boolean(chatRecord?.isChannel);
+        let expiresAt = null;
+        if (chatRecord?.ephemeralDuration && chatRecord.ephemeralDuration > 0) {
+            expiresAt = new Date(Date.now() + chatRecord.ephemeralDuration * 1000);
+        }
         // 1. Identify all chat recipients (for both 1-on-1 and group chats)
         let otherParticipantIds = [];
         if (!isChannel) {
@@ -88,6 +119,12 @@ async function handleMessageSend(socket, payload) {
                     latitude,
                     longitude,
                     locationAddress,
+                    documentName,
+                    documentSize,
+                    documentMime,
+                    isCodeBlock,
+                    codeLanguage,
+                    expiresAt,
                 },
                 include: {
                     sender: {
@@ -141,6 +178,12 @@ async function handleMessageSend(socket, payload) {
                 latitude,
                 longitude,
                 locationAddress,
+                documentName,
+                documentSize,
+                documentMime,
+                isCodeBlock,
+                codeLanguage,
+                expiresAt,
                 createdAt: new Date(),
                 sender: {
                     id: socket.userId,
@@ -168,6 +211,12 @@ async function handleMessageSend(socket, payload) {
                 latitude: savedMessage.latitude,
                 longitude: savedMessage.longitude,
                 locationAddress: savedMessage.locationAddress,
+                documentName: savedMessage.documentName,
+                documentSize: savedMessage.documentSize,
+                documentMime: savedMessage.documentMime,
+                isCodeBlock: savedMessage.isCodeBlock,
+                codeLanguage: savedMessage.codeLanguage,
+                expiresAt: savedMessage.expiresAt ? (savedMessage.expiresAt instanceof Date ? savedMessage.expiresAt.toISOString() : String(savedMessage.expiresAt)) : null,
             },
         };
         socket.send(JSON.stringify(ackEnvelope));
@@ -191,6 +240,12 @@ async function handleMessageSend(socket, payload) {
                 latitude: savedMessage.latitude,
                 longitude: savedMessage.longitude,
                 locationAddress: savedMessage.locationAddress,
+                documentName: savedMessage.documentName,
+                documentSize: savedMessage.documentSize,
+                documentMime: savedMessage.documentMime,
+                isCodeBlock: savedMessage.isCodeBlock,
+                codeLanguage: savedMessage.codeLanguage,
+                expiresAt: savedMessage.expiresAt ? (savedMessage.expiresAt instanceof Date ? savedMessage.expiresAt.toISOString() : String(savedMessage.expiresAt)) : null,
                 status: initialStatus,
                 createdAt: createdAtIso,
                 sender: savedMessage.sender,
@@ -214,9 +269,11 @@ async function handleMessageSend(socket, payload) {
                             ? '📷 Photo'
                             : savedMessage.messageType === 'voice'
                                 ? '🎤 Voice message'
-                                : savedMessage.messageType === 'location'
-                                    ? '📍 Location'
-                                    : savedMessage.content || 'New message',
+                                : savedMessage.messageType === 'document'
+                                    ? `📄 ${savedMessage.documentName || 'Document'}`
+                                    : savedMessage.messageType === 'location'
+                                        ? '📍 Location'
+                                        : savedMessage.content || 'New message',
                     avatarUrl: savedMessage.sender?.avatarUrl || undefined,
                     chatId: payload.chatId,
                     url: `/chat/${payload.chatId}`,

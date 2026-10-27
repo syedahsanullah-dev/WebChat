@@ -1,7 +1,7 @@
-# WebChat Implementation Phases Master Index
-## Autonomous Multi-Agent Vibe Coding Guide (38-Phase Master Enterprise Blueprint)
+﻿# WebChat Implementation Phases Master Index
+## Autonomous Multi-Agent Vibe Coding Guide (38-Phase Master Blueprint)
 
-This directory contains the self-contained phase specifications for developing the WhatsApp Web clone on Hostinger ($0 / month added cost) using **Next.js 15 Standalone** and **Fastify 4+ & Native `ws`**, scaled up to full **Enterprise Standards**.
+This directory contains the self-contained phase specifications for developing the WhatsApp Web clone on Hostinger ($0 / month added cost) using **Next.js 15 Standalone** and **Fastify 4+ & Native `ws`**, scaled for reliable production deployment.
 
 Each phase file is authored so an autonomous agent needs **only the current phase file and the immediately preceding phase file** to execute its task with full context.
 
@@ -22,7 +22,7 @@ When multiple autonomous agents (e.g. Antigravity Team Preview Agents) work on t
    - An agent must verify all items in the phase's **Quality Gate & Verification Criteria** before marking tasks complete.
 4. **Strict Architectural Constraints**:
    - **$0.00 Additional Cost**: Hostinger native features, open-source libraries, free STUN, and Metered.ca free TURN only.
-   - **Identity (Zero Friction)**: `@username`, `email`, and `password` only. **Strictly NO OTP, NO SMS, NO phone verification, and NO email verification codes.**
+   - **Identity**: `@username`, `email`, and `password` only. **Strictly NO OTP, NO SMS, NO phone verification, and NO email verification codes.**
    - **Calling**: High-definition WebRTC Opus **Audio Calling only**. **No video.**
    - **Deployment**: Dual-Server (Server #1 Next.js App Router standalone on `chat.yourdomain.com`, Server #2 Fastify + Native `ws` on `ws.yourdomain.com`).
    - **Performance**: Server #2 uses **Fastify + Native `ws`** (~25–35 MB RAM idle) with the `RoomManager` pattern and standard JSON envelope protocol (`WsEnvelope<T>`).
@@ -57,7 +57,7 @@ When multiple autonomous agents (e.g. Antigravity Team Preview Agents) work on t
 
 ---
 
-### Part II: Enterprise Security, Data & Communications (Phases 15 – 22)
+### Part II: Security, Data & Communications (Phases 15 – 22)
 
 | Phase | File | Primary Responsibility | Target Server | Status |
 | :---: | :--- | :--- | :---: | :---: |
@@ -66,7 +66,7 @@ When multiple autonomous agents (e.g. Antigravity Team Preview Agents) work on t
 | **17** | [`17_BROADCAST_ANNOUNCEMENT_CHANNELS.md`](17_BROADCAST_ANNOUNCEMENT_CHANNELS.md) | Broadcast announcement channels, public slugs, subscriber management, read-only subscriber guard | Server #1 & #2 | **COMPLETED** |
 | **18** | [`18_INTERACTIVE_REALTIME_POLLS.md`](18_INTERACTIVE_REALTIME_POLLS.md) | Multi-choice interactive polls, live WebSocket voting tallies, animated percentage bars, voter roster | Server #1 & #2 | **COMPLETED** |
 | **19** | [`19_PINNED_AND_STARRED_MESSAGES.md`](19_PINNED_AND_STARRED_MESSAGES.md) | Pinned message header banner carousel with click-to-jump, global starred message bookmarks drawer | Server #1 & #2 | **COMPLETED** |
-| **20** | [`20_ENTERPRISE_DOCUMENT_SHARING.md`](20_ENTERPRISE_DOCUMENT_SHARING.md) | Enterprise document sharing (PDF, Excel, Word, Zip up to 25MB), local NVMe storage, in-app PDF preview | Server #1 & #2 | **COMPLETED** |
+| **20** | [`20_ENTERPRISE_DOCUMENT_SHARING.md`](20_ENTERPRISE_DOCUMENT_SHARING.md) | Document sharing (PDF, Excel, Word, Zip up to 25MB), local storage, in-app PDF preview | Server #1 & #2 | **COMPLETED** |
 | **21** | [`21_MARKDOWN_CODE_BLOCKS_AND_SYNTAX_HIGHLIGHTING.md`](21_MARKDOWN_CODE_BLOCKS_AND_SYNTAX_HIGHLIGHTING.md) | Syntax-highlighted code blocks with Prism.js dark tokens, language badges, one-click copy button | Server #1 (`web/`) | **COMPLETED** |
 | **22** | [`22_EPHEMERAL_AND_DISAPPEARING_MESSAGES.md`](22_EPHEMERAL_AND_DISAPPEARING_MESSAGES.md) | Chat auto-deletion timers (24h, 7d, 90d), clock badges, Fastify 24/7 background media & row purge | Server #1 & #2 | **COMPLETED** |
 
@@ -83,25 +83,25 @@ When multiple autonomous agents (e.g. Antigravity Team Preview Agents) work on t
 
 ---
 
-### Part IV: Enterprise Compliance & Governance (Phases 27 – 28)
+### Part IV: Compliance & Data Management (Phases 27 – 28)
 
 | Phase | File | Primary Responsibility | Target Server | Status |
 | :---: | :--- | :--- | :---: | :---: |
-| **27** | [`27_IMMUTABLE_SECURITY_AUDIT_LOGGING.md`](27_IMMUTABLE_SECURITY_AUDIT_LOGGING.md) | Immutable security audit logs, event interceptors, searchable compliance console (`/admin/audit`), CSV export | Server #1 & Admin Console | **COMPLETED** |
-| **28** | [`28_COMPLIANCE_DATA_EXPORT_AND_LEGAL_HOLD.md`](28_COMPLIANCE_DATA_EXPORT_AND_LEGAL_HOLD.md) | Legal Hold governance lock, compliance `.zip` export with styled offline HTML and JSON transcripts via `archiver` | Server #1 & Admin Console | **COMPLETED** |
+| **27** | [`27_IMMUTABLE_SECURITY_AUDIT_LOGGING.md`](27_IMMUTABLE_SECURITY_AUDIT_LOGGING.md) | Security audit logs, event interceptors, searchable audit console (`/admin/audit`), CSV export | Server #1 & Admin Console | **COMPLETED** |
+| **28** | [`28_COMPLIANCE_DATA_EXPORT_AND_LEGAL_HOLD.md`](28_COMPLIANCE_DATA_EXPORT_AND_LEGAL_HOLD.md) | Legal Hold lock, data `.zip` export with styled offline HTML and JSON transcripts via `archiver` | Server #1 & Admin Console | **COMPLETED** |
 
 ---
 
-### Part V: Enterprise Administration & Operations (Phases 29 – 34)
+### Part V: Administration & Operations (Phases 29 – 34)
 
 | Phase | File | Primary Responsibility | Target Server | Status |
 | :---: | :--- | :--- | :---: | :---: |
-| **29** | [`29_ADMIN_CONSOLE_AND_SYSTEM_METRICS.md`](29_ADMIN_CONSOLE_AND_SYSTEM_METRICS.md) | Super Admin portal layout (`/admin`), Fastify RAM telemetry (MB), active socket count, MySQL row counts | Server #1 & #2 | **COMPLETED** |
-| **30** | [`30_STORAGE_GOVERNANCE_AND_ORPHAN_CLEANER.md`](30_STORAGE_GOVERNANCE_AND_ORPHAN_CLEANER.md) | Hostinger NVMe storage analytics (Avatars, Images, Voice, Docs), orphan file scanner, safe disk purger | Server #1 (`web/`) | **COMPLETED** |
-| **31** | [`31_USER_ADMINISTRATION_AND_ROLE_DELEGATION.md`](31_USER_ADMINISTRATION_AND_ROLE_DELEGATION.md) | User administration data grid with multi-column filters, RBAC hierarchy (`USER` to `SUPER_ADMIN`), user details | Server #1 & Admin Console | **COMPLETED** |
+| **29** | [`29_ADMIN_CONSOLE_AND_SYSTEM_METRICS.md`](29_ADMIN_CONSOLE_AND_SYSTEM_METRICS.md) | Admin portal layout (`/admin`), Fastify RAM metrics (MB), active socket count, MySQL row counts | Server #1 & #2 | **COMPLETED** |
+| **30** | [`30_STORAGE_GOVERNANCE_AND_ORPHAN_CLEANER.md`](30_STORAGE_GOVERNANCE_AND_ORPHAN_CLEANER.md) | Storage analytics (Avatars, Images, Voice, Docs), orphan file scanner, safe disk purger | Server #1 (`web/`) | **COMPLETED** |
+| **31** | [`31_USER_ADMINISTRATION_AND_ROLE_DELEGATION.md`](31_USER_ADMINISTRATION_AND_ROLE_DELEGATION.md) | User administration data grid with multi-column filters, role hierarchy (`USER` to `SUPER_ADMIN`), user details | Server #1 & Admin Console | **COMPLETED** |
 | **32** | [`32_ACCOUNT_MODERATION_BANS_AND_SOCKET_KICKS.md`](32_ACCOUNT_MODERATION_BANS_AND_SOCKET_KICKS.md) | Account suspension and ban workflows, mandatory reason audit, real-time WebSocket kicks (`user:kick`) | Server #1 & #2 | **COMPLETED** |
 | **33** | [`33_ABUSE_REPORTING_AND_MODERATION_QUEUE.md`](33_ABUSE_REPORTING_AND_MODERATION_QUEUE.md) | User abuse reporting workflow, admin review queue (`/admin/moderation`), context view, message deletion | Server #1 & #2 | Pending |
-| **34** | [`34_REALTIME_DLP_REGEX_SCANNER.md`](34_REALTIME_DLP_REGEX_SCANNER.md) | In-memory regex Data Loss Prevention scanner, preflight blocking of credit cards & API keys, admin rule manager | Server #1 & #2 | **COMPLETED** |
+| **34** | [`34_REALTIME_DLP_REGEX_SCANNER.md`](34_REALTIME_DLP_REGEX_SCANNER.md) | In-memory regex sensitive data filter (DLP), preflight blocking of credit cards & API keys, admin rule manager | Server #1 & #2 | **COMPLETED** |
 
 ---
 
@@ -110,7 +110,7 @@ When multiple autonomous agents (e.g. Antigravity Team Preview Agents) work on t
 | Phase | File | Primary Responsibility | Target Server | Status |
 | :---: | :--- | :--- | :---: | :---: |
 | **35** | [`35_REALTIME_GLOBAL_BROADCASTS.md`](35_REALTIME_GLOBAL_BROADCASTS.md) | Real-time global broadcast alert banners (`system:broadcast`), severity levels (INFO/WARNING/CRITICAL), audio chime | Server #1 & #2 | **COMPLETED** |
-| **36** | [`36_MAINTENANCE_MODE_AND_EMERGENCY_BACKUPS.md`](36_MAINTENANCE_MODE_AND_EMERGENCY_BACKUPS.md) | Enterprise Maintenance Mode switch with admin bypass, public countdown splash, on-demand `mysqldump` backup trigger | Server #1 & #2 | **COMPLETED** |
+| **36** | [`36_MAINTENANCE_MODE_AND_EMERGENCY_BACKUPS.md`](36_MAINTENANCE_MODE_AND_EMERGENCY_BACKUPS.md) | Maintenance Mode switch with admin bypass, public countdown splash, on-demand `mysqldump` backup trigger | Server #1 & #2 | **COMPLETED** |
 
 ---
 

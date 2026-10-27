@@ -73,7 +73,7 @@ WebChat/
 |---|---------|-------------|-----------|--------|
 | 1 | Root Workspace Setup | Root `package.json` with npm workspaces (`web`, `socket-server`, `shared`) | M1 | Survey |
 | 2 | Next.js Standalone Mode | `output: 'standalone'` in `web/next.config.js` generating minimal `server.js` | M1 | Survey |
-| 3 | Unoptimized Images | `images: { unoptimized: true }` in `web/next.config.js` for zero-cost LiteSpeed static delivery | M1 | Survey |
+| 3 | Unoptimized Images | `images: { unoptimized: true }` in `web/next.config.js` for direct static delivery | M1 | Survey |
 | 4 | Large Payload Upload Support | `serverActions.bodySizeLimit: '20mb'` for media messages | M1 | Survey |
 | 5 | Tailwind WhatsApp Design Tokens | Comprehensive dark/light color palette (`wa.dark`, `wa.light`, `wa.green`, `wa.blue`) | M1 | Survey |
 | 6 | Custom Slim Scrollbars | Standard CSS `scrollbar-width: thin` with legacy WebKit fallback in `globals.css` | M1 | Survey |

@@ -1,11 +1,11 @@
-# Phase 30: Storage Governance & Orphan Media Cleaner
+﻿# Phase 30: Storage Management & Orphan Media Cleaner
 
 ## 1. Phase Overview & Objectives
 **Target Workspace**: `web/` (Server #1)  
-**Primary Goal**: Build an enterprise Storage Governance and Orphan Media Cleaner module at **$0.00 additional monthly cost**. Administrators can inspect a live analytical breakdown of Hostinger NVMe disk usage across all upload categories (Avatars, Images, Voice Notes, Documents). An automated disk scanner compares physical files against active MySQL records, detects orphaned media from interrupted uploads or deleted messages, and allows one-click safe purging to reclaim disk space.
+**Primary Goal**: Build a Storage Management and Orphan Media Cleaner module at **$0.00 additional monthly cost**. Administrators can inspect a live analytical breakdown of disk usage across all upload categories (Avatars, Images, Voice Notes, Documents). An automated disk scanner compares physical files against active MySQL records, detects orphaned media from interrupted uploads or deleted messages, and allows one-click safe purging to reclaim disk space.
 
 > [!IMPORTANT]
-> **Zero Friction & Verification Guardrail**: Strictly **NO OTP**, **NO SMS**, and **NO phone verification**. Storage governance operations are restricted strictly by administrator session roles.
+> **Authentication Guardrail**: Strictly **NO OTP**, **NO SMS**, and **NO phone verification**. Storage management operations are restricted strictly by administrator session roles.
 
 ---
 
@@ -71,7 +71,7 @@ web/public/uploads/
 ├── avatars/          # User profile pictures (.webp, .jpg)
 ├── images/           # Compressed chat images (.webp)
 ├── voice/            # Voice recording audio clips (.opus, .webm)
-└── docs/             # Enterprise attachments (.pdf, .xlsx, .docx, .zip)
+└── docs/             # Document attachments (.pdf, .xlsx, .docx, .zip)
 ```
 
 ---

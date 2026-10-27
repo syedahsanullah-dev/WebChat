@@ -1,18 +1,18 @@
-# Phase 23: Background Web Push Notifications (VAPID)
+﻿# Phase 23: Background Web Push Notifications (VAPID)
 
 ## 1. Phase Overview & Objectives
 **Target Workspace**: `web/` (Server #1) & `socket-server/` (Server #2)  
 **Primary Goal**: Implement background Web Push notifications using the open **W3C VAPID protocol** via the `web-push` library at **$0.00 additional monthly cost**. Users receive real-time message alerts on Android Mobile Chrome and desktop browsers even when browser tabs or the entire browser application are closed. Includes custom vibration patterns, sender avatars, and click-to-open window navigation.
 
 > [!IMPORTANT]
-> **Zero Friction & Verification Guardrail**: Strictly **NO OTP**, **NO SMS**, and **NO phone verification**. Push subscriptions are tied directly to the authenticated browser session via Web Push VAPID keys.
+> **Authentication Guardrail**: Strictly **NO OTP**, **NO SMS**, and **NO phone verification**. Push subscriptions are tied directly to the authenticated browser session via Web Push VAPID keys.
 
 ---
 
 ## 2. Context & Prerequisites
 - **Previous Phase**: [`22_EPHEMERAL_AND_DISAPPEARING_MESSAGES.md`](22_EPHEMERAL_AND_DISAPPEARING_MESSAGES.md) (Ephemeral messaging and cleanup complete).
 - **Environment**: Next.js 15, Service Worker (`public/sw.js`), `web-push` (`^3.6.7`), VAPID public/private keypair.
-- **Zero Cost Rule**: Uses native browser push gateways (Google FCM for Chrome, Mozilla Push, Apple Push Service for Safari) via open W3C VAPID headers. Zero paid push services (No OneSignal, No Pusher).
+- **Cost Constraint**: Uses native browser push gateways (Google FCM for Chrome, Mozilla Push, Apple Push Service for Safari) via open W3C VAPID headers. Zero paid push services (No OneSignal, No Pusher).
 
 ---
 

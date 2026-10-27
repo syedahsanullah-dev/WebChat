@@ -1,4 +1,4 @@
-# Phase 13: Automated Testing & Load Simulation (SDLC QA)
+﻿# Phase 13: Automated Testing & Load Simulation (SDLC QA)
 
 ## 1. Phase Overview & Objectives
 **Target Workspace**: `web/__tests__/`, `socket-server/__tests__/`, `e2e/`, `scripts/`  
@@ -142,4 +142,4 @@ Before marking Phase 13 complete, verify:
 ---
 
 ## 7. Handoff to Phase 14
-Phase 14 will implement Automated CI/CD, Production Deployment on Hostinger, and Zero-Cost Monitoring (GitHub Actions, Fastify health checks, Winston log rotation, UptimeRobot keep-alive, and daily database backup cron).
+Phase 14 will implement Automated CI/CD, Production Deployment on Hostinger, and System Monitoring (GitHub Actions, Fastify health checks, Winston log rotation, UptimeRobot keep-alive, and daily database backup cron).

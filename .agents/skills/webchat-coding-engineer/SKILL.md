@@ -9,7 +9,7 @@ description: >-
 
 # WebChat Coding & Engineering Skill
 
-This skill provides step-by-step implementation standards and code patterns for developing the WhatsApp Web clone across both Server #1 (Next.js) and Server #2 (Fastify + Native `ws`), including the Enterprise extensions.
+This skill provides step-by-step implementation standards and code patterns for developing the WhatsApp Web clone across both Server #1 (Next.js) and Server #2 (Fastify + Native `ws`), including advanced platform extensions.
 
 ## Crucial Guardrail
 
@@ -17,7 +17,7 @@ This skill provides step-by-step implementation standards and code patterns for 
 > **DO NOT CODE APPLICATION FILES UNTIL EXPLICITLY INSTRUCTED BY THE USER.**
 > Only produce application code files once the user specifically gives the command to begin.
 
-- **Zero Friction & Verification Guardrail**: Strictly **NO OTP**, **NO SMS**, **NO phone verification**, and **NO email verification codes**. Authentication and session tracking rely purely on secure HTTP-only session cookies and cryptographic session tokens.
+- **Authentication Guardrail**: Strictly **NO OTP**, **NO SMS**, **NO phone verification**, and **NO email verification codes**. Authentication and session tracking rely purely on secure HTTP-only session cookies and cryptographic session tokens.
 
 ---
 

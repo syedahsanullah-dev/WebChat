@@ -1,4 +1,4 @@
-# Phase 07: Media Sharing (Compressed Images via Hostinger Storage)
+﻿# Phase 07: Media Sharing (Compressed Images via Hostinger Storage)
 
 ## 1. Phase Overview & Objectives
 **Target Workspace**: `web/` (Server #1)  

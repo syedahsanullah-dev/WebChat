@@ -1,14 +1,14 @@
 # WhatsApp Web Clone: Technical Specification & Implementation Plan
-## Hostinger Dual Node.js Architecture ($0 / Month Additional Cost) | 38-Phase Master Enterprise Blueprint
+## Hostinger Dual Node.js Architecture ($0 / Month Additional Cost) | 38-Phase Master Blueprint
 
 ---
 
 ## 1. Executive Summary & Core Architectural Decisions
 
-This project is an enterprise-standard web clone of **WhatsApp Web** built with **Next.js 15+ App Router**, **Fastify 4+ & Native `ws` (WebSockets)**, and **Prisma ORM**, customized to run entirely within an existing **Hostinger Web Hosting Plan** supporting Node.js applications at **$0.00 extra monthly cost**.
+This project is a modern web clone of **WhatsApp Web** built with **Next.js 15+ App Router**, **Fastify 4+ & Native `ws` (WebSockets)**, and **Prisma ORM**, customized to run entirely within an existing **Hostinger Web Hosting Plan** supporting Node.js applications at **$0.00 extra monthly cost**.
 
 ### Key Architectural Decisions & Constraints
-1. **Identity System (Zero Friction - No Phone Numbers, No OTP, No Verification Codes)**:
+1. **Identity System (Direct Authentication - No Phone Numbers, No OTP, No Verification Codes)**:
    - Users register, sign in, and discover each other using a **unique `@username`**, **email**, and **password**.
    - **Strictly NO OTP, NO SMS verification, NO phone numbers, and NO email verification codes.**
    - Frictionless authentication using secure HTTP-only JWT cookies and device session tracking.
@@ -27,23 +27,23 @@ This project is an enterprise-standard web clone of **WhatsApp Web** built with 
 5. **Mobile Chrome App Installation (Progressive Web App - PWA)**:
    - Full Mobile Chrome PWA support allowing users to click "Install App" / "Add to Home Screen" directly from the browser.
    - Configured with Web App Manifest (`manifest.json`), service worker for offline fallback and caching, standalone display mode, and custom in-app install banner prompts.
-6. **Enterprise Suite & Governance Extensions**:
+6. **Security & Advanced Feature Extensions**:
    - **Multi-Device Session Management**: Track active devices (OS, browser, IP) with remote revocation and automatic password-change invalidation.
    - **Client-Side End-to-End Encryption (E2EE)**: Web Cryptography API (`SubtleCrypto` ECDH P-256 + AES-GCM-256) for 1-on-1 private messaging with 60-digit safety numbers.
    - **Broadcast Channels & Granular RBAC**: One-way announcement channels with Owner/Admin/Member permissions and read-only subscriber guards.
    - **Interactive Multi-Choice Polls**: Live animated progress bars and real-time voting tallies over WebSocket with voter roster drawer.
    - **Pinned & Starred Messages**: Pinned message header carousel with smooth-scroll jumps, and global starred bookmarks drawer.
-   - **Enterprise Document Sharing**: PDF preview, Excel, Word, Zip files up to 25MB on Hostinger NVMe storage.
+   - **Document Sharing**: PDF preview, Excel, Word, Zip files up to 25MB on local storage.
    - **Markdown Code Blocks**: Syntax-highlighted code snippets with Prism.js dark tokens and one-click copy.
    - **Disappearing / Ephemeral Messages**: Auto-deletion timers (24h, 7d, 90d) with 24/7 background media and row cleanup.
    - **Background Web Push Notifications**: Open W3C VAPID protocol delivering notifications even when browser tabs are closed.
    - **Local-First Offline Sync**: IndexedDB message queue (`idb`) with automatic FIFO sync upon reconnection.
    - **Inbound/Outbound Webhooks & Bots**: Connect external systems (GitHub Actions, Jira, CI/CD) and custom slash commands (`/poll`, `/remind`, `/announce`).
-   - **Audit Logging & Compliance Legal Hold**: Immutable security audit logs, HTML/JSON chat export, and legal hold locks.
-7. **Enterprise Administration & Operations Suite**:
-   - **Super Admin Console (`/admin`)**: Real-time infrastructure telemetry (Fastify RAM, active sockets, DB row counts) and NVMe storage analytics with orphan file cleaner.
+   - **Audit Logging & Legal Hold**: Security audit logs, HTML/JSON chat export, and legal hold locks.
+7. **Administration & Operations Suite**:
+   - **Admin Console (`/admin`)**: Real-time infrastructure metrics (Fastify RAM, active sockets, DB row counts) and storage analytics with orphan file cleaner.
    - **User Administration & Moderation**: User data grid with search, account suspension/ban with real-time socket termination, and role delegation.
-   - **Content Moderation & Abuse Reporting**: User reporting queue with conversation context, one-click message purge, and automated regex Data Loss Prevention (DLP) filters.
+   - **Content Moderation & Abuse Reporting**: User reporting queue with conversation context, one-click message purge, and automated regex sensitive data filter (DLP).
    - **Global Broadcasts & Maintenance Mode**: Instant global broadcast alert banners (`system:broadcast`), Maintenance Mode toggle with admin bypass, and on-demand DB backups.
 8. **Real-Time Live & Current Location Sharing (Leaflet & OpenStreetMap)**:
    - WhatsApp-standard static and live GPS location sharing using browser Geolocation API, Leaflet.js, and free OpenStreetMap raster tiles ($0.00 / mo, no Google Maps / Mapbox billing).
@@ -68,7 +68,7 @@ graph TD
             APIRoutes["REST Endpoints, Webhooks & Media Upload Handler"]
             PWAEngine["Service Worker & Manifest.json (PWA)"]
             AuditEngine["Security Audit Logger & Compliance Exporter"]
-            AdminConsole["Super Admin Portal (/admin) & User Governance"]
+            AdminConsole["Admin Portal (/admin) & User Management"]
             PushServer["VAPID Web Push Dispatcher"]
         end
 
@@ -124,7 +124,7 @@ graph TD
 
 ---
 
-## 3. Technology Stack & Zero-Cost Breakdown
+## 3. Technology Stack & Cost Breakdown
 
 | Component | Technology / Tool | Role in Project | Hostinger / Tool Cost |
 | :--- | :--- | :--- | :--- |
@@ -134,12 +134,12 @@ graph TD
 | **ORM / Data Access** | **Prisma ORM** | Type-safe migrations, queries, and connection pool management | **$0 / mo** (Open Source) |
 | **Mobile Chrome Install** | **PWA (Manifest + Service Worker)** | "Install Website / Add to Home Screen" on Chrome mobile & desktop | **$0 / mo** (Native Web Standard) |
 | **Audio Calling** | **WebRTC + Opus Codec** | Peer-to-peer real-time encrypted voice calls (NO video) | **$0 / mo** (Google STUN + Metered TURN) |
-| **Multi-Device Security** | **User-Agent & Session Tokens** | Active device tracking, remote session revocation, zero OTP friction | **$0 / mo** (In-house / Open Source) |
+| **Multi-Device Security** | **User-Agent & Session Tokens** | Active device tracking, remote session revocation, direct auth | **$0 / mo** (In-house / Open Source) |
 | **End-to-End Encryption**| **Web Cryptography API (SubtleCrypto)** | In-browser ECDH P-256 + AES-GCM-256 message encryption | **$0 / mo** (Native Browser Standard) |
 | **Media & Doc Storage** | **Hostinger NVMe Disk (`/uploads`)** | Direct disk storage for avatars, images, voice notes, documents | **$0 / mo** (Hostinger disk space) |
 | **Background Push** | **web-push (VAPID protocol)** | Background notifications when app is closed via FCM/APNs | **$0 / mo** (W3C Web Push Protocol) |
 | **Offline Sync** | **IndexedDB (`idb`)** | Local-first message caching and offline pending queue | **$0 / mo** (Browser Standard) |
-| **Admin Operations** | **Custom Next.js & Fastify Telemetry** | Full system administration, moderation & global alerts | **$0 / mo** (In-house / Open Source) |
+| **Admin Operations** | **Custom Next.js & Fastify Metrics** | Full system administration, moderation & global alerts | **$0 / mo** (In-house / Open Source) |
 | **Geolocation & Maps** | **Leaflet.js + OpenStreetMap** | Client-side map rendering, live avatar pins & Nominatim reverse geocoding | **$0 / mo** (Open Source / Free Tiles) |
 | **Automated Testing** | **Vitest + Playwright** | Unit tests for utilities/APIs and end-to-end browser chat flows | **$0 / mo** (Open Source) |
 | **Load Simulator** | **k6 (Grafana open source)** | Virtual user load simulation (100–500 simulated users) | **$0 / mo** (Open Source local runner) |
@@ -152,7 +152,7 @@ graph TD
 
 ## 4. Complete Database Schema (Prisma Data Models)
 
-Optimized for **MySQL on Hostinger** with indexed foreign keys, small connection footprints, and supporting the **Enterprise 38-Phase Suite**:
+Optimized for **MySQL on Hostinger** with indexed foreign keys, small connection footprints, and supporting the **38-Phase Suite**:
 
 ```prisma
 datasource db {
@@ -629,13 +629,13 @@ model LiveLocation {
 - **Phase 13**: [`phases/13_AUTOMATED_TESTING_AND_LOAD_SIMULATION.md`](phases/13_AUTOMATED_TESTING_AND_LOAD_SIMULATION.md) — Vitest unit/integration tests, Playwright E2E chat flow, k6 load simulator (100–500 virtual users).
 - **Phase 14**: [`phases/14_AUTOMATED_CICD_DEPLOYMENT_AND_MONITORING.md`](phases/14_AUTOMATED_CICD_DEPLOYMENT_AND_MONITORING.md) — GitHub Actions CI/CD to Hostinger, Fastify health checks, `.htaccess` proxy, Winston log rotation, daily DB cron backup.
 
-### Part II: Enterprise Security, Data & Communications (Phases 15 – 22)
+### Part II: Security, Data & Communications (Phases 15 – 22)
 - **Phase 15**: [`phases/15_DEVICE_SESSIONS_AND_MULTI_DEVICE_SECURITY.md`](phases/15_DEVICE_SESSIONS_AND_MULTI_DEVICE_SECURITY.md) — Active session tracking, User-Agent & IP detection, remote session revocation, password change invalidation.
 - **Phase 16**: [`phases/16_CLIENT_SIDE_END_TO_END_ENCRYPTION_E2EE.md`](phases/16_CLIENT_SIDE_END_TO_END_ENCRYPTION_E2EE.md) — Client-side E2EE (SubtleCrypto ECDH P-256 + AES-GCM-256), IndexedDB private key store, Safety Numbers.
 - **Phase 17**: [`phases/17_BROADCAST_ANNOUNCEMENT_CHANNELS.md`](phases/17_BROADCAST_ANNOUNCEMENT_CHANNELS.md) — Broadcast announcement channels, public slugs, subscriber management, read-only subscriber guard.
 - **Phase 18**: [`phases/18_INTERACTIVE_REALTIME_POLLS.md`](phases/18_INTERACTIVE_REALTIME_POLLS.md) — Multi-choice interactive polls, live WebSocket voting tallies, animated percentage bars, voter roster.
 - **Phase 19**: [`phases/19_PINNED_AND_STARRED_MESSAGES.md`](phases/19_PINNED_AND_STARRED_MESSAGES.md) — Pinned message header banner carousel with click-to-jump, global starred message bookmarks drawer.
-- **Phase 20**: [`phases/20_ENTERPRISE_DOCUMENT_SHARING.md`](phases/20_ENTERPRISE_DOCUMENT_SHARING.md) — Enterprise document sharing (PDF, Excel, Word, Zip up to 25MB), local NVMe storage, in-app PDF preview.
+- **Phase 20**: [`phases/20_ENTERPRISE_DOCUMENT_SHARING.md`](phases/20_ENTERPRISE_DOCUMENT_SHARING.md) — Document sharing (PDF, Excel, Word, Zip up to 25MB), local storage, in-app PDF preview.
 - **Phase 21**: [`phases/21_MARKDOWN_CODE_BLOCKS_AND_SYNTAX_HIGHLIGHTING.md`](phases/21_MARKDOWN_CODE_BLOCKS_AND_SYNTAX_HIGHLIGHTING.md) — Syntax-highlighted code blocks with Prism.js dark tokens, language badges, one-click copy button.
 - **Phase 22**: [`phases/22_EPHEMERAL_AND_DISAPPEARING_MESSAGES.md`](phases/22_EPHEMERAL_AND_DISAPPEARING_MESSAGES.md) — Chat auto-deletion timers (24h, 7d, 90d), clock badges, Fastify 24/7 background media & row purge.
 
@@ -645,21 +645,21 @@ model LiveLocation {
 - **Phase 25**: [`phases/25_INBOUND_AND_OUTBOUND_WEBHOOKS.md`](phases/25_INBOUND_AND_OUTBOUND_WEBHOOKS.md) — Inbound/Outbound webhooks (CI/CD alerts), HMAC SHA-256 signature verification, `BOT` badges, webhook drawer.
 - **Phase 26**: [`phases/26_CHATBOTS_AND_SLASH_COMMANDS.md`](phases/26_CHATBOTS_AND_SLASH_COMMANDS.md) — In-chat slash commands (`/poll`, `/remind`, `/announce`, `/help`), popover autocomplete, scheduled reminder daemon.
 
-### Part IV: Enterprise Compliance & Governance (Phases 27 – 28)
-- **Phase 27**: [`phases/27_IMMUTABLE_SECURITY_AUDIT_LOGGING.md`](phases/27_IMMUTABLE_SECURITY_AUDIT_LOGGING.md) — Immutable security audit logs, event interceptors, searchable compliance console (`/admin/audit`), CSV export.
-- **Phase 28**: [`phases/28_COMPLIANCE_DATA_EXPORT_AND_LEGAL_HOLD.md`](phases/28_COMPLIANCE_DATA_EXPORT_AND_LEGAL_HOLD.md) — Legal Hold governance lock, compliance `.zip` export with styled offline HTML and JSON transcripts via `archiver`.
+### Part IV: Compliance & Data Management (Phases 27 – 28)
+- **Phase 27**: [`phases/27_IMMUTABLE_SECURITY_AUDIT_LOGGING.md`](phases/27_IMMUTABLE_SECURITY_AUDIT_LOGGING.md) — Security audit logs, event interceptors, searchable audit console (`/admin/audit`), CSV export.
+- **Phase 28**: [`phases/28_COMPLIANCE_DATA_EXPORT_AND_LEGAL_HOLD.md`](phases/28_COMPLIANCE_DATA_EXPORT_AND_LEGAL_HOLD.md) — Legal Hold lock, data `.zip` export with styled offline HTML and JSON transcripts via `archiver`.
 
-### Part V: Enterprise Administration & Operations (Phases 29 – 34)
-- **Phase 29**: [`phases/29_ADMIN_CONSOLE_AND_SYSTEM_METRICS.md`](phases/29_ADMIN_CONSOLE_AND_SYSTEM_METRICS.md) — Super Admin portal layout (`/admin`), Fastify RAM telemetry (MB), active socket count, MySQL row counts.
-- **Phase 30**: [`phases/30_STORAGE_GOVERNANCE_AND_ORPHAN_CLEANER.md`](phases/30_STORAGE_GOVERNANCE_AND_ORPHAN_CLEANER.md) — Hostinger NVMe storage analytics (Avatars, Images, Voice, Docs), orphan file scanner, safe disk purger.
-- **Phase 31**: [`phases/31_USER_ADMINISTRATION_AND_ROLE_DELEGATION.md`](phases/31_USER_ADMINISTRATION_AND_ROLE_DELEGATION.md) — User administration data grid with multi-column filters, RBAC hierarchy (`USER` to `SUPER_ADMIN`), user details.
+### Part V: Administration & Operations (Phases 29 – 34)
+- **Phase 29**: [`phases/29_ADMIN_CONSOLE_AND_SYSTEM_METRICS.md`](phases/29_ADMIN_CONSOLE_AND_SYSTEM_METRICS.md) — Admin portal layout (`/admin`), Fastify RAM metrics (MB), active socket count, MySQL row counts.
+- **Phase 30**: [`phases/30_STORAGE_GOVERNANCE_AND_ORPHAN_CLEANER.md`](phases/30_STORAGE_GOVERNANCE_AND_ORPHAN_CLEANER.md) — Storage analytics (Avatars, Images, Voice, Docs), orphan file scanner, safe disk purger.
+- **Phase 31**: [`phases/31_USER_ADMINISTRATION_AND_ROLE_DELEGATION.md`](phases/31_USER_ADMINISTRATION_AND_ROLE_DELEGATION.md) — User administration data grid with multi-column filters, role hierarchy (`USER` to `SUPER_ADMIN`), user details.
 - **Phase 32**: [`phases/32_ACCOUNT_MODERATION_BANS_AND_SOCKET_KICKS.md`](phases/32_ACCOUNT_MODERATION_BANS_AND_SOCKET_KICKS.md) — Account suspension and ban workflows, mandatory reason audit, real-time WebSocket kicks (`user:kick`).
 - **Phase 33**: [`phases/33_ABUSE_REPORTING_AND_MODERATION_QUEUE.md`](phases/33_ABUSE_REPORTING_AND_MODERATION_QUEUE.md) — User abuse reporting workflow, admin review queue (`/admin/moderation`), context view, message deletion.
-- **Phase 34**: [`phases/34_REALTIME_DLP_REGEX_SCANNER.md`](phases/34_REALTIME_DLP_REGEX_SCANNER.md) — In-memory regex Data Loss Prevention scanner, preflight blocking of credit cards & API keys, admin rule manager.
+- **Phase 34**: [`phases/34_REALTIME_DLP_REGEX_SCANNER.md`](phases/34_REALTIME_DLP_REGEX_SCANNER.md) — In-memory regex sensitive data filter (DLP), preflight blocking of credit cards & API keys, admin rule manager.
 
 ### Part VI: Platform Reliability & Emergency Operations (Phases 35 – 36)
 - **Phase 35**: [`phases/35_REALTIME_GLOBAL_BROADCASTS.md`](phases/35_REALTIME_GLOBAL_BROADCASTS.md) — Real-time global broadcast alert banners (`system:broadcast`), severity levels (INFO/WARNING/CRITICAL), audio chime.
-- **Phase 36**: [`phases/36_MAINTENANCE_MODE_AND_EMERGENCY_BACKUPS.md`](phases/36_MAINTENANCE_MODE_AND_EMERGENCY_BACKUPS.md) — Enterprise Maintenance Mode switch with admin bypass, public countdown splash, on-demand `mysqldump` backup trigger.
+- **Phase 36**: [`phases/36_MAINTENANCE_MODE_AND_EMERGENCY_BACKUPS.md`](phases/36_MAINTENANCE_MODE_AND_EMERGENCY_BACKUPS.md) — Maintenance Mode switch with admin bypass, public countdown splash, on-demand `mysqldump` backup trigger.
 
 ### Part VII: Advanced Geolocation & Mobility (Phases 37 – 38)
 - **Phase 37**: [`phases/37_CURRENT_STATIC_LOCATION_SHARING.md`](phases/37_CURRENT_STATIC_LOCATION_SHARING.md) — Static GPS location sharing, Leaflet map card, OpenStreetMap Nominatim reverse geocoding with server LRU cache.

@@ -1,11 +1,11 @@
-# Phase 18: Interactive Real-Time Polls & Live Voting
+﻿# Phase 18: Interactive Real-Time Polls & Live Voting
 
 ## 1. Phase Overview & Objectives
 **Target Workspace**: `web/` (Server #1) & `socket-server/` (Server #2)  
 **Primary Goal**: Build WhatsApp-style interactive multi-choice polls at **$0.00 additional monthly cost**. Users can create polls with multiple options in direct chats, group conversations, and announcement channels. Group members can vote in real-time, see live animated percentage bars update instantly over WebSockets, and open a voter roster drawer to inspect who voted for each option.
 
 > [!IMPORTANT]
-> **Zero Friction & Verification Guardrail**: Strictly **NO OTP**, **NO SMS**, and **NO phone verification**. Voting and poll creation are governed directly by active user sessions.
+> **Authentication Guardrail**: Strictly **NO OTP**, **NO SMS**, and **NO phone verification**. Voting and poll creation are governed directly by active user sessions.
 
 ---
 

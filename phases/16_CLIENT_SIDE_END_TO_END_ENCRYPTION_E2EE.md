@@ -1,18 +1,18 @@
-# Phase 16: Client-Side End-to-End Encryption (E2EE)
+﻿# Phase 16: Client-Side End-to-End Encryption (E2EE)
 
 ## 1. Phase Overview & Objectives
 **Target Workspace**: `web/` (Server #1) & `socket-server/` (Server #2)  
 **Primary Goal**: Implement true client-side End-to-End Encryption (E2EE) for 1-on-1 private messaging using the browser's native **Web Cryptography API (`window.crypto.subtle`)** at **$0.00 additional monthly cost**. Private keys never leave the client's browser, and public keys are exchanged via Server #1. Messages are encrypted with AES-GCM-256 before transmission over WebSockets and decrypted only on recipient devices.
 
 > [!IMPORTANT]
-> **Zero Friction & Verification Guardrail**: Strictly **NO OTP**, **NO SMS**, and **NO phone verification**. Key exchange and verification rely entirely on public-key cryptography and in-app Safety Numbers.
+> **Authentication Guardrail**: Strictly **NO OTP**, **NO SMS**, and **NO phone verification**. Key exchange and verification rely entirely on public-key cryptography and in-app Safety Numbers.
 
 ---
 
 ## 2. Context & Prerequisites
 - **Previous Phase**: [`15_DEVICE_SESSIONS_AND_MULTI_DEVICE_SECURITY.md`](15_DEVICE_SESSIONS_AND_MULTI_DEVICE_SECURITY.md) (Device session tracking and secure JWT tokens operational).
 - **Environment**: Next.js 15, Web Cryptography API (`SubtleCrypto` ECDH + AES-GCM), Browser IndexedDB (`idb`).
-- **Zero Cost Rule**: Utilizes native browser cryptography standards. Zero paid KMS or external encryption APIs.
+- **Cost Constraint**: Utilizes native browser cryptography standards. Zero paid KMS or external encryption APIs.
 
 ---
 

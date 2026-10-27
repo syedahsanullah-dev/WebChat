@@ -65,6 +65,28 @@ class RoomManager {
             }
         }
     }
+    kickUser(userId, reason = 'Account suspended') {
+        const sockets = this.userSockets.get(userId);
+        if (!sockets)
+            return;
+        const kickEnvelope = JSON.stringify({
+            type: 'user:kick',
+            payload: { userId, reason },
+        });
+        for (const socket of Array.from(sockets)) {
+            if (socket.readyState === ws_1.WebSocket.OPEN) {
+                try {
+                    socket.send(kickEnvelope);
+                    socket.close(4002, 'Account Suspended');
+                }
+                catch {
+                    socket.terminate();
+                }
+            }
+            this.leaveAll(socket);
+        }
+        this.userSockets.delete(userId);
+    }
     broadcastAll(data, excludeSocket) {
         const message = typeof data === 'string' ? data : JSON.stringify(data);
         for (const sockets of this.userSockets.values()) {

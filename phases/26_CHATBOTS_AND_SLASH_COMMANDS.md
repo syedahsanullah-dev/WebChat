@@ -1,11 +1,11 @@
-# Phase 26: Chatbots & Slash Commands Engine
+﻿# Phase 26: Chatbots & Slash Commands Engine
 
 ## 1. Phase Overview & Objectives
 **Target Workspace**: `web/` (Server #1) & `socket-server/` (Server #2)  
 **Primary Goal**: Implement an interactive Chatbot and Slash Commands engine at **$0.00 additional monthly cost**. Users can type `/` in the chat input bar to access quick productivity commands: `/poll` for rapid poll generation, `/remind` for scheduled reminder messages delivered by an automated system bot, `/announce` for broadcast formatting, and `/help`. Reminders are processed by a lightweight 24/7 background scheduler on Server #2.
 
 > [!IMPORTANT]
-> **Zero Friction & Verification Guardrail**: Strictly **NO OTP**, **NO SMS**, and **NO phone verification**. Bot commands execute seamlessly within active chat sessions.
+> **Authentication Guardrail**: Strictly **NO OTP**, **NO SMS**, and **NO phone verification**. Bot commands execute seamlessly within active chat sessions.
 
 ---
 
@@ -170,4 +170,4 @@ model ScheduledReminder {
 ---
 
 ## 8. Autonomous Multi-Agent Handoff Instructions
-The next phase is [`27_IMMUTABLE_SECURITY_AUDIT_LOGGING.md`](27_IMMUTABLE_SECURITY_AUDIT_LOGGING.md). That agent will build immutable security audit logging capturing all enterprise authentication, governance, and administrative events.
+The next phase is [`27_IMMUTABLE_SECURITY_AUDIT_LOGGING.md`](27_IMMUTABLE_SECURITY_AUDIT_LOGGING.md). That agent will build security audit logging capturing all authentication and administrative events.

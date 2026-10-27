@@ -1,18 +1,18 @@
-# Phase 28: Compliance Data Export & Legal Hold Governance
+﻿# Phase 28: Data Export & Legal Hold
 
 ## 1. Phase Overview & Objectives
 **Target Workspace**: `web/` (Server #1)  
-**Primary Goal**: Implement enterprise Compliance Data Export and Legal Hold Governance at **$0.00 additional monthly cost**. Corporate compliance officers and administrators can place any conversation under **Legal Hold**, which halts disappearing message timers and prevents message deletion to preserve evidentiary integrity. In addition, authorized users and administrators can export complete chat transcripts into a downloadable `.zip` archive (via `archiver`) containing both a standalone, styled offline HTML transcript (`transcript.html`) and a machine-readable JSON dump (`transcript.json`).
+**Primary Goal**: Implement Data Export and Legal Hold features at **$0.00 additional monthly cost**. Administrators can place any conversation under **Legal Hold**, which halts disappearing message timers and prevents message deletion to preserve message integrity. In addition, authorized users and administrators can export complete chat transcripts into a downloadable `.zip` archive (via `archiver`) containing both a standalone, styled offline HTML transcript (`transcript.html`) and a machine-readable JSON dump (`transcript.json`).
 
 > [!IMPORTANT]
-> **Zero Friction & Verification Guardrail**: Strictly **NO OTP**, **NO SMS**, and **NO phone verification**. Export and legal hold access are controlled strictly by user session identity and system RBAC roles.
+> **Authentication Guardrail**: Strictly **NO OTP**, **NO SMS**, and **NO phone verification**. Export and legal hold access are controlled strictly by user session identity and system RBAC roles.
 
 ---
 
 ## 2. Context & Prerequisites
 - **Previous Phase**: [`27_IMMUTABLE_SECURITY_AUDIT_LOGGING.md`](27_IMMUTABLE_SECURITY_AUDIT_LOGGING.md) (Audit logging operational).
 - **Environment**: Next.js 15, `archiver` (`^7.0.1`) + `@types/archiver`, Hostinger MySQL via Prisma (`connection_limit=10`).
-- **Data Protection Rule**: User data exports comply with GDPR "Right of Access" and corporate e-discovery standards with zero external compliance SaaS billing.
+- **Data Protection Rule**: User data exports comply with GDPR "Right of Access" and data export standards with zero external compliance SaaS billing.
 
 ---
 
@@ -37,7 +37,7 @@ WebChat/
 │   │   │   │   ├── LegalHoldBanner.tsx      # Yellow header banner: "This chat is under Legal Hold"
 │   │   │   │   └── ExportChatModal.tsx      # Modal: Include media checkbox, date range, start export
 │   │   │   └── admin/
-│   │   │       └── LegalHoldToggle.tsx      # Admin governance switch with reason prompt
+│   │   │       └── LegalHoldToggle.tsx      # Admin switch with reason prompt
 │   │   └── lib/
 │   │       ├── htmlTranscriptGenerator.ts   # Renders offline HTML template with WhatsApp CSS styling
 │   │       └── zipPacker.ts                 # Uses archiver to bundle HTML, JSON, and media attachments
@@ -151,4 +151,4 @@ sequenceDiagram
 ---
 
 ## 8. Autonomous Multi-Agent Handoff Instructions
-The next phase is [`29_ADMIN_CONSOLE_AND_SYSTEM_METRICS.md`](29_ADMIN_CONSOLE_AND_SYSTEM_METRICS.md). That agent will build the Super Admin portal (`/admin`) with live Fastify RAM telemetry, active WebSocket metrics, and database statistics.
+The next phase is [`29_ADMIN_CONSOLE_AND_SYSTEM_METRICS.md`](29_ADMIN_CONSOLE_AND_SYSTEM_METRICS.md). That agent will build the Admin portal (`/admin`) with live Fastify RAM metrics, active WebSocket metrics, and database statistics.

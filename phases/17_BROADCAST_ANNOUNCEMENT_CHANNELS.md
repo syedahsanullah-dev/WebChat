@@ -1,11 +1,11 @@
-# Phase 17: Broadcast Announcement Channels & Channel Governance
+﻿# Phase 17: Broadcast Announcement Channels & Permissions
 
 ## 1. Phase Overview & Objectives
 **Target Workspace**: `web/` (Server #1) & `socket-server/` (Server #2)  
 **Primary Goal**: Implement WhatsApp-style Broadcast Announcement Channels at **$0.00 additional monthly cost**. Channels allow organization leaders, community creators, and administrators to broadcast updates, news, and rich media to unlimited subscribers. Subscribers have a clean, read-only experience (no spam or typing indicators), while admins have full broadcasting and analytics privileges.
 
 > [!IMPORTANT]
-> **Zero Friction & Verification Guardrail**: Strictly **NO OTP**, **NO SMS**, and **NO phone verification**. Channel creation and subscription are instant based on `@username` identity.
+> **Authentication Guardrail**: Strictly **NO OTP**, **NO SMS**, and **NO phone verification**. Channel creation and subscription are instant based on `@username` identity.
 
 ---
 

@@ -77,11 +77,6 @@ export class RoomManager {
     }
   }
 
-  getUserSockets(userId: string): AuthenticatedWebSocket[] {
-    const sockets = this.userSockets.get(userId);
-    return sockets ? Array.from(sockets) : [];
-  }
-
   kickUser(userId: string, reason: string = 'Account suspended'): void {
     const sockets = this.userSockets.get(userId);
     if (!sockets) return;

@@ -1,4 +1,4 @@
-# Phase 02: Hostinger Database & Dual-Server Infrastructure Setup
+﻿# Phase 02: Hostinger Database & Dual-Server Infrastructure Setup
 
 ## 1. Phase Overview & Objectives
 **Target Workspace**: `web/prisma/`, `socket-server/`, and Hostinger MySQL  

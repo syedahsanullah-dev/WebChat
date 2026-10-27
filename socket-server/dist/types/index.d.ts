@@ -1,4 +1,4 @@
-export type WsEventType = 'ping' | 'pong' | 'presence:init' | 'user:online' | 'user:offline' | 'typing:start' | 'typing:stop' | 'message:send' | 'message:ack' | 'message:new' | 'message:read' | 'message:status' | 'message:reaction' | 'message:delete' | 'group:created' | 'group:member_update' | 'group:join' | 'group:leave' | 'audio-call:invite' | 'audio-call:incoming' | 'audio-call:ring' | 'audio-call:accept' | 'audio-call:accepted' | 'audio-call:reject' | 'audio-call:busy' | 'audio-call:ice-candidate' | 'audio-call:end' | 'audio-call:ended' | 'session:revoked' | 'error' | 'system:broadcast' | 'system:broadcast_dismiss' | 'poll:vote' | 'poll:update' | 'chat:pin' | 'chat:pin_updated' | 'webhook:received';
+export type WsEventType = 'ping' | 'pong' | 'presence:init' | 'user:online' | 'user:offline' | 'typing:start' | 'typing:stop' | 'message:send' | 'message:ack' | 'message:new' | 'message:read' | 'message:status' | 'message:reaction' | 'message:delete' | 'group:created' | 'group:member_update' | 'group:join' | 'group:leave' | 'audio-call:invite' | 'audio-call:incoming' | 'audio-call:ring' | 'audio-call:accept' | 'audio-call:accepted' | 'audio-call:reject' | 'audio-call:busy' | 'audio-call:ice-candidate' | 'audio-call:end' | 'audio-call:ended' | 'session:revoked' | 'error' | 'system:broadcast' | 'system:broadcast_dismiss' | 'poll:vote' | 'poll:update' | 'chat:pin' | 'chat:pin_updated' | 'chat:ephemeral_update' | 'chat:ephemeral_updated' | 'webhook:received' | 'location:live_start' | 'location:live_started' | 'location:live_update' | 'location:live_updated' | 'location:live_stop' | 'location:live_stopped' | 'location:live_ended' | 'user:kick' | 'user:mute' | 'user:warn';
 export interface WsEnvelope<T = any> {
     type: WsEventType;
     payload: T;
@@ -43,6 +43,12 @@ export interface MessageSendPayload {
     latitude?: number | null;
     longitude?: number | null;
     locationAddress?: string | null;
+    documentName?: string | null;
+    documentSize?: number | null;
+    documentMime?: string | null;
+    isCodeBlock?: boolean;
+    codeLanguage?: string | null;
+    expiresAt?: string | null;
 }
 export interface MessageAckPayload {
     tempId?: string;
@@ -55,6 +61,12 @@ export interface MessageAckPayload {
     latitude?: number | null;
     longitude?: number | null;
     locationAddress?: string | null;
+    documentName?: string | null;
+    documentSize?: number | null;
+    documentMime?: string | null;
+    isCodeBlock?: boolean;
+    codeLanguage?: string | null;
+    expiresAt?: string | null;
 }
 export interface MessageReadPayload {
     chatId: string;
@@ -255,4 +267,35 @@ export interface ChatPinUpdatedPayload {
         messageSnippet?: string;
         messageSenderName?: string;
     }>;
+}
+export interface LiveLocationStartPayload {
+    chatId: string;
+    latitude: number;
+    longitude: number;
+    durationMinutes: number;
+    comment?: string;
+    heading?: number;
+    speed?: number;
+    accuracy?: number;
+}
+export interface LiveLocationUpdatePayload {
+    liveLocationId: string;
+    chatId: string;
+    userId?: string;
+    latitude: number;
+    longitude: number;
+    heading?: number | null;
+    speed?: number | null;
+    accuracy?: number | null;
+}
+export interface LiveLocationStopPayload {
+    liveLocationId: string;
+    chatId: string;
+}
+export interface UserKickPayload {
+    userId: string;
+    reason: string;
+    suspendedUntil?: string | null;
+    suspendedAt?: string;
+    permanent?: boolean;
 }

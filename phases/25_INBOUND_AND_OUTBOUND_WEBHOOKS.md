@@ -1,11 +1,11 @@
-# Phase 25: Inbound & Outbound Webhooks Engine
+﻿# Phase 25: Inbound & Outbound Webhooks Engine
 
 ## 1. Phase Overview & Objectives
 **Target Workspace**: `web/` (Server #1) & `socket-server/` (Server #2)  
-**Primary Goal**: Build an enterprise Webhooks Engine at **$0.00 additional monthly cost**. Organizations can connect external developer tools (GitHub Actions, GitLab, Jira, CircleCI, internal microservices) directly to WebChat conversations and announcement channels. Inbound webhooks post formatted automated updates with a distinct `BOT` badge, while outbound webhooks deliver chat events to external HTTP endpoints with HMAC SHA-256 signature verification.
+**Primary Goal**: Build a Webhooks Engine at **$0.00 additional monthly cost**. Organizations can connect external developer tools (GitHub Actions, GitLab, Jira, CircleCI, internal microservices) directly to WebChat conversations and announcement channels. Inbound webhooks post formatted automated updates with a distinct `BOT` badge, while outbound webhooks deliver chat events to external HTTP endpoints with HMAC SHA-256 signature verification.
 
 > [!IMPORTANT]
-> **Zero Friction & Verification Guardrail**: Strictly **NO OTP**, **NO SMS**, and **NO phone verification**. Webhooks are created and authenticated using secure 256-bit API tokens and HMAC secrets.
+> **Authentication Guardrail**: Strictly **NO OTP**, **NO SMS**, and **NO phone verification**. Webhooks are created and authenticated using secure 256-bit API tokens and HMAC secrets.
 
 ---
 

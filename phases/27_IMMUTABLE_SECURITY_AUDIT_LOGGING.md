@@ -1,11 +1,11 @@
-# Phase 27: Immutable Security Audit Logging
+﻿# Phase 27: Security Audit Logging
 
 ## 1. Phase Overview & Objectives
 **Target Workspace**: `web/` (Server #1) & `socket-server/` (Server #2)  
-**Primary Goal**: Implement an enterprise-grade, tamper-resistant Security Audit Logging system at **$0.00 additional monthly cost**. All critical security, administrative, governance, and user lifecycle events (authentication, session revocation, role changes, member kicks, channel broadcasts, DLP violations) are logged into an append-only database table with actor ID, IP address, user agent, and timestamp. Compliance officers can query, filter, and export audit trails to CSV.
+**Primary Goal**: Implement an append-only Security Audit Logging system at **$0.00 additional monthly cost**. All critical security, administrative, and user lifecycle events (authentication, session revocation, role changes, member kicks, channel broadcasts, DLP violations) are logged into an append-only database table with actor ID, IP address, user agent, and timestamp. Administrators can query, filter, and export audit trails to CSV.
 
 > [!IMPORTANT]
-> **Zero Friction & Verification Guardrail**: Strictly **NO OTP**, **NO SMS**, and **NO phone verification**. Audit logging tracks authenticated actor IDs and session tokens automatically in the background.
+> **Authentication Guardrail**: Strictly **NO OTP**, **NO SMS**, and **NO phone verification**. Audit logging tracks authenticated actor IDs and session tokens automatically in the background.
 
 ---
 
@@ -25,7 +25,7 @@ WebChat/
 │   │   ├── app/
 │   │   │   ├── admin/
 │   │   │   │   └── audit/
-│   │   │   │       └── page.tsx             # Enterprise Audit Log search and filter console
+│   │   │   │       └── page.tsx             # Audit Log search and filter console
 │   │   │   └── api/
 │   │   │       └── admin/
 │   │   │           └── audit/
@@ -126,7 +126,7 @@ model AuditLog {
     ```
 - [ ] **2. Standardized Audit Action Enums (`types.ts`)**:
   - **Authentication Events**: `AUTH_LOGIN`, `AUTH_LOGOUT`, `PASSWORD_UPDATED`, `SESSION_REVOKED`.
-  - **Governance Events**: `GROUP_CREATED`, `GROUP_ADMIN_PROMOTED`, `MEMBER_KICKED`, `CHANNEL_BROADCAST_SENT`.
+  - **Group & Channel Events**: `GROUP_CREATED`, `GROUP_ADMIN_PROMOTED`, `MEMBER_KICKED`, `CHANNEL_BROADCAST_SENT`.
   - **Compliance Events**: `EPHEMERAL_TIMER_CHANGED`, `LEGAL_HOLD_ENABLED`, `LEGAL_HOLD_DISABLED`, `CHAT_EXPORT_DOWNLOADED`.
   - **Administrative Events**: `USER_ROLE_ELEVATED`, `USER_SUSPENDED`, `USER_UNBANNED`, `DLP_VIOLATION_BLOCKED`, `GLOBAL_BROADCAST_CREATED`, `MAINTENANCE_TOGGLED`.
 - [ ] **3. Event Interceptors Integration**:
@@ -152,7 +152,7 @@ model AuditLog {
   - Table columns:
     - Timestamp (formatted with timezone).
     - Actor (avatar, `@username`, and display name).
-    - Action badge (Color-coded: Blue for Auth, Purple for Governance, Red for Moderation/DLP).
+    - Action badge (Color-coded: Blue for Auth, Purple for Group & Channel, Red for Moderation/DLP).
     - IP Address.
     - Details button (opens modal displaying parsed JSON metadata).
   - "Export CSV" button in header.
@@ -171,4 +171,4 @@ model AuditLog {
 ---
 
 ## 8. Autonomous Multi-Agent Handoff Instructions
-The next phase is [`28_COMPLIANCE_DATA_EXPORT_AND_LEGAL_HOLD.md`](28_COMPLIANCE_DATA_EXPORT_AND_LEGAL_HOLD.md). That agent will build the Enterprise Legal Hold governance lock and compliance `.zip` chat export containing standalone HTML transcripts and JSON metadata.
+The next phase is [`28_COMPLIANCE_DATA_EXPORT_AND_LEGAL_HOLD.md`](28_COMPLIANCE_DATA_EXPORT_AND_LEGAL_HOLD.md). That agent will build the Legal Hold lock and compliance `.zip` chat export containing standalone HTML transcripts and JSON metadata.

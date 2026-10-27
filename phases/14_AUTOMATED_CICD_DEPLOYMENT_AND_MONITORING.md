@@ -1,15 +1,15 @@
-# Phase 14: Automated CI/CD, Production Deployment & Zero-Cost Monitoring (SDLC Ops)
+﻿# Phase 14: Automated CI/CD, Production Deployment & System Monitoring (SDLC Ops)
 
 ## 1. Phase Overview & Objectives
 **Target Workspace**: `.github/workflows/`, Hostinger hPanel, `.htaccess`, and Server #1 & #2 configurations  
-**Primary Goal**: Execute the final production deployment of WebChat to Hostinger at **$0.00 additional monthly cost**. Establish automated CI/CD via GitHub Actions for both Next.js Standalone and Fastify + Native `ws`, configure Hostinger Node.js applications with `.htaccess` WebSocket proxying, implement zero-cost local error logging, schedule automated daily database backups, and set up 24/7 keep-alive monitoring with UptimeRobot.
+**Primary Goal**: Execute the final production deployment of WebChat to Hostinger at **$0.00 additional monthly cost**. Establish automated CI/CD via GitHub Actions for both Next.js Standalone and Fastify + Native `ws`, configure Hostinger Node.js applications with `.htaccess` WebSocket proxying, implement local error logging, schedule automated daily database backups, and set up 24/7 keep-alive monitoring with UptimeRobot.
 
 ---
 
 ## 2. Context & Prerequisites
 - **Previous Phase**: [`13_AUTOMATED_TESTING_AND_LOAD_SIMULATION.md`](13_AUTOMATED_TESTING_AND_LOAD_SIMULATION.md) (All unit, integration, E2E, and load tests passing).
 - **Environment**: Hostinger Web Hosting Plan (supporting Node.js apps), GitHub Actions, UptimeRobot (Free Tier).
-- **Zero Cost Rule**: Uses free GitHub Actions runner minutes (2,000 mins/mo free), free Let's Encrypt SSL, and native Hostinger cron jobs.
+- **Cost Constraint**: Uses free GitHub Actions runner minutes (2,000 mins/mo free), free Let's Encrypt SSL, and native Hostinger cron jobs.
 - **Reference**: Full dependencies and scripts in [`TECH_STACK_AND_ENV_CONFIG.md`](../TECH_STACK_AND_ENV_CONFIG.md).
 
 ---

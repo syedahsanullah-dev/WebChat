@@ -1,11 +1,11 @@
-# Phase 24: Local-First Offline Sync & IndexedDB Message Queue
+﻿# Phase 24: Local-First Offline Sync & IndexedDB Message Queue
 
 ## 1. Phase Overview & Objectives
 **Target Workspace**: `web/` (Server #1) & `socket-server/` (Server #2)  
 **Primary Goal**: Build a resilient local-first architecture using browser **IndexedDB** (via the lightweight `idb` library) at **$0.00 additional monthly cost**. When users lose internet connection (e.g. mobile elevator, tunnel, or unstable Wi-Fi), messages can still be typed and queued locally with a clock icon (`🕒`). Once connectivity resumes, an automatic FIFO reconciliation queue transmits pending messages over WebSockets, replaces temporary client IDs with permanent server IDs, and restores normal delivery tick status.
 
 > [!IMPORTANT]
-> **Zero Friction & Verification Guardrail**: Strictly **NO OTP**, **NO SMS**, and **NO phone verification**. Offline state synchronization relies purely on local-first storage and WebSocket reconnection.
+> **Authentication Guardrail**: Strictly **NO OTP**, **NO SMS**, and **NO phone verification**. Offline state synchronization relies purely on local-first storage and WebSocket reconnection.
 
 ---
 

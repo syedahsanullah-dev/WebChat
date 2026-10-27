@@ -1,11 +1,11 @@
-# Phase 34: Real-Time Data Loss Prevention (DLP) Regex Scanner
+﻿# Phase 34: Sensitive Data Filter (DLP) Regex Scanner
 
 ## 1. Phase Overview & Objectives
 **Target Workspace**: `web/` (Server #1) & `socket-server/` (Server #2)  
-**Primary Goal**: Build an enterprise Real-Time Data Loss Prevention (DLP) Regex Scanner at **$0.00 additional monthly cost**. Outgoing messages sent over WebSockets are intercepted in memory by Server #2 and scanned against compiled regex patterns before broadcasting. Pre-configured rules detect and block accidental or malicious leaks of sensitive corporate credentials: AWS Access Keys, RSA/SSH Private Keys, Credit Card numbers (with Luhn checksum validation), and Social Security / National ID formats. Violations are immediately blocked, warned to the sender, and immutably recorded in the compliance audit trail.
+**Primary Goal**: Build a Real-Time Sensitive Data Filter (DLP) Regex Scanner at **$0.00 additional monthly cost**. Outgoing messages sent over WebSockets are intercepted in memory by Server #2 and scanned against compiled regex patterns before broadcasting. Pre-configured rules detect and block accidental or malicious leaks of sensitive credentials: API Keys, RSA/SSH Private Keys, Credit Card numbers (with Luhn checksum validation), and National ID formats. Violations are immediately blocked, warned to the sender, and recorded in the audit trail.
 
 > [!IMPORTANT]
-> **Zero Friction & Verification Guardrail**: Strictly **NO OTP**, **NO SMS**, and **NO phone verification**. DLP policies are enforced automatically on message payloads in real time.
+> **Authentication Guardrail**: Strictly **NO OTP**, **NO SMS**, and **NO phone verification**. DLP policies are enforced automatically on message payloads in real time.
 
 ---
 

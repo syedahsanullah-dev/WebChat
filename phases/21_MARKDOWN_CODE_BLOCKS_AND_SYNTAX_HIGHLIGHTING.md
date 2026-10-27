@@ -1,11 +1,11 @@
-# Phase 21: Markdown Code Blocks & Syntax Highlighting
+﻿# Phase 21: Markdown Code Blocks & Syntax Highlighting
 
 ## 1. Phase Overview & Objectives
 **Target Workspace**: `web/` (Server #1)  
-**Primary Goal**: Implement enterprise-grade syntax-highlighted code blocks for technical teams, developers, and IT collaboration at **$0.00 additional monthly cost**. Users can share code snippets using standard Markdown triple backticks (e.g. ` ```typescript ... ``` `). The chat client automatically parses code blocks, renders line numbers, formats code with Prism.js using WhatsApp dark design tokens, displays a language badge, and provides a one-click "Copy Code" button.
+**Primary Goal**: Implement syntax-highlighted code blocks for technical teams, developers, and IT collaboration at **$0.00 additional monthly cost**. Users can share code snippets using standard Markdown triple backticks (e.g. ` ```typescript ... ``` `). The chat client automatically parses code blocks, renders line numbers, formats code with Prism.js using WhatsApp dark design tokens, displays a language badge, and provides a one-click "Copy Code" button.
 
 > [!IMPORTANT]
-> **Zero Friction & Verification Guardrail**: Strictly **NO OTP**, **NO SMS**, and **NO phone verification**. Markdown code block formatting is a pure client rendering enhancement.
+> **Authentication Guardrail**: Strictly **NO OTP**, **NO SMS**, and **NO phone verification**. Markdown code block formatting is a pure client rendering enhancement.
 
 ---
 

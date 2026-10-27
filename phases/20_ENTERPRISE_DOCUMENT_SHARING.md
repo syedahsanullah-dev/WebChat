@@ -1,18 +1,18 @@
-# Phase 20: Enterprise Document Sharing & File Attachments
+﻿# Phase 20: Document Sharing & File Attachments
 
 ## 1. Phase Overview & Objectives
 **Target Workspace**: `web/` (Server #1) & `socket-server/` (Server #2)  
-**Primary Goal**: Implement enterprise-grade document sharing at **$0.00 additional monthly cost**. Users can share PDFs, Excel spreadsheets (`.xlsx`, `.xls`), Word documents (`.docx`, `.doc`), PowerPoint decks (`.pptx`), and Zip archives up to **25MB**. Files are securely stored on Hostinger local NVMe disk (`/public/uploads/docs/`) and served statically. Includes drag-and-drop upload, upload progress, filetype badges, and an in-app PDF preview modal.
+**Primary Goal**: Implement document sharing at **$0.00 additional monthly cost**. Users can share PDFs, Excel spreadsheets (`.xlsx`, `.xls`), Word documents (`.docx`, `.doc`), PowerPoint decks (`.pptx`), and Zip archives up to **25MB**. Files are securely stored on Hostinger local NVMe disk (`/public/uploads/docs/`) and served statically. Includes drag-and-drop upload, upload progress, filetype badges, and an in-app PDF preview modal.
 
 > [!IMPORTANT]
-> **Zero Friction & Verification Guardrail**: Strictly **NO OTP**, **NO SMS**, and **NO phone verification**. Document sharing permissions are tied directly to active chat membership.
+> **Authentication Guardrail**: Strictly **NO OTP**, **NO SMS**, and **NO phone verification**. Document sharing permissions are tied directly to active chat membership.
 
 ---
 
 ## 2. Context & Prerequisites
 - **Previous Phase**: [`19_PINNED_AND_STARRED_MESSAGES.md`](19_PINNED_AND_STARRED_MESSAGES.md) (Chat interaction and bookmarking operational).
 - **Environment**: Next.js 15, Node.js `fs` / `path` on Hostinger NVMe disk, Fastify + Native `ws`.
-- **Zero Cost Rule**: Zero external cloud storage (No AWS S3, No Google Cloud Storage). Local disk `/public/uploads/docs/` served via Next.js static asset routing.
+- **Cost Constraint**: Zero external cloud storage (No AWS S3, No Google Cloud Storage). Local disk `/public/uploads/docs/` served via Next.js static asset routing.
 
 ---
 

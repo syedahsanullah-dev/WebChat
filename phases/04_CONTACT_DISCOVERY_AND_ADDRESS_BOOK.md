@@ -1,4 +1,4 @@
-# Phase 04: Contact Discovery & Address Book
+﻿# Phase 04: Contact Discovery & Address Book
 
 ## 1. Phase Overview & Objectives
 **Target Workspace**: `web/` (Server #1)  

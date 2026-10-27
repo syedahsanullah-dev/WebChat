@@ -18,6 +18,9 @@ const router_js_1 = require("./router.js");
 const prisma_js_1 = require("./lib/prisma.js");
 const maintenanceGuard_js_1 = require("./middleware/maintenanceGuard.js");
 const reminderSchedulerJob_js_1 = require("./jobs/reminderSchedulerJob.js");
+const liveLocationCleanupJob_js_1 = require("./jobs/liveLocationCleanupJob.js");
+const ephemeralCleanupJob_js_1 = require("./jobs/ephemeralCleanupJob.js");
+const internalKick_js_1 = require("./routes/internalKick.js");
 // Load environment variables
 dotenv_1.default.config();
 const PORT = parseInt(process.env.PORT || '4000', 10);
@@ -34,6 +37,7 @@ exports.fastify.register(cors_1.default, {
     credentials: true,
 });
 exports.fastify.register(cookie_1.default);
+exports.fastify.register(internalKick_js_1.internalKickRoutes);
 // Health check endpoint
 exports.fastify.get('/health', async () => {
     return {
@@ -50,7 +54,7 @@ exports.fastify.get('/health', async () => {
         timestamp: new Date().toISOString(),
     };
 });
-// Metrics telemetry endpoint (consumed by Server #1 Super Admin console)
+// Metrics endpoint (consumed by Server #1 Admin console)
 exports.fastify.get('/metrics', async () => {
     const memory = process.memoryUsage();
     return {
@@ -150,6 +154,53 @@ exports.fastify.post('/internal/message', async (request, reply) => {
     logger_js_1.logger.info(`💬 Internal message broadcast dispatched to chat:${body.chatId} [type: ${body.message.messageType || 'text'}]`);
     return { success: true, deliveredRoom: `chat:${body.chatId}` };
 });
+// Phase 33: Internal Moderation Action Endpoints
+exports.fastify.post('/internal/kick', async (request, reply) => {
+    const { userId, reason } = (request.body || {});
+    if (!userId)
+        return reply.status(400).send({ error: 'userId is required' });
+    roomManager_js_1.roomManager.kickUser(userId, reason || 'Account suspended by moderation');
+    logger_js_1.logger.info(`User ${userId} was forcefully kicked via internal moderation API`);
+    return { success: true };
+});
+exports.fastify.post('/internal/mute', async (request, reply) => {
+    const { userId, mutedUntil, reason } = (request.body || {});
+    if (!userId || !mutedUntil)
+        return reply.status(400).send({ error: 'userId and mutedUntil are required' });
+    roomManager_js_1.roomManager.sendToUser(userId, {
+        type: 'user:mute',
+        payload: { userId, mutedUntil, reason: reason || 'Muted by moderation' },
+    });
+    logger_js_1.logger.info(`User ${userId} muted until ${mutedUntil}`);
+    return { success: true };
+});
+exports.fastify.post('/internal/warn', async (request, reply) => {
+    const { userId, reason, reportId } = (request.body || {});
+    if (!userId || !reason)
+        return reply.status(400).send({ error: 'userId and reason are required' });
+    roomManager_js_1.roomManager.sendToUser(userId, {
+        type: 'user:warn',
+        payload: { userId, reason, reportId },
+    });
+    logger_js_1.logger.info(`Moderation warning dispatched to user ${userId}`);
+    return { success: true };
+});
+exports.fastify.post('/internal/delete-message', async (request, reply) => {
+    const { messageId, chatId, deletedBy } = (request.body || {});
+    if (!messageId || !chatId)
+        return reply.status(400).send({ error: 'messageId and chatId are required' });
+    const deleteEnvelope = {
+        type: 'message:delete',
+        payload: {
+            messageId,
+            chatId,
+            deletedBy: deletedBy || 'Moderator',
+        },
+    };
+    roomManager_js_1.roomManager.broadcastToRoom(`chat:${chatId}`, deleteEnvelope);
+    roomManager_js_1.roomManager.broadcastToRoom(chatId, deleteEnvelope);
+    return { success: true };
+});
 // Native ws WebSocketServer mounted with manual upgrade handling
 exports.wss = new ws_1.WebSocketServer({ noServer: true });
 // Attach upgrade listener to fastify.server
@@ -232,6 +283,10 @@ async function startServer() {
             .catch((err) => logger_js_1.logger.debug(`Startup presence reset non-fatal: ${err.message}`));
         // Start Phase 26 background reminder scheduler
         (0, reminderSchedulerJob_js_1.startReminderScheduler)();
+        // Start Phase 38 live location auto-expiration background daemon
+        (0, liveLocationCleanupJob_js_1.startLiveLocationCleanupJob)();
+        // Start Phase 22 ephemeral auto-purge background daemon
+        (0, ephemeralCleanupJob_js_1.startEphemeralCleanupJob)();
     }
     catch (err) {
         logger_js_1.logger.error('Failed to start server:', err);
@@ -242,6 +297,8 @@ async function startServer() {
 const shutdown = async () => {
     logger_js_1.logger.info('Shutting down socket server...');
     (0, reminderSchedulerJob_js_1.stopReminderScheduler)();
+    (0, liveLocationCleanupJob_js_1.stopLiveLocationCleanupJob)();
+    (0, ephemeralCleanupJob_js_1.stopEphemeralCleanupJob)();
     clearInterval(heartbeatInterval);
     exports.wss.close();
     await exports.fastify.close();

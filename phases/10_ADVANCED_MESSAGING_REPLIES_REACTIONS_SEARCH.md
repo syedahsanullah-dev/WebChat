@@ -1,4 +1,4 @@
-# Phase 10: Advanced Chat Features (Replies, Reactions & Search)
+﻿# Phase 10: Advanced Chat Features (Replies, Reactions & Search)
 
 ## 1. Phase Overview & Objectives
 **Target Workspace**: `web/` (Server #1) & `socket-server/` (Server #2)  

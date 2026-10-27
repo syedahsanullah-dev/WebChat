@@ -1,11 +1,11 @@
-# Phase 32: Account Moderation, Bans & Real-Time Socket Kicks
+﻿# Phase 32: Account Moderation, Bans & Real-Time Socket Kicks
 
 ## 1. Phase Overview & Objectives
 **Target Workspace**: `web/` (Server #1) & `socket-server/` (Server #2)  
-**Primary Goal**: Build an enterprise Account Moderation, Suspension, and Real-Time WebSocket Kick system at **$0.00 additional monthly cost**. Administrators and moderators can suspend or permanently ban malicious users with mandatory reason logging. When a user is suspended, Server #2 terminates all their active WebSocket connections in < 50ms, revokes all device session tokens, displays an explanatory suspension modal on the user's screen, and redirects them to the login screen.
+**Primary Goal**: Build a Account Moderation, Suspension, and Real-Time WebSocket Kick system at **$0.00 additional monthly cost**. Administrators and moderators can suspend or permanently ban malicious users with mandatory reason logging. When a user is suspended, Server #2 terminates all their active WebSocket connections in < 50ms, revokes all device session tokens, displays an explanatory suspension modal on the user's screen, and redirects them to the login screen.
 
 > [!IMPORTANT]
-> **Zero Friction & Verification Guardrail**: Strictly **NO OTP**, **NO SMS**, and **NO phone verification**. Account moderation operates via database flags (`isSuspended`) and immediate socket disconnects.
+> **Authentication Guardrail**: Strictly **NO OTP**, **NO SMS**, and **NO phone verification**. Account moderation operates via database flags (`isSuspended`) and immediate socket disconnects.
 
 ---
 

@@ -1,12 +1,12 @@
-# WebChat — Enterprise WhatsApp Web Platform
+# WebChat — Modern WhatsApp Web Clone
 
 [![Deployment: Hostinger](https://img.shields.io/badge/Deployment-Hostinger%20Web%20Hosting-blue.svg)](https://hostinger.com)
-[![Cost: $0.00/mo](https://img.shields.io/badge/Added%20Cost-%240.00%20%2F%20month-brightgreen.svg)](#zero-cost-guarantee)
+[![Cost: $0.00/mo](https://img.shields.io/badge/Added%20Cost-%240.00%20%2F%20month-brightgreen.svg)](#core-architectural-guarantees)
 [![Architecture: Dual--Server](https://img.shields.io/badge/Architecture-Dual--Server%20Node.js-purple.svg)](#dual-server-architecture)
 [![Phases: 37/38 Completed](https://img.shields.io/badge/Phases-37%20%2F%2038%20Completed%20(97%25)-brightgreen.svg)](phases/README.md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-An enterprise-standard, high-concurrency WhatsApp Web clone engineered to run directly inside standard **Hostinger Web Hosting** with **$0.00 added monthly cost**.
+A lightweight, full-featured WhatsApp Web clone engineered to run directly inside standard **Hostinger Web Hosting** with **$0.00 added monthly cost**.
 
 ---
 
@@ -28,11 +28,11 @@ An enterprise-standard, high-concurrency WhatsApp Web clone engineered to run di
 |     `chat.yourdomain.com`     |                       |      `ws.yourdomain.com`      |
 +-------------------------------+                       +-------------------------------+
 | - Next.js 15+ App Router      |                       | - Fastify 4+ & Native `ws`    |
-| - Tailwind WhatsApp tokens    |                       | - Ultra-lean (~25-35 MB RAM)  |
+| - Tailwind WhatsApp tokens    |                       | - Lightweight (~25-35 MB RAM) |
 | - REST API & Server Actions   |                       | - Native WebSocket daemon     |
 | - Local NVMe Uploads          |                       | - Presence, Typing (2.5s)     |
 | - PWA Manifest & SW           |                       | - RoomManager channel hub     |
-| - Super Admin Console (/admin)|                       | - WebRTC audio signaling      |
+| - Admin Console (/admin)      |                       | - WebRTC audio signaling      |
 +-------------------------------+                       +-------------------------------+
         |                                                                 |
         +-------------------------------+---------------------------------+
@@ -46,7 +46,7 @@ An enterprise-standard, high-concurrency WhatsApp Web clone engineered to run di
 
 ### Core Architectural Guarantees
 1. **$0.00 Added Monthly Cost**: Runs completely within standard Hostinger hosting limits. Employs open-source tooling, free Google STUN, and free Metered.ca TURN (50 GB/mo).
-2. **Zero-Friction Authentication**: Strictly `@username`, `email`, and `password`. **Zero OTP, zero SMS, zero phone numbers, and zero verification codes.**
+2. **Direct Authentication**: Strictly `@username`, `email`, and `password`. **No phone numbers or SMS/OTP codes required.**
 3. **High-Definition Audio-Only Calling**: WebRTC Opus audio (~32 kbps). Video calling is omitted to preserve Hostinger CPU and bandwidth.
 4. **Fastify 4+ & Native `ws` Realtime Engine**: Replaces Express + Socket.io to cut memory footprint by 60%+ (~30 MB idle) and triple connection throughput.
 5. **Mobile Chrome App Installation (PWA)**: Full web app manifest, custom service worker, and automatic install prompt.
@@ -76,9 +76,9 @@ All implementation specifications and execution runbooks are organized in the [`
 | **11** | Real-Time WebRTC Audio Calling | [`phases/11_*.md`](phases/11_AUDIO_CALLING_WEBRTC_VOICE.md) | Server #2 & Client | **COMPLETED** |
 | **12** | PWA & Mobile Chrome Install Experience | [`phases/12_*.md`](phases/12_PWA_AND_MOBILE_CHROME_INSTALLATION.md) | Server #1 | **COMPLETED** |
 | **13** | Automated Testing & Load Simulation | [`phases/13_*.md`](phases/13_AUTOMATED_TESTING_AND_LOAD_SIMULATION.md) | Tooling / QA | **COMPLETED** |
-| **14** | Automated CI/CD & Zero-Cost Monitoring | [`phases/14_*.md`](phases/14_AUTOMATED_CICD_DEPLOYMENT_AND_MONITORING.md) | DevOps / Ops | **COMPLETED** |
+| **14** | Automated CI/CD & System Monitoring | [`phases/14_*.md`](phases/14_AUTOMATED_CICD_DEPLOYMENT_AND_MONITORING.md) | DevOps / Ops | **COMPLETED** |
 
-### Part II: Enterprise Security, Data & Communications (Phases 15 – 22)
+### Part II: Security, Data & Communications (Phases 15 – 22)
 | Phase | Title | Specification | Target | Status |
 | :---: | :--- | :--- | :---: | :---: |
 | **15** | Multi-Device Sessions & Remote Logout | [`phases/15_*.md`](phases/15_DEVICE_SESSIONS_AND_MULTI_DEVICE_SECURITY.md) | Server #1 & #2 | **COMPLETED** |
@@ -86,7 +86,7 @@ All implementation specifications and execution runbooks are organized in the [`
 | **17** | Broadcast Announcement Channels | [`phases/17_*.md`](phases/17_BROADCAST_ANNOUNCEMENT_CHANNELS.md) | Server #1 & #2 | **COMPLETED** |
 | **18** | Interactive Real-Time Polls & Live Voting | [`phases/18_*.md`](phases/18_INTERACTIVE_REALTIME_POLLS.md) | Server #1 & #2 | **COMPLETED** |
 | **19** | Pinned Messages Strip & Starred Bookmarks | [`phases/19_*.md`](phases/19_PINNED_AND_STARRED_MESSAGES.md) | Server #1 & #2 | **COMPLETED** |
-| **20** | Enterprise Document Sharing (PDF, Docs) | [`phases/20_*.md`](phases/20_ENTERPRISE_DOCUMENT_SHARING.md) | Server #1 & #2 | **COMPLETED** |
+| **20** | Document Sharing (PDF, Docs) | [`phases/20_*.md`](phases/20_ENTERPRISE_DOCUMENT_SHARING.md) | Server #1 & #2 | **COMPLETED** |
 | **21** | Markdown Code Blocks & Syntax Highlighting | [`phases/21_*.md`](phases/21_MARKDOWN_CODE_BLOCKS_AND_SYNTAX_HIGHLIGHTING.md) | Server #1 | **COMPLETED** |
 | **22** | Ephemeral & Disappearing Messages | [`phases/22_*.md`](phases/22_EPHEMERAL_AND_DISAPPEARING_MESSAGES.md) | Server #1 & #2 | **COMPLETED** |
 
@@ -98,21 +98,21 @@ All implementation specifications and execution runbooks are organized in the [`
 | **25** | Inbound & Outbound Webhooks Engine | [`phases/25_*.md`](phases/25_INBOUND_AND_OUTBOUND_WEBHOOKS.md) | Server #1 & #2 | **COMPLETED** |
 | **26** | Chatbots & Slash Commands Engine | [`phases/26_*.md`](phases/26_CHATBOTS_AND_SLASH_COMMANDS.md) | Server #1 & #2 | **COMPLETED** |
 
-### Part IV: Enterprise Compliance & Governance (Phases 27 – 28)
+### Part IV: Compliance & Data Management (Phases 27 – 28)
 | Phase | Title | Specification | Target | Status |
 | :---: | :--- | :--- | :---: | :---: |
-| **27** | Immutable Security Audit Logging | [`phases/27_*.md`](phases/27_IMMUTABLE_SECURITY_AUDIT_LOGGING.md) | Server #1 & Admin | **COMPLETED** |
-| **28** | Compliance Data Export & Legal Hold | [`phases/28_*.md`](phases/28_COMPLIANCE_DATA_EXPORT_AND_LEGAL_HOLD.md) | Server #1 & Admin | **COMPLETED** |
+| **27** | Security Audit Logging | [`phases/27_*.md`](phases/27_IMMUTABLE_SECURITY_AUDIT_LOGGING.md) | Server #1 & Admin | **COMPLETED** |
+| **28** | Data Export & Legal Hold | [`phases/28_*.md`](phases/28_COMPLIANCE_DATA_EXPORT_AND_LEGAL_HOLD.md) | Server #1 & Admin | **COMPLETED** |
 
-### Part V: Enterprise Administration & Operations (Phases 29 – 34)
+### Part V: Administration & Operations (Phases 29 – 34)
 | Phase | Title | Specification | Target | Status |
 | :---: | :--- | :--- | :---: | :---: |
-| **29** | Super Admin Console & RAM Telemetry | [`phases/29_*.md`](phases/29_ADMIN_CONSOLE_AND_SYSTEM_METRICS.md) | Server #1 & #2 | **COMPLETED** |
-| **30** | NVMe Storage Governance & Orphan Cleaner | [`phases/30_*.md`](phases/30_STORAGE_GOVERNANCE_AND_ORPHAN_CLEANER.md) | Server #1 | **COMPLETED** |
-| **31** | User Administration & Role Delegation | [`phases/31_*.md`](phases/31_USER_ADMINISTRATION_AND_ROLE_DELEGATION.md) | Server #1 & Admin | **COMPLETED** |
+| **29** | Admin Console & System Metrics | [`phases/29_*.md`](phases/29_ADMIN_CONSOLE_AND_SYSTEM_METRICS.md) | Server #1 & #2 | **COMPLETED** |
+| **30** | Storage Management & Orphan Cleaner | [`phases/30_*.md`](phases/30_STORAGE_GOVERNANCE_AND_ORPHAN_CLEANER.md) | Server #1 | **COMPLETED** |
+| **31** | User Administration & Role Management | [`phases/31_*.md`](phases/31_USER_ADMINISTRATION_AND_ROLE_DELEGATION.md) | Server #1 & Admin | **COMPLETED** |
 | **32** | Account Moderation, Bans & Socket Kicks | [`phases/32_*.md`](phases/32_ACCOUNT_MODERATION_BANS_AND_SOCKET_KICKS.md) | Server #1 & #2 | **COMPLETED** |
 | **33** | Abuse Reporting & Moderation Queue | [`phases/33_*.md`](phases/33_ABUSE_REPORTING_AND_MODERATION_QUEUE.md) | Server #1 & #2 | Pending |
-| **34** | Real-Time Data Loss Prevention (DLP) | [`phases/34_*.md`](phases/34_REALTIME_DLP_REGEX_SCANNER.md) | Server #1 & #2 | **COMPLETED** |
+| **34** | Sensitive Data Filter (DLP) | [`phases/34_*.md`](phases/34_REALTIME_DLP_REGEX_SCANNER.md) | Server #1 & #2 | **COMPLETED** |
 
 ### Part VI: Platform Reliability & Emergency Operations (Phases 35 – 36)
 | Phase | Title | Specification | Target | Status |

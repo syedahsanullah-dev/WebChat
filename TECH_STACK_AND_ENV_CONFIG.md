@@ -1,5 +1,5 @@
 # WebChat Technical Architecture, Dependencies & Environment Reference
-## Dual-Server Node.js Setup: Next.js 15 Standalone + Fastify & Native `ws` (38-Phase Master Enterprise Blueprint)
+## Dual-Server Node.js Setup: Next.js 15 Standalone + Fastify & Native `ws` (38-Phase Master Blueprint)
 
 > This document is the single source of truth for all npm packages, package scripts, environment variables, and runtime configurations for both Server #1 (Frontend/REST) and Server #2 (WebSocket Daemon).
 

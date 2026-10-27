@@ -1,11 +1,11 @@
-# Phase 22: Ephemeral & Disappearing Messages
+﻿# Phase 22: Ephemeral & Disappearing Messages
 
 ## 1. Phase Overview & Objectives
 **Target Workspace**: `web/` (Server #1) & `socket-server/` (Server #2)  
 **Primary Goal**: Implement WhatsApp-style Ephemeral / Disappearing Messages at **$0.00 additional monthly cost**. Users can enable auto-deletion for any 1-on-1 or group conversation with durations of **24 Hours**, **7 Days**, or **90 Days**. Expired messages and their associated local media files (images, audio clips, documents) are permanently and automatically purged by a 24/7 background Fastify cleanup daemon on Server #2.
 
 > [!IMPORTANT]
-> **Zero Friction & Verification Guardrail**: Strictly **NO OTP**, **NO SMS**, and **NO phone verification**. Disappearing message timers are configured directly by chat participants.
+> **Authentication Guardrail**: Strictly **NO OTP**, **NO SMS**, and **NO phone verification**. Disappearing message timers are configured directly by chat participants.
 
 ---
 
@@ -134,7 +134,7 @@ sequenceDiagram
       const expiredMessages = await prisma.message.findMany({
         where: {
           expiresAt: { lte: new Date() },
-          chat: { isLegalHold: false }, // Respect legal hold governance
+          chat: { isLegalHold: false }, // Respect legal hold status
         },
         select: { id: true, chatId: true, mediaUrl: true },
         take: 100,

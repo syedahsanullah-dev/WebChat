@@ -14,6 +14,27 @@ async function handleMessageDelete(socket, payload) {
         return;
     }
     const { chatId, messageId, deleteType = 'everyone' } = payload;
+    // Phase 28: Legal Hold Guard - Block deletion if chat is under legal hold
+    try {
+        const chat = await prisma_js_1.prisma.chat.findUnique({
+            where: { id: chatId },
+            select: { isLegalHold: true },
+        });
+        if (chat?.isLegalHold) {
+            logger_js_1.logger.warn(`Rejected message delete: Chat ${chatId} is under active Legal Hold.`);
+            socket.send(JSON.stringify({
+                type: 'error',
+                payload: {
+                    code: 'LEGAL_HOLD_ACTIVE',
+                    message: 'Cannot delete messages: This conversation is under active Legal Hold.',
+                },
+            }));
+            return;
+        }
+    }
+    catch (err) {
+        logger_js_1.logger.error('Error verifying legal hold in deleteHandler:', err);
+    }
     if (deleteType === 'everyone') {
         try {
             // Update in MySQL

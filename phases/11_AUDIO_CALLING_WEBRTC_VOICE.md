@@ -1,4 +1,4 @@
-# Phase 11: Real-Time Audio Calling (WebRTC Voice via Server #2)
+﻿# Phase 11: Real-Time Audio Calling (WebRTC Voice via Server #2)
 
 ## 1. Phase Overview & Objectives
 **Target Workspace**: `web/` (Server #1) & `socket-server/` (Server #2)  

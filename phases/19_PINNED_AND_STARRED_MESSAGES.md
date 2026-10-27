@@ -1,11 +1,11 @@
-# Phase 19: Pinned Messages Strip & Starred Message Bookmarks
+﻿# Phase 19: Pinned Messages Strip & Starred Message Bookmarks
 
 ## 1. Phase Overview & Objectives
 **Target Workspace**: `web/` (Server #1) & `socket-server/` (Server #2)  
 **Primary Goal**: Implement WhatsApp Web Pinned Messages and Starred Messages at **$0.00 additional monthly cost**. Users can pin important messages to the top of any chat for quick reference by all members, and star personal bookmarks across any conversation with a searchable global "Starred Messages" drawer.
 
 > [!IMPORTANT]
-> **Zero Friction & Verification Guardrail**: Strictly **NO OTP**, **NO SMS**, and **NO phone verification**. Pinning and bookmarking are immediate user actions.
+> **Authentication Guardrail**: Strictly **NO OTP**, **NO SMS**, and **NO phone verification**. Pinning and bookmarking are immediate user actions.
 
 ---
 
@@ -184,4 +184,4 @@ model StarredMessage {
 ---
 
 ## 8. Autonomous Multi-Agent Handoff Instructions
-The next phase is [`20_ENTERPRISE_DOCUMENT_SHARING.md`](20_ENTERPRISE_DOCUMENT_SHARING.md). That agent will implement enterprise document attachments (PDF, Excel, Word, Zip files up to 25MB) with an in-app PDF previewer and local NVMe storage.
+The next phase is [`20_ENTERPRISE_DOCUMENT_SHARING.md`](20_ENTERPRISE_DOCUMENT_SHARING.md). That agent will implement document attachments (PDF, Excel, Word, Zip files up to 25MB) with an in-app PDF previewer and local NVMe storage.

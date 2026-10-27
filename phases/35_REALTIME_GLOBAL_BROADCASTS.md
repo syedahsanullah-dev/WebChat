@@ -1,11 +1,11 @@
-# Phase 35: Real-Time Global Broadcasts
+﻿# Phase 35: Real-Time Global Broadcasts
 
 ## 1. Phase Overview & Objectives
 **Target Workspace**: `web/` (Server #1) & `socket-server/` (Server #2)  
-**Primary Goal**: Build an enterprise Real-Time Global System Broadcast system at **$0.00 additional monthly cost**. Super Administrators can compose platform-wide announcements with color-coded severity levels (**INFO**, **WARNING**, **CRITICAL**). Server #2 dispatches broadcasts over WebSockets to 100% of connected clients in **< 50ms**, rendering an animated sliding top banner with an alert chime across all active chat windows.
+**Primary Goal**: Build a Real-Time Global System Broadcast system at **$0.00 additional monthly cost**. Super Administrators can compose platform-wide announcements with color-coded severity levels (**INFO**, **WARNING**, **CRITICAL**). Server #2 dispatches broadcasts over WebSockets to 100% of connected clients in **< 50ms**, rendering an animated sliding top banner with an alert chime across all active chat windows.
 
 > [!IMPORTANT]
-> **Zero Friction & Verification Guardrail**: Strictly **NO OTP**, **NO SMS**, and **NO phone verification**. Broadcast dispatch is governed directly by Super Administrator credentials.
+> **Authentication Guardrail**: Strictly **NO OTP**, **NO SMS**, and **NO phone verification**. Broadcast dispatch is governed directly by Super Administrator credentials.
 
 ---
 
@@ -169,4 +169,4 @@ model SystemBroadcast {
 ---
 
 ## 8. Autonomous Multi-Agent Handoff Instructions
-The next phase is [`36_MAINTENANCE_MODE_AND_EMERGENCY_BACKUPS.md`](36_MAINTENANCE_MODE_AND_EMERGENCY_BACKUPS.md). That agent will build the Enterprise Maintenance Mode switch and the on-demand emergency `mysqldump` database backup trigger.
+The next phase is [`36_MAINTENANCE_MODE_AND_EMERGENCY_BACKUPS.md`](36_MAINTENANCE_MODE_AND_EMERGENCY_BACKUPS.md). That agent will build the Maintenance Mode switch and the on-demand emergency `mysqldump` database backup trigger.

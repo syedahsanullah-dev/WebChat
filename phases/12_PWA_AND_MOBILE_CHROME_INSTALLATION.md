@@ -1,4 +1,4 @@
-# Phase 12: Progressive Web App (PWA) & Mobile Chrome Install Experience
+﻿# Phase 12: Progressive Web App (PWA) & Mobile Chrome Install Experience
 
 ## 1. Phase Overview & Objectives
 **Target Workspace**: `web/` (Server #1)  

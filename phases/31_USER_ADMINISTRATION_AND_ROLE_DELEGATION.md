@@ -1,16 +1,16 @@
-# Phase 31: User Administration & Role Delegation
+﻿# Phase 31: User Administration & Role Management
 
 ## 1. Phase Overview & Objectives
 **Target Workspace**: `web/` (Server #1)  
-**Primary Goal**: Build an enterprise User Administration Data Grid and Role Delegation system at **$0.00 additional monthly cost**. Super Administrators can search, filter, and inspect all registered user accounts across the system. Administrators can view user details, message activity, active session counts, and delegate administrative privileges (`USER`, `MODERATOR`, `ADMIN`, `SUPER_ADMIN`) with full security audit logging.
+**Primary Goal**: Build a User Administration Data Grid and Role Management system at **$0.00 additional monthly cost**. Super Administrators can search, filter, and inspect all registered user accounts across the system. Administrators can view user details, message activity, active session counts, and delegate administrative privileges (`USER`, `MODERATOR`, `ADMIN`, `SUPER_ADMIN`) with full security audit logging.
 
 > [!IMPORTANT]
-> **Zero Friction & Verification Guardrail**: Strictly **NO OTP**, **NO SMS**, and **NO phone verification**. User lookup and role modifications operate strictly through administrative session privileges.
+> **Authentication Guardrail**: Strictly **NO OTP**, **NO SMS**, and **NO phone verification**. User lookup and role modifications operate strictly through administrative session privileges.
 
 ---
 
 ## 2. Context & Prerequisites
-- **Previous Phase**: [`30_STORAGE_GOVERNANCE_AND_ORPHAN_CLEANER.md`](30_STORAGE_GOVERNANCE_AND_ORPHAN_CLEANER.md) (Storage governance and admin portal layout operational).
+- **Previous Phase**: [`30_STORAGE_GOVERNANCE_AND_ORPHAN_CLEANER.md`](30_STORAGE_GOVERNANCE_AND_ORPHAN_CLEANER.md) (Storage management and admin portal layout operational).
 - **Environment**: Next.js 15, Hostinger MySQL via Prisma (`connection_limit=10`).
 - **Security Rule**: Role escalation is protected: Only a `SUPER_ADMIN` can promote another user to `ADMIN` or `SUPER_ADMIN`.
 
@@ -139,7 +139,7 @@ stateDiagram-v2
   - Radio selector with descriptions:
     - `USER`: Standard access to messages, calls, and groups.
     - `MODERATOR`: Can review abuse reports and delete violating messages.
-    - `ADMIN`: Full access to user management, telemetry, and system broadcasts.
+    - `ADMIN`: Full access to user management, metrics, and system broadcasts.
     - `SUPER_ADMIN`: Root administrator privileges.
   - Mandatory audit reason text field: e.g. *"Promoting lead engineer to system admin"*.
   - Green "Save Changes" button.

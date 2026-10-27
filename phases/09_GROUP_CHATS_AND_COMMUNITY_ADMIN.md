@@ -1,8 +1,8 @@
-# Phase 09: Group Chats & Community Administration
+﻿# Phase 09: Group Chats & Community Administration
 
 ## 1. Phase Overview & Objectives
 **Target Workspace**: `web/` (Server #1) & `socket-server/` (Server #2)  
-**Primary Goal**: Implement multi-user group conversations, a multi-step group creation workflow, native WebSocket group broadcasting using Fastify's in-memory `RoomManager`, system event announcements, and administrative governance (adding/removing participants, promoting to admin, and editing group metadata).
+**Primary Goal**: Implement multi-user group conversations, a multi-step group creation workflow, native WebSocket group broadcasting using Fastify's in-memory `RoomManager`, system event announcements, and administrative management (adding/removing participants, promoting to admin, and editing group metadata).
 
 ---
 

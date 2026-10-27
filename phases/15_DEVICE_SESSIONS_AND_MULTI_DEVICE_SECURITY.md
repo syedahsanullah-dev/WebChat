@@ -1,11 +1,11 @@
-# Phase 15: Device Session Management & Multi-Device Security
+﻿# Phase 15: Device Session Management & Multi-Device Security
 
 ## 1. Phase Overview & Objectives
 **Target Workspace**: `web/` (Server #1) & `socket-server/` (Server #2)  
 **Primary Goal**: Implement multi-device session management, active session tracking, and remote session revocation at **$0.00 additional monthly cost**. Users can view all devices currently logged into their account (with IP address, browser, OS, and relative last active timestamp) and remotely terminate any suspicious or obsolete session with real-time WebSocket disconnection.
 
 > [!IMPORTANT]
-> **Zero Friction & Verification Guardrail**: Strictly **NO OTP**, **NO SMS**, **NO phone verification**, and **NO email verification codes**. Authentication and session tracking rely purely on secure HTTP-only session cookies and cryptographic session tokens.
+> **Authentication Guardrail**: Strictly **NO OTP**, **NO SMS**, **NO phone verification**, and **NO email verification codes**. Authentication and session tracking rely purely on secure HTTP-only session cookies and cryptographic session tokens.
 
 ---
 
@@ -173,7 +173,7 @@ model UserSession {
 3. In Browser A, opening "Linked devices" shows Browser A as *"This device"* and Browser B as a remote device.
 4. Clicking "Log out" for Browser B in Browser A immediately terminates Browser B's WebSocket connection and redirects Browser B to `/login`.
 5. Changing password logs out all other sessions while preserving the current active session.
-6. **Strict Verification**: Zero OTP or verification codes exist in any user flow.
+6. **Strict Verification**: No OTP or verification codes exist in any user flow.
 
 ---
 

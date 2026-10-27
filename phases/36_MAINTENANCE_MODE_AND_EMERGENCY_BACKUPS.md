@@ -1,11 +1,11 @@
-# Phase 36: Maintenance Mode & Emergency Database Backups
+﻿# Phase 36: Maintenance Mode & Emergency Database Backups
 
 ## 1. Phase Overview & Objectives
 **Target Workspace**: `web/` (Server #1) & `socket-server/` (Server #2)  
-**Primary Goal**: Build an enterprise Maintenance Mode switch and On-Demand Emergency Database Backup trigger at **$0.00 additional monthly cost**. When major database migrations or infrastructure maintenance is required, Super Administrators can toggle Maintenance Mode. Non-admin users are blocked with an informative "Scheduled Maintenance" landing screen with a live countdown, while admins retain full access via bypass tokens. In addition, admins can trigger an on-demand, compressed `mysqldump` backup with one-click download before performing system upgrades.
+**Primary Goal**: Build a Maintenance Mode switch and On-Demand Emergency Database Backup trigger at **$0.00 additional monthly cost**. When major database migrations or infrastructure maintenance is required, Super Administrators can toggle Maintenance Mode. Non-admin users are blocked with an informative "Scheduled Maintenance" landing screen with a live countdown, while admins retain full access via bypass tokens. In addition, admins can trigger an on-demand, compressed `mysqldump` backup with one-click download before performing system upgrades.
 
 > [!IMPORTANT]
-> **Zero Friction & Verification Guardrail**: Strictly **NO OTP**, **NO SMS**, and **NO phone verification**. Administrative bypass is validated through the user's authenticated `systemRole: "SUPER_ADMIN" | "ADMIN"`.
+> **Authentication Guardrail**: Strictly **NO OTP**, **NO SMS**, and **NO phone verification**. Administrative bypass is validated through the user's authenticated `systemRole: "SUPER_ADMIN" | "ADMIN"`.
 
 ---
 

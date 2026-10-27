@@ -1,11 +1,11 @@
-# Phase 37: Current Static GPS Location Sharing
+﻿# Phase 37: Current Static GPS Location Sharing
 
 ## 1. Phase Overview & Objectives
 **Target Workspace**: `web/` (Server #1)  
 **Primary Goal**: Implement WhatsApp-style Current Static GPS Location Sharing at **$0.00 additional monthly cost**. Users can share their instantaneous location directly into 1-on-1 chats and group conversations. Coordinates are acquired via the browser Geolocation API (`navigator.geolocation`), reverse-geocoded to a human-readable street address via free **OpenStreetMap Nominatim** with a server-side LRU cache, and rendered inside an interactive Leaflet map card with one-click external navigation links (Google Maps, OpenStreetMap, Apple Maps).
 
 > [!IMPORTANT]
-> **Zero Cost & Verification Guardrail**: Strictly **NO OTP**, **NO SMS**, and **NO phone verification**. Absolutely **NO paid Google Maps Platform or Mapbox API keys**. All mapping utilizes open-source **Leaflet.js** and free OpenStreetMap raster tiles.
+> **Cost & Verification Guardrail**: Strictly **NO OTP**, **NO SMS**, and **NO phone verification**. Absolutely **NO paid Google Maps Platform or Mapbox API keys**. All mapping utilizes open-source **Leaflet.js** and free OpenStreetMap raster tiles.
 
 ---
 
@@ -106,7 +106,7 @@ sequenceDiagram
     - Query OSM Nominatim:
       `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`
     - Custom User-Agent header (required by OSM Nominatim usage policy):
-      `User-Agent: WebChat-Enterprise/1.0 (support@yourdomain.com)`
+      `User-Agent: WebChat/1.0 (support@webchat.local)`
     - Formats concise address: e.g. *"Starbucks, 5th Avenue, Manhattan, New York"*.
 - [ ] **3. Leaflet OpenStreetMap Tile Provider (`mapTiles.ts`)**:
   - Tile URL: `https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png`.

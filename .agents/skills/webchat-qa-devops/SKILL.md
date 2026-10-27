@@ -2,12 +2,12 @@
 name: webchat-qa-devops
 description: >-
   Use this skill when creating or running automated tests (Vitest, Playwright), executing k6 user load simulation,
-  configuring GitHub Actions CI/CD pipelines to Hostinger, and setting up zero-cost monitoring and database backup scripts.
+  configuring GitHub Actions CI/CD pipelines to Hostinger, and setting up monitoring and database backup scripts.
 ---
 
 # WebChat QA, Testing & DevOps Skill
 
-This skill governs testing, virtual user load simulation, automated CI/CD deployment, and operations for the WebChat application on Hostinger at **$0.00 extra monthly cost** across the full 38-phase enterprise lifecycle.
+This skill governs testing, virtual user load simulation, automated CI/CD deployment, and operations for the WebChat application on Hostinger across the full 38-phase development lifecycle.
 
 ---
 
@@ -93,7 +93,7 @@ k6 run scripts/load-test.js
 
 ## 3. Automated CI/CD Pipeline (GitHub Actions)
 
-Zero-cost automated deployment via `.github/workflows/deploy.yml`:
+Automated deployment via `.github/workflows/deploy.yml`:
 
 ```yaml
 name: Deploy WebChat to Hostinger
@@ -147,7 +147,7 @@ jobs:
 
 ---
 
-## 4. Zero-Cost Maintenance & Monitoring Operations
+## 4. Maintenance & Monitoring Operations
 
 1. **Hostinger Daily Database Backup Cron**:
    Hostinger hPanel > Advanced > Cron Jobs (Daily at 03:00 AM):

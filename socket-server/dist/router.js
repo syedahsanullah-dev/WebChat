@@ -10,6 +10,7 @@ const deleteHandler_js_1 = require("./handlers/deleteHandler.js");
 const groupHandler_js_1 = require("./handlers/groupHandler.js");
 const pollHandler_js_1 = require("./handlers/pollHandler.js");
 const pinHandler_js_1 = require("./handlers/pinHandler.js");
+const liveLocationHandler_js_1 = require("./handlers/liveLocationHandler.js");
 const callSignalingHandler_js_1 = require("./handlers/callSignalingHandler.js");
 /**
  * Main WebSocket JSON Envelope message router
@@ -97,6 +98,29 @@ function routeWebSocketEnvelope(socket, envelope) {
         case 'chat:pin':
             (0, pinHandler_js_1.handleChatPin)(socket, envelope.payload).catch((err) => {
                 logger_js_1.logger.error('Error executing handleChatPin:', err);
+            });
+            break;
+        case 'chat:ephemeral_update':
+            if (envelope.payload?.chatId) {
+                roomManager_js_1.roomManager.broadcastToRoom(`chat:${envelope.payload.chatId}`, {
+                    type: 'chat:ephemeral_updated',
+                    payload: envelope.payload,
+                });
+            }
+            break;
+        case 'location:live_start':
+            (0, liveLocationHandler_js_1.handleLiveLocationStart)(socket, envelope.payload).catch((err) => {
+                logger_js_1.logger.error('Error executing handleLiveLocationStart:', err);
+            });
+            break;
+        case 'location:live_update':
+            (0, liveLocationHandler_js_1.handleLiveLocationUpdate)(socket, envelope.payload).catch((err) => {
+                logger_js_1.logger.error('Error executing handleLiveLocationUpdate:', err);
+            });
+            break;
+        case 'location:live_stop':
+            (0, liveLocationHandler_js_1.handleLiveLocationStop)(socket, envelope.payload).catch((err) => {
+                logger_js_1.logger.error('Error executing handleLiveLocationStop:', err);
             });
             break;
         default:

@@ -1,4 +1,4 @@
-# Phase 06: 1-on-1 Direct Real-Time Messaging Engine
+﻿# Phase 06: 1-on-1 Direct Real-Time Messaging Engine
 
 ## 1. Phase Overview & Objectives
 **Target Workspace**: `web/` (Server #1) & `socket-server/` (Server #2)  

@@ -1,4 +1,4 @@
-# Phase 05: Real-Time Presence & Status Engine (Server #2)
+﻿# Phase 05: Real-Time Presence & Status Engine (Server #2)
 
 ## 1. Phase Overview & Objectives
 **Target Workspace**: `socket-server/` (Server #2) & `web/` (Server #1)  

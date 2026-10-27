@@ -1,11 +1,11 @@
-# Phase 33: Abuse Reporting & Moderation Queue
+﻿# Phase 33: Abuse Reporting & Moderation Queue
 
 ## 1. Phase Overview & Objectives
 **Target Workspace**: `web/` (Server #1) & `socket-server/` (Server #2)  
-**Primary Goal**: Build an enterprise Abuse Reporting workflow and Admin Moderation Review Queue at **$0.00 additional monthly cost**. Users can flag abusive messages or profiles with categorized complaints (Spam, Harassment, Phishing, Inappropriate Content). Community moderators and system administrators review flagged items inside `/admin/moderation`, inspect surrounding chat context, and execute one-click moderation actions (Purge Message, Issue Warning, 24h Mute, Suspend Account, or Dismiss Report).
+**Primary Goal**: Build a Abuse Reporting workflow and Admin Moderation Review Queue at **$0.00 additional monthly cost**. Users can flag abusive messages or profiles with categorized complaints (Spam, Harassment, Phishing, Inappropriate Content). Community moderators and system administrators review flagged items inside `/admin/moderation`, inspect surrounding chat context, and execute one-click moderation actions (Purge Message, Issue Warning, 24h Mute, Suspend Account, or Dismiss Report).
 
 > [!IMPORTANT]
-> **Zero Friction & Verification Guardrail**: Strictly **NO OTP**, **NO SMS**, and **NO phone verification**. Abuse reports are submitted directly by authenticated members.
+> **Authentication Guardrail**: Strictly **NO OTP**, **NO SMS**, and **NO phone verification**. Abuse reports are submitted directly by authenticated members.
 
 ---
 

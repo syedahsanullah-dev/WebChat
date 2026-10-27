@@ -2,7 +2,7 @@
 name: webchat-requirements-architect
 description: >-
   Use this skill when reviewing, planning, designing, or validating requirements, architecture,
-  database schemas, enterprise compliance, and SDLC phases for the WhatsApp Web clone on Hostinger.
+  database schemas, compliance, and SDLC phases for the WhatsApp Web clone on Hostinger.
   Enforces zero extra monthly cost, dual-server structure, Fastify + native ws efficiency,
   and phone-less (@username/email) identity rules.
 ---
@@ -18,7 +18,7 @@ This skill acts as the system architect and technical authority for the WebChat 
    - **No paid external storage** (No AWS S3, No Cloudinary) — use Hostinger NVMe `/public/uploads/` (`avatars/`, `images/`, `voice/`, `docs/`).
    - **No paid WebRTC media servers** (No Twilio, Agora, or paid LiveKit) — use free Google STUN and free Metered.ca TURN (50 GB/mo).
    - **Audio-Only Calling**: Video calling is strictly disabled. Only audio calling via WebRTC Opus codec is allowed.
-   - **Enterprise & Admin Tools at $0 Cost**: Multi-device session security (`user_sessions`), E2EE via native browser `window.crypto.subtle`, push notifications via W3C VAPID protocol (`web-push`), Admin metrics and DLP via in-memory regex.
+   - **Security & Admin Tools at $0 Cost**: Multi-device session security (`user_sessions`), E2EE via native browser `window.crypto.subtle`, push notifications via W3C VAPID protocol (`web-push`), Admin metrics and DLP via in-memory regex.
    - **Geolocation & Mapping at $0 Cost**: Leaflet.js with free OpenStreetMap tiles and cached Nominatim reverse geocoding. Strictly no Google Maps or Mapbox API keys.
 
 2. **Dual-Server Subdomain Isolation & High-Performance Daemon**:
@@ -27,7 +27,7 @@ This skill acts as the system architect and technical authority for the WebChat 
    - **Memory Target**: Fastify + `ws` must maintain an idle memory footprint of **~25–35 MB RAM** (60%+ lower than Express + Socket.io), preventing out-of-memory restarts within Hostinger CloudLinux container limits.
    - **Cross-Origin Security**: Server #2 must allow CORS strictly from Server #1.
 
-3. **Identity System Guardrail (Zero Verification Friction)**:
+3. **Identity System Guardrail (Direct Authentication)**:
    - **No phone numbers, No SMS gateways, No OTP codes, and No email verification codes**: Registration and login only use `@username`, `email`, and `password`.
    - Never introduce phone number fields, SMS gateways, or OTP verification services requiring paid telephony or verification friction.
 
@@ -35,7 +35,7 @@ This skill acts as the system architect and technical authority for the WebChat 
    - Hostinger MySQL databases impose connection limits (typically 50–100 max user connections).
    - Prisma connection pooling must strictly specify `connection_limit=10` per server in `DATABASE_URL` to guarantee that total pool connections never exhaust Hostinger database limits.
 
-## Technical Reference & Schema Governance
+## Technical Reference & Schema Management
 
 - Consult [`TECH_STACK_AND_ENV_CONFIG.md`](../../TECH_STACK_AND_ENV_CONFIG.md) for full npm packages and `.env` specifications.
 - When extending or inspecting the Prisma schema in `PROJECT_SPECIFICATION_AND_PHASES.md`:
@@ -47,9 +47,9 @@ This skill acts as the system architect and technical authority for the WebChat 
 
 Always cross-reference user requests against the 38-phase roadmap in `phases/` and `chk.txt`:
 - **Part I: Core Production Platform (Phases 01 – 14)**
-- **Part II: Enterprise Security, Data & Communications (Phases 15 – 22)**
+- **Part II: Security, Data & Communications (Phases 15 – 22)**
 - **Part III: Offline Resilience & Developer Integrations (Phases 23 – 26)**
-- **Part IV: Enterprise Compliance & Governance (Phases 27 – 28)**
-- **Part V: Enterprise Administration & Operations (Phases 29 – 34)**
+- **Part IV: Compliance & Data Management (Phases 27 – 28)**
+- **Part V: Administration & Operations (Phases 29 – 34)**
 - **Part VI: Platform Reliability & Emergency Operations (Phases 35 – 36)**
 - **Part VII: Advanced Geolocation & Mobility (Phases 37 – 38)**

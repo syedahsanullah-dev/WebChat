@@ -1,4 +1,4 @@
-# Phase 01: Workspace Scaffolding & WhatsApp Web Layout Shell
+﻿# Phase 01: Workspace Scaffolding & WhatsApp Web Layout Shell
 
 ## 1. Phase Overview & Objectives
 **Target Workspace**: Root & `web/` (Server #1)  
