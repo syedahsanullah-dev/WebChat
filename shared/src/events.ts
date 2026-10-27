@@ -37,7 +37,15 @@ export type WsEventType =
   | 'poll:vote'
   | 'poll:update'
   | 'chat:pin'
-  | 'chat:pin_updated';
+  | 'chat:pin_updated'
+  | 'chat:ephemeral_updated'
+  | 'location:live_start'
+  | 'location:live_started'
+  | 'location:live_update'
+  | 'location:live_updated'
+  | 'location:live_stop'
+  | 'location:live_stopped'
+  | 'location:live_ended';
 
 export interface WsEnvelope<T = any> {
   type: WsEventType;
@@ -330,4 +338,39 @@ export interface ChatPinUpdatedPayload {
   messageId: string;
   pinnedMessage?: any;
 }
+
+export interface ChatEphemeralUpdatedPayload {
+  chatId: string;
+  duration: number | null;
+  updatedBy: {
+    userId: string;
+    username: string;
+    displayName?: string;
+  };
+}
+
+export interface LiveLocationStartedPayload {
+  liveLocation: any;
+  message?: any;
+}
+
+export interface LiveLocationUpdatedPayload {
+  liveLocationId: string;
+  chatId: string;
+  userId: string;
+  latitude: number;
+  longitude: number;
+  heading?: number | null;
+  speed?: number | null;
+  accuracy?: number | null;
+  updatedAt: string;
+}
+
+export interface LiveLocationStoppedPayload {
+  liveLocationId: string;
+  chatId: string;
+  userId: string;
+  reason?: 'manual' | 'expired';
+}
+
 

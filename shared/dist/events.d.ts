@@ -1,5 +1,5 @@
 import { Message, MessageStatus, MessageType } from './types';
-export type WsEventType = 'ping' | 'pong' | 'presence:init' | 'user:online' | 'user:offline' | 'typing:start' | 'typing:stop' | 'message:send' | 'message:ack' | 'message:new' | 'message:read' | 'message:status' | 'message:reaction' | 'message:delete' | 'group:created' | 'group:member_update' | 'group:join' | 'group:leave' | 'audio-call:invite' | 'audio-call:incoming' | 'audio-call:ring' | 'audio-call:accept' | 'audio-call:accepted' | 'audio-call:reject' | 'audio-call:busy' | 'audio-call:ice-candidate' | 'audio-call:end' | 'audio-call:ended' | 'session:revoked' | 'error' | 'system:broadcast' | 'system:broadcast_dismiss' | 'system:maintenance' | 'poll:vote' | 'poll:update' | 'chat:pin' | 'chat:pin_updated';
+export type WsEventType = 'ping' | 'pong' | 'presence:init' | 'user:online' | 'user:offline' | 'typing:start' | 'typing:stop' | 'message:send' | 'message:ack' | 'message:new' | 'message:read' | 'message:status' | 'message:reaction' | 'message:delete' | 'group:created' | 'group:member_update' | 'group:join' | 'group:leave' | 'audio-call:invite' | 'audio-call:incoming' | 'audio-call:ring' | 'audio-call:accept' | 'audio-call:accepted' | 'audio-call:reject' | 'audio-call:busy' | 'audio-call:ice-candidate' | 'audio-call:end' | 'audio-call:ended' | 'session:revoked' | 'error' | 'system:broadcast' | 'system:broadcast_dismiss' | 'system:maintenance' | 'poll:vote' | 'poll:update' | 'chat:pin' | 'chat:pin_updated' | 'chat:ephemeral_updated' | 'location:live_start' | 'location:live_started' | 'location:live_update' | 'location:live_updated' | 'location:live_stop' | 'location:live_stopped' | 'location:live_ended';
 export interface WsEnvelope<T = any> {
     type: WsEventType;
     payload: T;
@@ -253,5 +253,35 @@ export interface ChatPinUpdatedPayload {
     action: 'pinned' | 'unpinned';
     messageId: string;
     pinnedMessage?: any;
+}
+export interface ChatEphemeralUpdatedPayload {
+    chatId: string;
+    duration: number | null;
+    updatedBy: {
+        userId: string;
+        username: string;
+        displayName?: string;
+    };
+}
+export interface LiveLocationStartedPayload {
+    liveLocation: any;
+    message?: any;
+}
+export interface LiveLocationUpdatedPayload {
+    liveLocationId: string;
+    chatId: string;
+    userId: string;
+    latitude: number;
+    longitude: number;
+    heading?: number | null;
+    speed?: number | null;
+    accuracy?: number | null;
+    updatedAt: string;
+}
+export interface LiveLocationStoppedPayload {
+    liveLocationId: string;
+    chatId: string;
+    userId: string;
+    reason?: 'manual' | 'expired';
 }
 //# sourceMappingURL=events.d.ts.map

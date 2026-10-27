@@ -7,6 +7,7 @@ import AudioRecorder from './AudioRecorder';
 import QuotedReplyPreview, { QuotedMessageData } from './QuotedReplyPreview';
 import SlashCommandPopover from './SlashCommandPopover';
 import CreatePollModal from '@/components/polls/CreatePollModal';
+import { validateDocumentFile } from '@/lib/fileValidation';
 import { useAudioRecorder, RecordedAudioResult } from '@/hooks/useAudioRecorder';
 import { AVAILABLE_COMMANDS } from '@/lib/slashCommandParser';
 import { SlashCommandDefinition } from '@shared/types';
@@ -16,6 +17,7 @@ export interface ChatInputProps {
   chatId?: string;
   onSendMessage: (text: string) => void;
   onImageSelect?: (file: File) => void;
+  onSendDocument?: (doc: { url: string; name: string; size: number; mime: string }) => void;
   onSendVoice?: (result: RecordedAudioResult) => void;
   onSelectLocation?: () => void;
   onCommandFeedback?: (feedback: string, isError?: boolean) => void;
@@ -50,6 +52,8 @@ export default function ChatInput({
   const [isExecutingCommand, setIsExecutingCommand] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const docInputRef = useRef<HTMLInputElement>(null);
+  const [isUploadingDoc, setIsUploadingDoc] = useState(false);
 
   // Check if current text is starting a slash command
   const isSlashCommand = text.startsWith('/') && !text.includes(' ') && !isPopoverDismissed;
@@ -175,6 +179,42 @@ export default function ChatInput({
     }
   };
 
+  const handleDocFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const validation = validateDocumentFile(file.size, file.name, file.type);
+    if (!validation.isValid) {
+      onCommandFeedback?.(validation.error || 'Invalid file', true);
+      e.target.value = '';
+      return;
+    }
+
+    try {
+      setIsUploadingDoc(true);
+      const formData = new FormData();
+      formData.append('file', file);
+      const res = await fetch('/api/uploads/document', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => null);
+        throw new Error(errData?.error || 'Failed to upload document');
+      }
+
+      const data = await res.json();
+      onSendDocument?.(data);
+    } catch (err: any) {
+      console.error('Document upload error:', err);
+      onCommandFeedback?.(err.message || 'Upload failed', true);
+    } finally {
+      setIsUploadingDoc(false);
+      e.target.value = '';
+    }
+  };
+
   const handleStartMic = async () => {
     if (disabled) return;
     try {
@@ -220,6 +260,15 @@ export default function ChatInput({
         className="hidden"
       />
 
+      {/* Hidden document file input */}
+      <input
+        ref={docInputRef}
+        type="file"
+        accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.zip,.txt,.csv"
+        onChange={handleDocFileChange}
+        className="hidden"
+      />
+
       {isRecording ? (
         /* Active Audio Recorder Bar */
         <AudioRecorder
@@ -249,6 +298,7 @@ export default function ChatInput({
             isOpen={isAttachmentOpen}
             onClose={() => setIsAttachmentOpen(false)}
             onSelectPhoto={() => fileInputRef.current?.click()}
+            onSelectDocument={() => docInputRef.current?.click()}
             onSelectLocation={onSelectLocation}
             onSelectPoll={() => setIsCreatePollOpen(true)}
           />

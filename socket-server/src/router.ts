@@ -8,6 +8,11 @@ import { handleGroupJoin, handleGroupLeave, handleGroupMemberUpdate } from './ha
 import { handlePollVote } from './handlers/pollHandler.js';
 import { handleChatPin } from './handlers/pinHandler.js';
 import {
+  handleLiveLocationStart,
+  handleLiveLocationUpdate,
+  handleLiveLocationStop,
+} from './handlers/liveLocationHandler.js';
+import {
   handleCallInvite,
   handleCallRing,
   handleCallAccept,
@@ -127,6 +132,24 @@ export function routeWebSocketEnvelope(
     case 'chat:pin':
       handleChatPin(socket, envelope.payload).catch((err) => {
         logger.error('Error executing handleChatPin:', err);
+      });
+      break;
+
+    case 'location:live_start':
+      handleLiveLocationStart(socket, envelope.payload).catch((err) => {
+        logger.error('Error executing handleLiveLocationStart:', err);
+      });
+      break;
+
+    case 'location:live_update':
+      handleLiveLocationUpdate(socket, envelope.payload).catch((err) => {
+        logger.error('Error executing handleLiveLocationUpdate:', err);
+      });
+      break;
+
+    case 'location:live_stop':
+      handleLiveLocationStop(socket, envelope.payload).catch((err) => {
+        logger.error('Error executing handleLiveLocationStop:', err);
       });
       break;
 

@@ -55,7 +55,6 @@ export default function AdminSidebar() {
       href: '/admin/audit',
       icon: FileText,
       exact: false,
-      badge: 'Phase 27',
     },
     {
       label: 'Global Broadcasts',

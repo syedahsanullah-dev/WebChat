@@ -201,19 +201,19 @@
 ### Part IV: Enterprise Compliance & Governance (Phases 27 – 28)
 
 ## Phase 27: [Immutable Security Audit Logging](phases/27_IMMUTABLE_SECURITY_AUDIT_LOGGING.md)
-- [ ] Immutable, append-only `AuditLog` table capturing auth, session, governance, and moderation events
-- [ ] Standardized event action enums (`AUTH_LOGIN`, `SESSION_REVOKED`, `USER_SUSPENDED`, `DLP_VIOLATION`)
-- [ ] Event interceptors across Next.js REST routes and Fastify WebSocket handlers
-- [ ] Searchable Admin Audit Log Console (`/admin/audit`) with multi-filter toolbar and JSON inspector
-- [ ] Compliance CSV export streaming filtered audit records
+- [x] Immutable, append-only `AuditLog` table capturing auth, session, governance, and moderation events
+- [x] Standardized event action enums (`AUTH_LOGIN`, `SESSION_REVOKED`, `USER_SUSPENDED`, `DLP_VIOLATION`)
+- [x] Event interceptors across Next.js REST routes and Fastify WebSocket handlers
+- [x] Searchable Admin Audit Log Console (`/admin/audit`) with multi-filter toolbar and JSON inspector
+- [x] Compliance CSV export streaming filtered audit records
 
 ## Phase 28: [Compliance Data Export & Legal Hold Governance](phases/28_COMPLIANCE_DATA_EXPORT_AND_LEGAL_HOLD.md)
-- [ ] Legal Hold switch (`Chat.isLegalHold`) suspending message deletion and ephemeral cleanup
-- [ ] Yellow "Legal Hold Active" security banner in chat header
-- [ ] Standalone styled offline HTML transcript generator (`transcript.html`) replicating WhatsApp Web UI
-- [ ] Machine-readable JSON transcript generator (`transcript.json`)
-- [ ] Compliant `.zip` archive packager using `archiver` bundling HTML, JSON, and media attachments
-- [ ] GDPR "Download My Data" self-service user export workflow
+- [x] Legal Hold switch (`Chat.isLegalHold`) suspending message deletion and ephemeral cleanup
+- [x] Yellow "Legal Hold Active" security banner in chat header
+- [x] Standalone styled offline HTML transcript generator (`transcript.html`) replicating WhatsApp Web UI
+- [x] Machine-readable JSON transcript generator (`transcript.json`)
+- [x] Compliant `.zip` archive packager using `archiver` bundling HTML, JSON, and media attachments
+- [x] GDPR "Download My Data" self-service user export workflow
 
 ---
 

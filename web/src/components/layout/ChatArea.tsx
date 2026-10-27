@@ -13,6 +13,8 @@ import LocationPickerModal from '@/components/location/LocationPickerModal';
 import OfflineStatusBar from '@/components/chat/OfflineStatusBar';
 import ConnectionToast from '@/components/ui/ConnectionToast';
 import WebhooksManagementDrawer from '@/components/settings/WebhooksManagementDrawer';
+import LegalHoldBanner from '@/components/chat/LegalHoldBanner';
+import ExportChatModal from '@/components/chat/ExportChatModal';
 import ChannelReadOnlyBar from '@/components/channels/ChannelReadOnlyBar';
 import ChannelInfoDrawer from '@/components/channels/ChannelInfoDrawer';
 import PinnedMessagesStrip from '@/components/chat/PinnedMessagesStrip';
@@ -82,6 +84,8 @@ export default function ChatArea({
   const [isSafetyModalOpen, setIsSafetyModalOpen] = useState(false);
   const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
   const [isWebhooksOpen, setIsWebhooksOpen] = useState(false);
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [isLegalHold, setIsLegalHold] = useState(false);
   const [commandToast, setCommandToast] = useState<{ message: string; isError?: boolean } | null>(null);
   const [replyingToMessage, setReplyingToMessage] = useState<QuotedMessageData | null>(null);
   const [deletingMessage, setDeletingMessage] = useState<MessageItem | null>(null);
@@ -101,6 +105,20 @@ export default function ChatArea({
           // JSDOM safe fallback
         }
       }
+    }
+  }, [activeChatId]);
+
+  // Phase 28: Fetch Legal Hold status for active chat
+  useEffect(() => {
+    if (activeChatId) {
+      fetch(`/api/chats/${activeChatId}/legal-hold`)
+        .then((r) => r.json())
+        .then((data) => {
+          if (data?.legalHold) {
+            setIsLegalHold(Boolean(data.legalHold.isLegalHold));
+          }
+        })
+        .catch(() => {});
     }
   }, [activeChatId]);
 
@@ -369,6 +387,38 @@ export default function ChatArea({
       label: 'Integrations & Webhooks',
       onClick: () => setIsWebhooksOpen(true),
     },
+    {
+      id: 'export-chat',
+      label: 'Export chat',
+      onClick: () => setIsExportModalOpen(true),
+    },
+    ...(user?.systemRole === 'SUPER_ADMIN' || user?.systemRole === 'ADMIN'
+      ? [
+          {
+            id: 'legal-hold',
+            label: isLegalHold ? 'Disable Legal Hold' : 'Enable Legal Hold',
+            onClick: async () => {
+              if (activeChatId) {
+                const targetState = !isLegalHold;
+                const reason = prompt(
+                  `Reason for ${targetState ? 'enabling' : 'disabling'} Legal Hold:`,
+                  'Compliance review'
+                );
+                if (reason !== null) {
+                  const res = await fetch(`/api/chats/${activeChatId}/legal-hold`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ isLegalHold: targetState, reason }),
+                  });
+                  if (res.ok) {
+                    setIsLegalHold(targetState);
+                  }
+                }
+              }
+            },
+          },
+        ]
+      : []),
     ...(!activeChat?.isGroup
       ? [
           {
@@ -454,6 +504,9 @@ export default function ChatArea({
           }}
           menuItems={menuItems}
         />
+
+        {/* Phase 28: Legal Hold Banner */}
+        {isLegalHold && <LegalHoldBanner />}
 
         {/* Pinned Messages Header Strip */}
         {activeChatId && <PinnedMessagesStrip chatId={activeChatId} />}
@@ -627,6 +680,16 @@ export default function ChatArea({
         <WebhooksManagementDrawer
           isOpen={isWebhooksOpen}
           onClose={() => setIsWebhooksOpen(false)}
+          chatId={activeChatId}
+          chatTitle={activeChat?.name}
+        />
+      )}
+
+      {/* Phase 28: Export Chat Modal */}
+      {activeChatId && (
+        <ExportChatModal
+          isOpen={isExportModalOpen}
+          onClose={() => setIsExportModalOpen(false)}
           chatId={activeChatId}
           chatTitle={activeChat?.name}
         />

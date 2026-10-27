@@ -43,6 +43,7 @@ model User {
   isSuspended      Boolean           @default(false)
   auditLogs        AuditLog[]
   broadcasts       SystemBroadcast[]
+  liveLocations    LiveLocation[]
 
   @@index([systemRole], map: "idx_users_system_role")
   @@index([isSuspended], map: "idx_users_suspended")
@@ -72,8 +73,12 @@ model Chat {
   groupDescription String?  @db.VarChar(500)
   groupAvatarUrl   String?  @db.VarChar(500)
   groupAdminId     String?
+  ephemeralDuration Int?
   lastMessageId    String?
   lastMessageAt    DateTime @default(now())
+  isLegalHold      Boolean  @default(false)
+  legalHoldSetAt   DateTime?
+  legalHoldSetById String?
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
@@ -86,6 +91,7 @@ model Chat {
   polls           Poll[]
   channelMetadata ChannelMetadata?
   pinnedMessages  PinnedMessage[]
+  liveLocations   LiveLocation[]
 
   @@index([lastMessageAt(sort: Desc)], map: "idx_chats_last_message_at")
   @@map("chats")
@@ -117,21 +123,31 @@ model Message {
   mediaDuration    Float? // In seconds, for voice notes
   replyToMessageId String?
   isDeleted        Boolean  @default(false)
+  deletedAt        DateTime?
   isE2EE           Boolean  @default(false)
   e2eeIv           String?  @db.VarChar(50) // Base64 encoded 12-byte IV for AES-GCM
   latitude         Float?
   longitude        Float?
   locationAddress  String?  @db.VarChar(255)
+  documentName     String?  @db.VarChar(255)
+  documentSize     Int?
+  documentMime     String?  @db.VarChar(100)
+  isCodeBlock      Boolean  @default(false)
+  codeLanguage     String?  @db.VarChar(30)
+  expiresAt        DateTime?
+  liveLocationId   String?
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
   chat           Chat            @relation(fields: [chatId], references: [id], onDelete: Cascade)
   sender         User            @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  liveLocation   LiveLocation?   @relation(fields: [liveLocationId], references: [id], onDelete: SetNull)
   statuses       MessageStatus[]
   pinnedIn       PinnedMessage[]
   starredBy      StarredMessage[]
 
   @@index([chatId, createdAt(sort: Desc)], map: "idx_messages_chat_created")
+  @@index([expiresAt], map: "idx_messages_expires_at")
   @@map("messages")
 }
 
@@ -402,3 +418,28 @@ model StarredMessage {
   @@index([userId, starredAt(sort: Desc)], map: "idx_starred_user_time")
   @@map("starred_messages")
 }
+
+model LiveLocation {
+  id         String    @id @default(uuid())
+  chatId     String
+  userId     String
+  latitude   Float
+  longitude  Float
+  heading    Float?    // Direction in degrees (0–360)
+  speed      Float?    // Speed in m/s
+  accuracy   Float?    // Accuracy in meters
+  comment    String?   @db.VarChar(255)
+  isActive   Boolean   @default(true)
+  startedAt  DateTime  @default(now())
+  expiresAt  DateTime
+  updatedAt  DateTime  @updatedAt
+
+  chat     Chat      @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages Message[]
+
+  @@index([chatId, isActive], map: "idx_live_location_chat")
+  @@index([expiresAt, isActive], map: "idx_live_location_expires")
+  @@map("live_locations")
+}
+

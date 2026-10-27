@@ -292,6 +292,40 @@ export interface PollDetails {
     options: PollOptionItem[];
     totalVotes: number;
 }
+export type AuditAction = 'AUTH_LOGIN' | 'AUTH_LOGOUT' | 'AUTH_REGISTER' | 'PASSWORD_UPDATED' | 'SESSION_REVOKED' | 'GROUP_CREATED' | 'GROUP_ADMIN_PROMOTED' | 'MEMBER_KICKED' | 'CHANNEL_BROADCAST_SENT' | 'LEGAL_HOLD_ENABLED' | 'LEGAL_HOLD_DISABLED' | 'CHAT_EXPORT_DOWNLOADED' | 'USER_DATA_EXPORT_DOWNLOADED' | 'USER_ROLE_ELEVATED' | 'USER_SUSPENDED' | 'USER_UNBANNED' | 'DLP_VIOLATION_BLOCKED' | 'GLOBAL_BROADCAST_CREATED' | 'MAINTENANCE_TOGGLED' | 'ORPHAN_FILES_PURGED';
+export interface AuditLogEntry {
+    id: string;
+    userId?: string | null;
+    actorId?: string;
+    action: AuditAction | string;
+    resource?: string;
+    entityType?: string;
+    entityId?: string | null;
+    ipAddress?: string | null;
+    userAgent?: string | null;
+    metadata?: string | null;
+    details?: any;
+    createdAt: string | Date;
+    user?: {
+        id: string;
+        username: string;
+        displayName: string;
+        avatarUrl?: string | null;
+    } | null;
+}
+export interface LegalHoldPayload {
+    chatId: string;
+    isLegalHold: boolean;
+    reason?: string;
+    legalHoldSetAt?: string | null;
+    legalHoldSetById?: string | null;
+}
+export interface ChatExportOptions {
+    chatId: string;
+    includeMedia?: boolean;
+    startDate?: string;
+    endDate?: string;
+}
 export interface ChannelMetadataPayload {
     id: string;
     chatId: string;
@@ -370,5 +404,68 @@ export interface StarredMessageItem {
     mediaUrl?: string | null;
     messageType?: string;
     createdAt: string | Date;
+}
+export interface DocumentMessagePayload {
+    id: string;
+    chatId: string;
+    senderId: string;
+    documentName: string;
+    documentSize: number;
+    documentMime: string;
+    mediaUrl: string;
+    createdAt: string | Date;
+}
+export interface CodeBlockToken {
+    language: string;
+    code: string;
+}
+export interface EphemeralDurationUpdatePayload {
+    chatId: string;
+    duration: number | null;
+    updatedByUserId: string;
+    updatedByUsername?: string;
+}
+export interface LiveLocationData {
+    id: string;
+    chatId: string;
+    userId: string;
+    userDisplayName?: string;
+    userAvatarUrl?: string | null;
+    latitude: number;
+    longitude: number;
+    heading?: number | null;
+    speed?: number | null;
+    accuracy?: number | null;
+    comment?: string | null;
+    isActive: boolean;
+    startedAt: string;
+    expiresAt: string;
+    updatedAt: string;
+}
+export interface LiveLocationStartPayload {
+    chatId: string;
+    latitude: number;
+    longitude: number;
+    durationMinutes: number;
+    comment?: string;
+    heading?: number;
+    speed?: number;
+    accuracy?: number;
+}
+export interface LiveLocationUpdatePayload {
+    liveLocationId: string;
+    chatId: string;
+    userId?: string;
+    latitude: number;
+    longitude: number;
+    heading?: number | null;
+    speed?: number | null;
+    accuracy?: number | null;
+    updatedAt?: string;
+}
+export interface LiveLocationStopPayload {
+    liveLocationId: string;
+    chatId: string;
+    userId?: string;
 }
 //# sourceMappingURL=types.d.ts.map
