@@ -12,22 +12,17 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json().catch(() => null);
-    if (!body || !body.chatId || !body.reportedUserId || !body.category || !body.reason) {
+    if (!body || !body.reportedUserId || !body.category) {
       return NextResponse.json(
-        { error: 'Missing required fields: chatId, reportedUserId, category, and reason are required' },
+        { error: 'Missing required fields: reportedUserId and category are required' },
         { status: 400 }
       );
     }
 
-    const { chatId, reportedUserId, messageId = null, category, reason, blockUser = false } = body;
+    const { chatId, reportedUserId, messageId = null, category, reason = '', blockUser = false } = body;
 
-    const trimmedReason = String(reason).trim();
-    if (trimmedReason.length < 5) {
-      return NextResponse.json(
-        { error: 'Reason must be at least 5 characters long' },
-        { status: 400 }
-      );
-    }
+    const trimmedReason = String(reason || '').trim();
+    const finalReason = trimmedReason.length >= 5 ? trimmedReason.slice(0, 500) : `Reported under category: ${category}`;
 
     if (!VALID_CATEGORIES.includes(category)) {
       return NextResponse.json(
@@ -42,6 +37,51 @@ export async function POST(request: NextRequest) {
         { error: 'You cannot report your own account' },
         { status: 400 }
       );
+    }
+
+    // Ensure reported user exists
+    const targetUser = await prisma.user.findUnique({
+      where: { id: reportedUserId },
+      select: { id: true, username: true },
+    });
+    if (!targetUser) {
+      return NextResponse.json(
+        { error: 'The reported user does not exist' },
+        { status: 404 }
+      );
+    }
+
+    // Resolve or find chatId if not provided
+    let finalChatId = chatId;
+    if (!finalChatId) {
+      const existingChat = await prisma.chat.findFirst({
+        where: {
+          isGroup: false,
+          AND: [
+            { participants: { some: { userId: authUser.userId } } },
+            { participants: { some: { userId: reportedUserId } } },
+          ],
+        },
+        select: { id: true },
+      });
+
+      if (existingChat) {
+        finalChatId = existingChat.id;
+      } else {
+        const newChat = await prisma.chat.create({
+          data: {
+            isGroup: false,
+            participants: {
+              create: [
+                { userId: authUser.userId, role: 'member' },
+                { userId: reportedUserId, role: 'member' },
+              ],
+            },
+          },
+          select: { id: true },
+        });
+        finalChatId = newChat.id;
+      }
     }
 
     // Rate limiting: max 5 reports per user per hour
@@ -60,15 +100,27 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Verify messageId belongs to this chat if provided
+    let finalMessageId: string | null = null;
+    if (messageId) {
+      const msg = await prisma.message.findUnique({
+        where: { id: messageId },
+        select: { id: true, chatId: true },
+      });
+      if (msg && msg.chatId === finalChatId) {
+        finalMessageId = msg.id;
+      }
+    }
+
     // Create the AbuseReport
     const report = await prisma.abuseReport.create({
       data: {
         reporterId: authUser.userId,
         reportedUserId,
-        chatId,
-        messageId,
+        chatId: finalChatId,
+        messageId: finalMessageId,
         category,
-        reason: trimmedReason.slice(0, 500),
+        reason: finalReason,
         status: 'PENDING',
       },
     });

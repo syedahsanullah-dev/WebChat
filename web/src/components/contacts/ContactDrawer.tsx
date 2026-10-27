@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import ContactCard, { ContactData } from '@/components/contacts/ContactCard';
 import AddContactDialog, { TargetContactUser } from '@/components/contacts/AddContactDialog';
+import ReportMessageModal from '@/components/chat/ReportMessageModal';
 import {
   ArrowLeft,
   Search,
@@ -29,6 +30,7 @@ export default function ContactDrawer({
   const [isLoading, setIsLoading] = useState(true);
   const [filterQuery, setFilterQuery] = useState('');
   const [editingContact, setEditingContact] = useState<TargetContactUser | null>(null);
+  const [reportingContact, setReportingContact] = useState<ContactData | null>(null);
 
   const fetchContacts = useCallback(async () => {
     try {
@@ -219,6 +221,7 @@ export default function ContactDrawer({
                       }}
                       onEditAlias={handleEditAlias}
                       onRemove={handleRemoveContact}
+                      onReport={(c) => setReportingContact(c)}
                     />
                   ))}
                 </div>
@@ -236,6 +239,17 @@ export default function ContactDrawer({
           fetchContacts();
         }}
       />
+
+      {/* Phase 33: Report Contact Modal */}
+      {reportingContact && (
+        <ReportMessageModal
+          isOpen={Boolean(reportingContact)}
+          chatId=""
+          reportedUserId={reportingContact.contactUser.id}
+          reportedUserName={reportingContact.aliasName || reportingContact.contactUser.displayName || reportingContact.contactUser.username}
+          onClose={() => setReportingContact(null)}
+        />
+      )}
     </div>
   );
 }

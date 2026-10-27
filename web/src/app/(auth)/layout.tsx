@@ -52,7 +52,7 @@ export default function AuthLayout({
 
         {/* Footer info */}
         <div className="text-center mt-6 text-xs text-wa-light-text-muted dark:text-wa-dark-text-muted">
-          <span>Protected by end-to-end authentication • $0 / mo zero cost</span>
+          <span>Protected by end-to-end encrypted authentication</span>
         </div>
       </div>
     </div>

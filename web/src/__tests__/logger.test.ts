@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { logger } from '@/lib/logger';
 
-describe('Phase 14: Zero-Cost Winston File & Console Logger', () => {
+describe('Phase 14: Winston File & Console Logger', () => {
   it('exports an active winston logger instance with standard logging methods', () => {
     expect(logger).toBeDefined();
     expect(typeof logger.info).toBe('function');

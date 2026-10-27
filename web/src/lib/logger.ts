@@ -34,7 +34,7 @@ const transports: winston.transport[] = [
   }),
 ];
 
-// In server runtime, append file transports for zero-cost error logging
+// In server runtime, append file transports for error logging
 if (typeof window === 'undefined') {
   try {
     transports.push(

@@ -4,23 +4,23 @@ import React from 'react';
 import { Cpu, Zap } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-export interface MemoryTelemetryCardProps {
+export interface MemoryMetricsCardProps {
   rssMB: number;
   heapUsedMB: number;
   heapTotalMB: number;
   externalMB?: number;
-  maxMB?: number; // e.g. 1024 MB on Hostinger CloudLinux
+  maxMB?: number; // e.g. 1024 MB allocation
   loading?: boolean;
 }
 
-export default function MemoryTelemetryCard({
+export default function MemoryMetricsCard({
   rssMB = 30,
   heapUsedMB = 18,
   heapTotalMB = 24,
   externalMB,
   maxMB = 1024,
   loading = false,
-}: MemoryTelemetryCardProps) {
+}: MemoryMetricsCardProps) {
   // Determine severity tier based on rssMB:
   // Green: < 60 MB (Optimal Fastify efficiency)
   // Yellow: 60 - 100 MB (Moderate load)
@@ -59,7 +59,7 @@ export default function MemoryTelemetryCard({
         <div>
           <div className="flex items-center gap-2">
             <span className="text-xs font-semibold uppercase tracking-wider text-wa-light-text-secondary dark:text-wa-dark-text-secondary">
-              Server #2 RAM Telemetry
+              Socket Server Memory
             </span>
             {statusBadge}
           </div>

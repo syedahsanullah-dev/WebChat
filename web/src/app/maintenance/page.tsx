@@ -161,7 +161,7 @@ export default function MaintenancePage() {
 
       {/* Footer Branding */}
       <div className="mt-6 text-center text-xs text-[#8696a0]">
-        <span>WebChat Enterprise Edition • Zero-Cost Cloud Architecture</span>
+        <span>WebChat • System Maintenance</span>
       </div>
     </div>
   );

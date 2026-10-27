@@ -28,6 +28,7 @@ export interface MemberRowProps {
   onDemote?: (userId: string) => void;
   onRemove?: (userId: string) => void;
   onMessage?: (userId: string) => void;
+  onReport?: (participant: GroupParticipantItem) => void;
   className?: string;
 }
 
@@ -39,6 +40,7 @@ export default function MemberRow({
   onDemote,
   onRemove,
   onMessage,
+  onReport,
   className,
 }: MemberRowProps) {
   const isMe = participant.userId === currentUserId;
@@ -53,6 +55,15 @@ export default function MemberRow({
       label: `Message @${participant.user.username}`,
       icon: <MessageSquare className="w-4 h-4" />,
       onClick: () => onMessage(participant.userId),
+    });
+  }
+
+  if (!isMe && onReport) {
+    menuItems.push({
+      id: 'report',
+      label: `Report @${participant.user.username}`,
+      icon: <ShieldAlert className="w-4 h-4 text-rose-500" />,
+      onClick: () => onReport(participant),
     });
   }
 

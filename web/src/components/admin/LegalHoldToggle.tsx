@@ -54,7 +54,7 @@ export default function LegalHoldToggle({
             <ShieldCheck className="w-4 h-4 text-wa-green" />
           )}
           <span className="font-semibold text-wa-light-text-primary dark:text-wa-dark-text-primary">
-            Legal Hold Governance
+            Legal Hold Status
           </span>
         </div>
         <button

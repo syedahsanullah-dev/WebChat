@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import MetricStatCard from '@/components/admin/MetricStatCard';
-import MemoryTelemetryCard from '@/components/admin/MemoryTelemetryCard';
+import MemoryMetricsCard from '@/components/admin/MemoryMetricsCard';
 import ActiveSocketsCard from '@/components/admin/ActiveSocketsCard';
 import { SystemMetricsPayload } from '@shared/types';
 import {
@@ -60,7 +60,7 @@ export default function AdminOverviewPage() {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-wa-light-text-primary dark:text-wa-dark-text-primary">
-            Infrastructure & System Telemetry
+            System & Server Metrics
           </h2>
           <p className="text-xs text-wa-light-text-secondary dark:text-wa-dark-text-secondary mt-1">
             Real-time dual-server resource monitoring & MySQL database analytics.
@@ -96,9 +96,9 @@ export default function AdminOverviewPage() {
         </div>
       </div>
 
-      {/* Top Telemetry Grid: Memory and Active Sockets */}
+      {/* Top Metrics Grid: Memory and Active Sockets */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-        <MemoryTelemetryCard
+        <MemoryMetricsCard
           rssMB={metrics?.memory.rssMB || 30}
           heapUsedMB={metrics?.memory.heapUsedMB || 18}
           heapTotalMB={metrics?.memory.heapTotalMB || 24}
@@ -121,7 +121,7 @@ export default function AdminOverviewPage() {
         <div className="flex items-center gap-2 mb-3">
           <Database className="w-4 h-4 text-[#00a884]" />
           <h3 className="text-sm font-semibold uppercase tracking-wider text-wa-light-text-secondary dark:text-wa-dark-text-secondary">
-            Hostinger MySQL Database Telemetry
+            MySQL Database Metrics
           </h3>
         </div>
 
@@ -134,7 +134,7 @@ export default function AdminOverviewPage() {
             loading={loading}
             iconBgColor="bg-sky-500/10 dark:bg-sky-500/20"
             iconColor="text-sky-500"
-            badge={{ text: 'Zero OTP / No SMS', variant: 'success' }}
+            badge={{ text: 'Direct Auth', variant: 'success' }}
           />
 
           <MetricStatCard

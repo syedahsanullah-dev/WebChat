@@ -1,6 +1,6 @@
 /**
- * Enterprise Document Mime-Type & File Size Whitelist Validator
- * Enforces maximum 25MB file size limit ($0 added cost constraint on Hostinger NVMe)
+ * Document Mime-Type & File Size Allowlist Validator
+ * Enforces maximum 25MB file size limit for uploaded files
  */
 
 export const MAX_DOCUMENT_SIZE_BYTES = 25 * 1024 * 1024; // 25 Megabytes

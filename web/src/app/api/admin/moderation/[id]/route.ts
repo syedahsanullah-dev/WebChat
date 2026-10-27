@@ -52,6 +52,14 @@ export async function GET(
             createdAt: true,
             isDeleted: true,
             mediaUrl: true,
+            senderId: true,
+            sender: {
+              select: {
+                id: true,
+                username: true,
+                displayName: true,
+              },
+            },
           },
         },
       },
@@ -110,8 +118,12 @@ export async function GET(
 
       const targetFormatted = {
         id: report.message.id,
-        senderId: report.reportedUserId,
-        senderName: report.reportedUser.displayName || report.reportedUser.username,
+        senderId: report.message.sender?.id || report.reportedUserId,
+        senderName:
+          report.message.sender?.displayName ||
+          report.message.sender?.username ||
+          report.reportedUser.displayName ||
+          report.reportedUser.username,
         content: report.message.isDeleted ? '[Deleted message]' : report.message.content || '',
         createdAt: report.message.createdAt.toISOString(),
         isTarget: true,

@@ -186,7 +186,7 @@ export default function ChannelLandingPage() {
 
       {/* Footer */}
       <footer className="w-full max-w-4xl py-4 text-center text-xs text-[#8696a0]">
-        Powered by WebChat &bull; Enterprise Broadcast Channels &bull; Zero SMS / Phone Friction
+        Powered by WebChat &bull; Broadcast Channels
       </footer>
     </div>
   );

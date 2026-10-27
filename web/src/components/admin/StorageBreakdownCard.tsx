@@ -90,7 +90,7 @@ export default function StorageBreakdownCard({ data, loading = false }: StorageB
             Disk Usage Distribution
           </span>
           <h4 className="text-xl font-bold text-wa-light-text-primary dark:text-wa-dark-text-primary mt-1">
-            Hostinger NVMe Storage
+            Local Storage Usage
           </h4>
         </div>
 

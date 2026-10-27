@@ -38,7 +38,7 @@ export default function AdminSidebar() {
       exact: false,
     },
     {
-      label: 'Storage Governance',
+      label: 'Storage Management',
       href: '/admin/storage',
       icon: HardDrive,
       exact: false,
@@ -91,7 +91,7 @@ export default function AdminSidebar() {
             WebChat Admin
           </h1>
           <span className="text-[11px] text-wa-light-text-secondary dark:text-wa-dark-text-secondary">
-            Enterprise Console
+            Admin Console
           </span>
         </div>
       </div>

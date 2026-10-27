@@ -61,7 +61,7 @@ export default function AccountSuspendedModal({
 
         <p className="text-xs text-wa-light-text-secondary dark:text-wa-dark-text-secondary leading-relaxed mb-5">
           An administrator has placed moderation restrictions on your account due to a violation of our
-          enterprise communication guidelines.
+          community communication guidelines.
         </p>
 
         {/* Reason Card */}

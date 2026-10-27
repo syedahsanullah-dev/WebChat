@@ -64,7 +64,7 @@ describe('Phase 37: Current Static GPS Location Sharing', () => {
       expect(formatCoordinates(0, 0)).toBe('0.0000° N, 0.0000° E');
     });
 
-    it('generates zero-cost routing URLs for Google Maps and OpenStreetMap', () => {
+    it('generates routing URLs for Google Maps and OpenStreetMap', () => {
       const urls = getNavigationUrls(40.7128, -74.006);
 
       expect(urls.googleMaps).toBe(

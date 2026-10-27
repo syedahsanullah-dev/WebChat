@@ -140,7 +140,7 @@ export default function LinkedDevicesDrawer({
             </p>
             <div className="flex items-center gap-1.5 mt-3 text-[11px] font-medium text-wa-green">
               <ShieldCheck className="w-4 h-4" />
-              <span>Zero-friction cryptographic session tokens</span>
+              <span>Cryptographic session tokens</span>
             </div>
           </div>
 

@@ -68,7 +68,7 @@ async function fallbackPrismaDump(): Promise<string> {
 
   let sqlDump = `-- WebChat Emergency Database Backup\n`;
   sqlDump += `-- Generated: ${new Date().toISOString()}\n`;
-  sqlDump += `-- Engine: MariaDB / MySQL Hostinger Enterprise\n\n`;
+  sqlDump += `-- Engine: MariaDB / MySQL\n\n`;
   sqlDump += `SET FOREIGN_KEY_CHECKS = 0;\n\n`;
 
   for (const table of tables) {

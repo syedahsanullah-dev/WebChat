@@ -1,5 +1,7 @@
 import { prisma } from './prisma';
 import { ResolveReportPayload, ModerationAction } from '@shared/types';
+import path from 'path';
+import fs from 'fs';
 
 const SOCKET_SERVER_URL = process.env.SOCKET_INTERNAL_URL || process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:4000';
 
@@ -48,12 +50,29 @@ export async function resolveAbuseReport(
   switch (action) {
     case 'DELETE_MESSAGE': {
       if (report.messageId) {
-        // Soft delete message
+        // Unlink media file from NVMe storage if exists
+        if (report.message?.mediaUrl) {
+          try {
+            const relPath = report.message.mediaUrl.replace(/^\/+/, '');
+            const normalized = path.normalize(relPath).replace(/^[/\\]+/, '');
+            if (normalized.startsWith('uploads') && !normalized.includes('..')) {
+              const fullPath = path.join(process.cwd(), 'public', normalized);
+              if (fs.existsSync(fullPath)) {
+                await fs.promises.unlink(fullPath).catch(() => {});
+              }
+            }
+          } catch (e) {
+            console.warn('[ModerationService] Failed unlinking media file:', e);
+          }
+        }
+
+        // Soft delete message and clear mediaUrl
         await prisma.message.update({
           where: { id: report.messageId },
           data: {
             isDeleted: true,
             content: 'This message was deleted by a moderator',
+            mediaUrl: null,
           },
         });
 

@@ -44,10 +44,9 @@ export default function ReportMessageModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (reason.trim().length < 5) {
-      setError('Please provide at least 5 characters explaining the issue.');
-      return;
-    }
+    const effectiveReason = reason.trim().length >= 5
+      ? reason.trim()
+      : `Reported under category: ${category}`;
 
     setIsSubmitting(true);
     setError(null);
@@ -61,7 +60,7 @@ export default function ReportMessageModal({
           reportedUserId,
           messageId: messageId || null,
           category,
-          reason: reason.trim(),
+          reason: effectiveReason,
           blockUser,
         }),
       });

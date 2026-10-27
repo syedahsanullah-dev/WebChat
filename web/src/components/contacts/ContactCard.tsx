@@ -3,7 +3,7 @@
 import React from 'react';
 import Avatar from '@/components/ui/Avatar';
 import { usePresence } from '@/hooks/usePresence';
-import { MessageSquare, Pencil, Trash2 } from 'lucide-react';
+import { MessageSquare, Pencil, Trash2, ShieldAlert } from 'lucide-react';
 
 export interface ContactData {
   id: string;
@@ -28,6 +28,7 @@ export interface ContactCardProps {
   onStartChat: (userId: string) => void;
   onEditAlias?: (contact: ContactData) => void;
   onRemove?: (contactId: string) => void;
+  onReport?: (contact: ContactData) => void;
 }
 
 export default function ContactCard({
@@ -35,6 +36,7 @@ export default function ContactCard({
   onStartChat,
   onEditAlias,
   onRemove,
+  onReport,
 }: ContactCardProps) {
   const { isUserOnline } = usePresence();
   const { contactUser, aliasName } = contact;
@@ -126,6 +128,21 @@ export default function ContactCard({
             aria-label="Remove Contact"
           >
             <Trash2 className="w-4 h-4" />
+          </button>
+        )}
+
+        {onReport && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onReport(contact);
+            }}
+            className="p-1.5 rounded-full text-rose-500 hover:bg-rose-500/10 transition-colors"
+            title="Report Contact"
+            aria-label="Report Contact"
+          >
+            <ShieldAlert className="w-4 h-4" />
           </button>
         )}
       </div>

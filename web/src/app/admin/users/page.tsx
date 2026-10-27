@@ -167,7 +167,7 @@ export default function AdminUsersPage() {
             User Directory & Role Administration
           </h2>
           <p className="text-xs text-wa-light-text-secondary dark:text-wa-dark-text-secondary mt-1">
-            Search, filter, and delegate enterprise roles across all registered accounts.
+            Search, filter, and manage user roles across all registered accounts.
           </p>
         </div>
 

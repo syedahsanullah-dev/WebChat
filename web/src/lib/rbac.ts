@@ -15,8 +15,8 @@ export const ROLE_LABELS: Record<SystemRole, string> = {
 };
 
 export const ROLE_DESCRIPTIONS: Record<SystemRole, string> = {
-  SUPER_ADMIN: 'Full root access to all system administration, telemetry, role assignment, and maintenance operations.',
-  ADMIN: 'Administrative privileges including user management, storage governance, and system broadcasts.',
+  SUPER_ADMIN: 'Full root access to all system administration, metrics, role assignment, and maintenance operations.',
+  ADMIN: 'Administrative privileges including user management, storage management, and system broadcasts.',
   MODERATOR: 'Content moderation privileges to review abuse reports, delete flagged messages, and mute violators.',
   USER: 'Standard access to direct messaging, audio calling, groups, channels, and personal settings.',
 };

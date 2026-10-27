@@ -5,8 +5,8 @@ import { SystemMetricsPayload } from '@shared/types';
 
 /**
  * GET /api/admin/metrics
- * Consolidated telemetry endpoint combining Fastify Server #2 live RAM/sockets
- * with Hostinger MySQL row counts and activity metrics.
+ * Consolidated metrics endpoint combining Fastify Server #2 live RAM/sockets
+ * with MySQL row counts and activity metrics.
  */
 export async function GET(request: NextRequest) {
   const auth = await verifyAdminRequest(request, 'ADMIN');
@@ -30,8 +30,8 @@ export async function GET(request: NextRequest) {
     }),
   ]);
 
-  // 2. Fetch Fastify Server #2 Realtime Telemetry
-  let socketServerTelemetry: {
+  // 2. Fetch Fastify Server #2 Realtime Metrics
+  let socketServerMetrics: {
     status: 'HEALTHY' | 'DEGRADED' | 'DOWN';
     uptime: number;
     activeSockets: number;
@@ -76,7 +76,7 @@ export async function GET(request: NextRequest) {
 
     if (metricsRes.ok) {
       const liveData = await metricsRes.json();
-      socketServerTelemetry = {
+      socketServerMetrics = {
         status: (liveData.status as any) || 'HEALTHY',
         uptime: liveData.uptime || 0,
         activeSockets: liveData.activeSockets || 0,
@@ -95,12 +95,12 @@ export async function GET(request: NextRequest) {
   }
 
   const payload: SystemMetricsPayload = {
-    status: socketServerTelemetry.status,
-    uptime: socketServerTelemetry.uptime,
-    activeSockets: socketServerTelemetry.activeSockets,
-    onlineUsers: socketServerTelemetry.onlineUsers,
-    activeRooms: socketServerTelemetry.activeRooms,
-    memory: socketServerTelemetry.memory,
+    status: socketServerMetrics.status,
+    uptime: socketServerMetrics.uptime,
+    activeSockets: socketServerMetrics.activeSockets,
+    onlineUsers: socketServerMetrics.onlineUsers,
+    activeRooms: socketServerMetrics.activeRooms,
+    memory: socketServerMetrics.memory,
     db: {
       totalUsers,
       totalChats,

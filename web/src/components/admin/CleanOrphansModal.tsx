@@ -36,7 +36,7 @@ export default function CleanOrphansModal({
             <span className="font-semibold block text-sm">Permanent Storage Purge</span>
             <p>
               You are about to permanently delete{' '}
-              <strong className="font-bold underline">{fileCount} orphan file{fileCount !== 1 ? 's' : ''}</strong> from Hostinger NVMe disk.
+              <strong className="font-bold underline">{fileCount} orphan file{fileCount !== 1 ? 's' : ''}</strong> from local disk storage.
             </p>
             <p>
               This action will immediately reclaim{' '}

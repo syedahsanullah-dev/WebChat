@@ -80,7 +80,7 @@ describe('Phase 29: Admin Metrics API (GET /api/admin/metrics)', () => {
     expect(body.error).toContain('Forbidden');
   });
 
-  it('returns 200 with consolidated telemetry when user has systemRole ADMIN', async () => {
+  it('returns 200 with consolidated metrics when user has systemRole ADMIN', async () => {
     vi.spyOn(auth, 'getAuthUserFromRequest').mockReturnValue({
       userId: 'user-admin',
       username: 'admin1',

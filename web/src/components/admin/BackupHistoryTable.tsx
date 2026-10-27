@@ -114,7 +114,7 @@ export default function BackupHistoryTable({ initialBackups }: BackupHistoryTabl
               Emergency Database Backups
             </h3>
             <p className="text-xs text-wa-light-text-secondary dark:text-wa-dark-text-secondary">
-              Gzip compressed snapshots (`.sql.gz`) stored securely in Hostinger NVMe storage
+              Gzip compressed snapshots (`.sql.gz`) stored securely on local storage
             </p>
           </div>
         </div>

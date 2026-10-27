@@ -5,6 +5,7 @@ import Avatar from '@/components/ui/Avatar';
 import MemberRow, { GroupParticipantItem } from './MemberRow';
 import ContactPicker from './ContactPicker';
 import Modal from '@/components/ui/Modal';
+import ReportMessageModal from '@/components/chat/ReportMessageModal';
 import { useAuth } from '@/context/AuthContext';
 import { X, Edit2, Check, UserPlus, LogOut, Loader2, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -36,6 +37,7 @@ export default function GroupInfoDrawer({
   const [isAddMemberOpen, setIsAddMemberOpen] = useState(false);
   const [selectedNewMemberIds, setSelectedNewMemberIds] = useState<string[]>([]);
   const [isSaving, setIsSaving] = useState(false);
+  const [reportingParticipant, setReportingParticipant] = useState<GroupParticipantItem | null>(null);
 
   const fetchGroupDetails = useCallback(async () => {
     if (!groupId) return;
@@ -318,6 +320,7 @@ export default function GroupInfoDrawer({
                     onPromote={(uId) => handleParticipantAction('promote', uId)}
                     onDemote={(uId) => handleParticipantAction('demote', uId)}
                     onRemove={(uId) => handleParticipantAction('remove', uId)}
+                    onReport={(part) => setReportingParticipant(part)}
                   />
                 ))}
               </div>
@@ -375,6 +378,17 @@ export default function GroupInfoDrawer({
           </div>
         </div>
       </Modal>
+
+      {/* Phase 33: Report Group Member Modal */}
+      {reportingParticipant && (
+        <ReportMessageModal
+          isOpen={Boolean(reportingParticipant)}
+          chatId={groupId}
+          reportedUserId={reportingParticipant.userId}
+          reportedUserName={reportingParticipant.user.displayName || reportingParticipant.user.username}
+          onClose={() => setReportingParticipant(null)}
+        />
+      )}
     </>
   );
 }

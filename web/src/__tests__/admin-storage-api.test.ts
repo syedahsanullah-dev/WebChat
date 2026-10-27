@@ -20,7 +20,7 @@ vi.mock('@/lib/prisma', () => ({
   },
 }));
 
-describe('Phase 30: Storage Governance & Orphan Cleaner APIs', () => {
+describe('Phase 30: Storage Management & Orphan Cleaner APIs', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });

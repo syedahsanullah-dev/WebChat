@@ -18,6 +18,7 @@ import ExportChatModal from '@/components/chat/ExportChatModal';
 import DisappearingSettingsModal from '@/components/chat/DisappearingSettingsModal';
 import ChannelReadOnlyBar from '@/components/channels/ChannelReadOnlyBar';
 import ChannelInfoDrawer from '@/components/channels/ChannelInfoDrawer';
+import ReportMessageModal from '@/components/chat/ReportMessageModal';
 import PinnedMessagesStrip from '@/components/chat/PinnedMessagesStrip';
 import { useOfflineSync } from '@/hooks/useOfflineSync';
 import { QuotedMessageData } from '@/components/chat/QuotedReplyPreview';
@@ -90,6 +91,7 @@ export default function ChatArea({
   const [isWebhooksOpen, setIsWebhooksOpen] = useState(false);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [isDisappearingModalOpen, setIsDisappearingModalOpen] = useState(false);
+  const [isReportUserModalOpen, setIsReportUserModalOpen] = useState(false);
   const [ephemeralDuration, setEphemeralDuration] = useState<number | null>(
     (activeChatData as any)?.ephemeralDuration ?? null
   );
@@ -542,6 +544,8 @@ export default function ChatArea({
       onClick: () => {
         if (activeChat?.isGroup) {
           setIsGroupInfoOpen((prev) => !prev);
+        } else if (recipientUserId) {
+          setIsReportUserModalOpen(true);
         }
       },
     },
@@ -592,8 +596,13 @@ export default function ChatArea({
           },
         ]
       : []),
-    ...(!activeChat?.isGroup
+    ...(!activeChat?.isGroup && recipientUserId
       ? [
+          {
+            id: 'report-user',
+            label: `Report @${activeChat?.otherUser?.username || activeChat?.name || 'user'}`,
+            onClick: () => setIsReportUserModalOpen(true),
+          },
           {
             id: 'verify-security',
             label: 'Verify security code',
@@ -926,6 +935,17 @@ export default function ChatArea({
           currentDuration={ephemeralDuration}
           onClose={() => setIsDisappearingModalOpen(false)}
           onSaved={(newDur) => setEphemeralDuration(newDur)}
+        />
+      )}
+
+      {/* Phase 33: User / Profile Abuse Report Modal */}
+      {isReportUserModalOpen && recipientUserId && (
+        <ReportMessageModal
+          isOpen={isReportUserModalOpen}
+          chatId={activeChatId || ''}
+          reportedUserId={recipientUserId}
+          reportedUserName={activeChat?.otherUser?.displayName || activeChat?.otherUser?.username || activeChat?.name || 'User'}
+          onClose={() => setIsReportUserModalOpen(false)}
         />
       )}
     </div>

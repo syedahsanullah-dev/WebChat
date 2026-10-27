@@ -3,7 +3,7 @@ import { nominatimCache } from '@/lib/nominatimCache';
 
 const NOMINATIM_USER_AGENT =
   process.env.NOMINATIM_USER_AGENT ||
-  'WebChat-Enterprise/1.0 (support@yourdomain.com; https://github.com/yourdomain/webchat)';
+  'WebChat/1.0 (support@webchat.local; https://github.com/webchat/webchat)';
 
 /**
  * Formats OpenStreetMap addressdetails into a clean, concise string

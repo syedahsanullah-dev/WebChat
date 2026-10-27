@@ -67,7 +67,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               All Systems Operational
             </span>
             <span className="hidden sm:inline text-wa-light-text-muted dark:text-wa-dark-text-muted text-xs">
-              &bull; Dual-Server Hostinger NVMe
+              &bull; Node.js High-Performance Server
             </span>
           </div>
 
@@ -80,7 +80,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
             <div className="flex items-center gap-1.5 text-[11px] font-medium text-emerald-600 dark:text-emerald-400">
               <Activity className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Zero-Cost Tier Active</span>
+              <span className="hidden sm:inline">Production Active</span>
             </div>
           </div>
         </header>
