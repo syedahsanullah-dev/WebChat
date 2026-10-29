@@ -20,6 +20,8 @@ export interface ChatHeaderProps {
   isE2EE?: boolean;
   isEphemeral?: boolean;
   ephemeralDuration?: number | null;
+  isGroup?: boolean;
+  isChannel?: boolean;
   onBack: () => void;
   onStartCall: () => void;
   onSearch?: () => void;
@@ -38,6 +40,8 @@ export default function ChatHeader({
   isE2EE = true,
   isEphemeral,
   ephemeralDuration,
+  isGroup = false,
+  isChannel = false,
   onBack,
   onStartCall,
   onSearch,
@@ -135,16 +139,18 @@ export default function ChatHeader({
       }
       rightContent={
         <div className="flex items-center gap-0.5 xs:gap-1 sm:gap-2">
-          {/* Audio Call Button */}
-          <button
-            type="button"
-            onClick={onStartCall}
-            className="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-full text-wa-light-text-secondary dark:text-wa-dark-text-secondary hover:text-wa-light-text-primary dark:hover:text-wa-dark-text-primary hover:bg-black/5 dark:hover:bg-white/5 transition-colors focus:outline-none cursor-pointer"
-            aria-label="Start voice call"
-            title="Voice call (WebRTC audio-only Opus 32kbps)"
-          >
-            <Phone className="w-5 h-5" />
-          </button>
+          {/* Audio Call Button (Guarded: 1-on-1 private conversations only) */}
+          {!isGroup && !isChannel && (
+            <button
+              type="button"
+              onClick={onStartCall}
+              className="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-full text-wa-light-text-secondary dark:text-wa-dark-text-secondary hover:text-wa-light-text-primary dark:hover:text-wa-dark-text-primary hover:bg-black/5 dark:hover:bg-white/5 transition-colors focus:outline-none cursor-pointer"
+              aria-label="Start voice call"
+              title="Start voice call"
+            >
+              <Phone className="w-5 h-5" />
+            </button>
+          )}
 
           {/* Search Button */}
           <button

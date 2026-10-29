@@ -11,15 +11,18 @@ import {
   Headphones,
   Radio,
   ChevronDown,
+  RefreshCw,
 } from 'lucide-react';
-import { CallParticipant } from '@/hooks/useCallSignaling';
+import { CallParticipant, CallState } from '@/hooks/useCallSignaling';
 import { cn } from '@/lib/utils';
 
 export interface ActiveCallBarProps {
   isVisible: boolean;
   participant: CallParticipant | null;
   durationSeconds: number;
+  callState?: CallState;
   isMuted: boolean;
+  isRemoteMuted?: boolean;
   remoteVolume: number;
   audioDevices: MediaDeviceInfo[];
   selectedOutputDevice: string;
@@ -44,7 +47,9 @@ export default function ActiveCallBar({
   isVisible,
   participant,
   durationSeconds,
+  callState,
   isMuted,
+  isRemoteMuted = false,
   remoteVolume,
   audioDevices,
   selectedOutputDevice,
@@ -53,6 +58,12 @@ export default function ActiveCallBar({
   onEndCall,
 }: ActiveCallBarProps) {
   const [showDeviceMenu, setShowDeviceMenu] = useState(false);
+
+  // Phase 40: Feature-detect setSinkId for Android Chrome resilience
+  const supportsSetSinkId =
+    typeof window !== 'undefined' &&
+    'HTMLMediaElement' in window &&
+    'setSinkId' in HTMLMediaElement.prototype;
 
   if (!isVisible || !participant) return null;
 
@@ -91,20 +102,31 @@ export default function ActiveCallBar({
             <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-wa-green/10 text-[10px] font-bold text-wa-green">
               <span>VOICE CALL</span>
             </span>
+            {callState === 'reconnecting' ? (
+              <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-500 text-[10px] font-semibold animate-pulse">
+                <RefreshCw className="w-2.5 h-2.5 animate-spin" />
+                <span>Reconnecting...</span>
+              </div>
+            ) : isRemoteMuted ? (
+              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-amber-500/15 text-[10px] font-semibold text-amber-500">
+                <MicOff className="w-2.5 h-2.5" />
+                <span>Muted</span>
+              </span>
+            ) : null}
           </div>
 
           <div className="flex items-center gap-2 text-xs text-wa-light-text-secondary dark:text-wa-dark-text-secondary">
             <span className="font-mono font-medium">{formatDuration(durationSeconds)}</span>
             <span>•</span>
-            <span className="text-[11px] text-wa-green">Opus Encrypted</span>
+            <span className="text-[11px] text-wa-green">P2P Encrypted (DTLS)</span>
           </div>
         </div>
       </div>
 
       {/* Right: Audio controls (Mute, Speaker device, End) */}
       <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0 relative">
-        {/* Output Device Selector (if multiple audio output devices available) */}
-        {audioDevices.length > 1 && (
+        {/* Output Device Selector (if setSinkId is supported and multiple output devices exist) */}
+        {supportsSetSinkId && audioDevices.length > 1 ? (
           <div className="relative">
             <button
               type="button"
@@ -149,6 +171,13 @@ export default function ActiveCallBar({
               </div>
             )}
           </div>
+        ) : (
+          <span
+            className="hidden lg:inline-flex text-[11px] text-wa-light-text-muted dark:text-wa-dark-text-muted italic px-1"
+            title="Switch between earpiece & speakerphone using phone hardware controls."
+          >
+            Use hardware controls for speaker
+          </span>
         )}
 
         {/* Mute Microphone Button */}

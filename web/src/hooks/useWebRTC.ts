@@ -34,20 +34,22 @@ export function useWebRTC(options: UseWebRTCOptions = {}) {
   const audioContextRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
   const animFrameRef = useRef<number | null>(null);
+  const volumeIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Initialize or fetch ICE servers
+  // Initialize or fetch ICE servers (Phase 41: Redundant Google & Cloudflare STUN + TLS TURN port 443)
   const getIceServers = useCallback((): RTCIceServer[] => {
     const servers = [...DEFAULT_ICE_SERVERS];
-    const turnUrl = process.env.NEXT_PUBLIC_TURN_URL;
+    const turnUrl = process.env.NEXT_PUBLIC_TURN_URL || 'turn:relay.metered.ca:80';
+    const turnTlsUrl =
+      process.env.NEXT_PUBLIC_TURN_TLS_URL || 'turns:relay.metered.ca:443?transport=tcp';
     const turnUsername = process.env.NEXT_PUBLIC_TURN_USERNAME;
     const turnPassword = process.env.NEXT_PUBLIC_TURN_PASSWORD;
 
-    if (turnUrl) {
-      servers.push({
-        urls: turnUrl,
-        username: turnUsername,
-        credential: turnPassword,
-      });
+    if (turnUsername && turnPassword) {
+      servers.push(
+        { urls: turnUrl, username: turnUsername, credential: turnPassword },
+        { urls: turnTlsUrl, username: turnUsername, credential: turnPassword }
+      );
     }
     return servers;
   }, []);
@@ -95,9 +97,14 @@ export function useWebRTC(options: UseWebRTCOptions = {}) {
     }
   }, []);
 
-  // Setup Remote Volume Analyser
+  // Setup Remote Volume Analyser (Phase 42: 10 FPS throttled 100ms interval with hysteresis to eliminate React re-render thrashing)
   const setupVolumeAnalyser = useCallback((stream: MediaStream) => {
     try {
+      if (volumeIntervalRef.current) {
+        clearInterval(volumeIntervalRef.current);
+        volumeIntervalRef.current = null;
+      }
+
       const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
       if (!AudioCtx) return;
 
@@ -112,8 +119,9 @@ export function useWebRTC(options: UseWebRTCOptions = {}) {
       analyserRef.current = analyser;
 
       const dataArray = new Uint8Array(analyser.frequencyBinCount);
+      let lastVolume = 0;
 
-      const checkVolume = () => {
+      volumeIntervalRef.current = setInterval(() => {
         if (!analyserRef.current) return;
         analyserRef.current.getByteFrequencyData(dataArray);
 
@@ -122,13 +130,14 @@ export function useWebRTC(options: UseWebRTCOptions = {}) {
           sum += dataArray[i];
         }
         const avg = sum / dataArray.length;
-        // Normalized 0 - 100
-        setRemoteVolume(Math.min(100, Math.round((avg / 128) * 100)));
+        const normalized = Math.min(100, Math.round((avg / 128) * 100));
 
-        animFrameRef.current = requestAnimationFrame(checkVolume);
-      };
-
-      checkVolume();
+        // Hysteresis: only trigger React re-render if volume shifted by > 8% or dropped to 0
+        if (Math.abs(normalized - lastVolume) > 8 || (normalized === 0 && lastVolume !== 0)) {
+          lastVolume = normalized;
+          setRemoteVolume(normalized);
+        }
+      }, 100);
     } catch (err) {
       console.warn('[useWebRTC] Audio volume analyser could not start:', err);
     }
@@ -161,6 +170,17 @@ export function useWebRTC(options: UseWebRTCOptions = {}) {
         pc.connectionState === 'closed'
       ) {
         setIsAudioConnected(false);
+      }
+    };
+
+    // Phase 41: Dedicated ICE connection state listener for mobile Wi-Fi/LTE network handovers
+    pc.oniceconnectionstatechange = () => {
+      if (pc.iceConnectionState === 'disconnected') {
+        onConnectionStateChange?.('disconnected' as RTCPeerConnectionState);
+      } else if (pc.iceConnectionState === 'failed') {
+        onConnectionStateChange?.('failed');
+      } else if (pc.iceConnectionState === 'connected' || pc.iceConnectionState === 'completed') {
+        onConnectionStateChange?.('connected');
       }
     };
 
@@ -304,8 +324,27 @@ export function useWebRTC(options: UseWebRTCOptions = {}) {
     }
   }, []);
 
+  // Phase 41: Automated ICE restart offer generator for network handovers
+  const restartIce = useCallback(async (): Promise<RTCSessionDescriptionInit> => {
+    const pc = peerConnectionRef.current;
+    if (!pc) throw new Error('No active peer connection');
+    const offer = await pc.createOffer({ iceRestart: true });
+    await pc.setLocalDescription(offer);
+    return offer;
+  }, []);
+
+  // Phase 41: Access active RTCPeerConnection for WebRTC stats & TURN quota telemetry
+  const getPeerConnection = useCallback((): RTCPeerConnection | null => {
+    return peerConnectionRef.current;
+  }, []);
+
   // Full Cleanup
   const cleanup = useCallback(() => {
+    if (volumeIntervalRef.current) {
+      clearInterval(volumeIntervalRef.current);
+      volumeIntervalRef.current = null;
+    }
+
     if (animFrameRef.current) {
       cancelAnimationFrame(animFrameRef.current);
       animFrameRef.current = null;
@@ -364,6 +403,8 @@ export function useWebRTC(options: UseWebRTCOptions = {}) {
     addIceCandidate,
     toggleMute,
     switchOutputDevice,
+    restartIce,
+    getPeerConnection,
     cleanup,
   };
 }

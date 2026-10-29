@@ -27,6 +27,11 @@ export type WsEventType =
   | 'audio-call:ice-candidate'
   | 'audio-call:end'
   | 'audio-call:ended'
+  | 'audio-call:answered_elsewhere'
+  | 'audio-call:mute'
+  | 'audio-call:unmute'
+  | 'audio-call:ice-restart'
+  | 'audio-call:ice-restart-answer'
   | 'session:revoked'
   | 'error'
   | 'system:broadcast'
@@ -285,6 +290,36 @@ export interface AudioCallEndedPayload {
   duration?: number;
   status?: string;
   reason?: string;
+}
+
+export interface AudioCallAnsweredElsewherePayload {
+  callId: string;
+  chatId?: string;
+}
+
+export interface AudioCallMutePayload {
+  callId: string;
+  chatId?: string;
+  userId: string;
+  isMuted: boolean;
+}
+
+export interface AudioCallIceRestartPayload {
+  callId: string;
+  chatId?: string;
+  callerId?: string;
+  receiverId?: string;
+  offerSdp: any;
+  sdpOffer?: any;
+}
+
+export interface AudioCallIceRestartAnswerPayload {
+  callId: string;
+  chatId?: string;
+  callerId?: string;
+  receiverId?: string;
+  answerSdp: any;
+  sdpAnswer?: any;
 }
 
 export interface SessionRevokedPayload {

@@ -4,7 +4,11 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useWebSocket } from '@/context/WebSocketContext';
 import { useAuth } from '@/context/AuthContext';
 import { useWebRTC } from './useWebRTC';
+import { useScreenWakeLock } from './useScreenWakeLock';
+import { useMediaSessionCall } from './useMediaSessionCall';
 import { startRingtone } from '@/lib/audio';
+import { startTurnStatsTracking } from '@/lib/turnQuotaEstimator';
+import { showToast } from '@/components/ui/Toast';
 import {
   AudioCallInvitePayload,
   AudioCallIncomingPayload,
@@ -16,6 +20,10 @@ import {
   AudioCallIceCandidatePayload,
   AudioCallEndPayload,
   AudioCallEndedPayload,
+  AudioCallAnsweredElsewherePayload,
+  AudioCallMutePayload,
+  AudioCallIceRestartPayload,
+  AudioCallIceRestartAnswerPayload,
 } from '@shared/events';
 
 export type CallState =
@@ -25,6 +33,7 @@ export type CallState =
   | 'incoming_ringing'
   | 'connecting'
   | 'connected'
+  | 'reconnecting'
   | 'ended';
 
 export interface CallParticipant {
@@ -51,10 +60,13 @@ export function useCallSignaling() {
   const [callState, setCallState] = useState<CallState>('idle');
   const [callData, setCallData] = useState<ActiveCallData | null>(null);
   const [callDuration, setCallDuration] = useState<number>(0);
+  const [isRemoteMuted, setIsRemoteMuted] = useState(false);
 
   const ringtoneStopRef = useRef<(() => void) | null>(null);
   const durationTimerRef = useRef<NodeJS.Timeout | null>(null);
   const callTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const incomingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const reconnectGraceTimerRef = useRef<NodeJS.Timeout | null>(null);
   const callDataRef = useRef<ActiveCallData | null>(null);
   callDataRef.current = callData;
 
@@ -81,9 +93,53 @@ export function useCallSignaling() {
     },
     onConnectionStateChange: (state) => {
       if (state === 'connected') {
+        if (reconnectGraceTimerRef.current) {
+          clearTimeout(reconnectGraceTimerRef.current);
+          reconnectGraceTimerRef.current = null;
+        }
         setCallState('connected');
+      } else if (state === 'disconnected') {
+        // Phase 41: Network handover to cellular / Wi-Fi drop -> reconnecting with 10s grace
+        if (callStateRef.current === 'connected' || callStateRef.current === 'reconnecting') {
+          setCallState('reconnecting');
+          if (!reconnectGraceTimerRef.current) {
+            reconnectGraceTimerRef.current = setTimeout(() => {
+              if (callStateRef.current === 'reconnecting') {
+                handleEndCall('connection_lost');
+              }
+            }, 10000); // 10s grace period
+          }
+
+          // Trigger automated ICE restart renegotiation
+          const active = callDataRef.current;
+          if (active) {
+            webRTC
+              .restartIce()
+              .then((restartOffer) => {
+                const targetPeerId = active.isCaller ? active.receiver.id : active.caller.id;
+                send<AudioCallIceRestartPayload>({
+                  type: 'audio-call:ice-restart',
+                  payload: {
+                    callId: active.callId,
+                    chatId: active.chatId,
+                    callerId: active.caller.id,
+                    receiverId: targetPeerId,
+                    offerSdp: restartOffer,
+                    sdpOffer: restartOffer,
+                  },
+                });
+              })
+              .catch((err) => {
+                console.warn('[useCallSignaling] ICE restart trigger failed:', err);
+              });
+          }
+        }
       } else if (state === 'failed' || state === 'closed') {
-        if (callStateRef.current === 'connected') {
+        if (reconnectGraceTimerRef.current) {
+          clearTimeout(reconnectGraceTimerRef.current);
+          reconnectGraceTimerRef.current = null;
+        }
+        if (callStateRef.current === 'connected' || callStateRef.current === 'reconnecting') {
           handleEndCall('connection_lost');
         }
       }
@@ -131,6 +187,15 @@ export function useCallSignaling() {
       clearTimeout(callTimeoutRef.current);
       callTimeoutRef.current = null;
     }
+    if (incomingTimeoutRef.current) {
+      clearTimeout(incomingTimeoutRef.current);
+      incomingTimeoutRef.current = null;
+    }
+    if (reconnectGraceTimerRef.current) {
+      clearTimeout(reconnectGraceTimerRef.current);
+      reconnectGraceTimerRef.current = null;
+    }
+    setIsRemoteMuted(false);
 
     setCallState('ended');
     setTimeout(() => {
@@ -215,7 +280,7 @@ export function useCallSignaling() {
       } catch (err) {
         console.error('[useCallSignaling] Error starting call:', err);
         transitionToEnded(0);
-        alert('Could not access microphone. Please grant audio permissions to start voice calls.');
+        showToast({ type: 'error', message: 'Could not access microphone. Please grant audio permissions.' });
       }
     },
     [user, webRTC, send, transitionToEnded]
@@ -225,6 +290,11 @@ export function useCallSignaling() {
   const acceptCall = useCallback(async () => {
     const active = callDataRef.current;
     if (!active || !user) return;
+
+    if (incomingTimeoutRef.current) {
+      clearTimeout(incomingTimeoutRef.current);
+      incomingTimeoutRef.current = null;
+    }
 
     stopRingtoneSound();
     if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
@@ -260,7 +330,7 @@ export function useCallSignaling() {
     } catch (err) {
       console.error('[useCallSignaling] Error accepting call:', err);
       transitionToEnded(0);
-      alert('Could not access microphone to accept call.');
+      showToast({ type: 'error', message: 'Could not access microphone to accept call.' });
     }
   }, [user, webRTC, send, stopRingtoneSound, transitionToEnded]);
 
@@ -269,6 +339,11 @@ export function useCallSignaling() {
     (reason: string = 'declined') => {
       const active = callDataRef.current;
       if (!active || !user) return;
+
+      if (incomingTimeoutRef.current) {
+        clearTimeout(incomingTimeoutRef.current);
+        incomingTimeoutRef.current = null;
+      }
 
       stopRingtoneSound();
 
@@ -314,6 +389,53 @@ export function useCallSignaling() {
     [user, callDuration, send, stopRingtoneSound, transitionToEnded]
   );
 
+  // Toggle local mute and synchronize state to peer (Phase 39)
+  const handleToggleMute = useCallback(() => {
+    webRTC.toggleMute();
+    const nextMuted = !webRTC.isMuted;
+    const active = callDataRef.current;
+    if (active && callStateRef.current === 'connected') {
+      const targetPeerId = active.isCaller ? active.receiver.id : active.caller.id;
+      send<AudioCallMutePayload>({
+        type: 'audio-call:mute',
+        payload: {
+          callId: active.callId,
+          chatId: active.chatId,
+          userId: user?.id || '',
+          isMuted: nextMuted,
+        },
+      });
+    }
+  }, [webRTC, send, user]);
+
+  // Phase 40: Screen Wake Lock API (keeps mobile display and CPU active while connected or reconnecting)
+  useScreenWakeLock(callState === 'connected' || callState === 'reconnecting');
+
+  // Phase 40: MediaSession API (Android lock screen, notification shade, and headset controls)
+  const activeRemotePeer = callData
+    ? callData.isCaller
+      ? callData.receiver
+      : callData.caller
+    : null;
+  useMediaSessionCall({
+    isActive: callState === 'connected' || callState === 'reconnecting',
+    participant: activeRemotePeer,
+    isMuted: webRTC.isMuted,
+    onEndCall: handleEndCall,
+    onToggleMute: handleToggleMute,
+  });
+
+  // Phase 41: Client-Side TURN bandwidth telemetry against Metered.ca 50 GB/mo limit
+  useEffect(() => {
+    if (callState === 'connected') {
+      const pc = webRTC.getPeerConnection();
+      if (pc) {
+        const stopTracking = startTurnStatsTracking(pc, 5000);
+        return stopTracking;
+      }
+    }
+  }, [callState, webRTC]);
+
   // Subscribe to WebSocket Call Signaling Envelopes
   useEffect(() => {
     // 1. audio-call:incoming
@@ -355,6 +477,16 @@ export function useCallSignaling() {
       });
 
       setCallState('incoming_ringing');
+
+      // 45s incoming ringing timeout (Phase 39)
+      if (incomingTimeoutRef.current) {
+        clearTimeout(incomingTimeoutRef.current);
+      }
+      incomingTimeoutRef.current = setTimeout(() => {
+        if (callStateRef.current === 'incoming_ringing') {
+          rejectCall('timeout');
+        }
+      }, 45000);
 
       // Notify caller that receiver phone is ringing
       send<AudioCallRingPayload>({
@@ -410,7 +542,7 @@ export function useCallSignaling() {
     // 5. audio-call:busy — recipient is on another call
     const unsubBusy = subscribe<AudioCallBusyPayload>('audio-call:busy', () => {
       stopRingtoneSound();
-      alert('User is currently on another call.');
+      showToast({ type: 'info', message: 'Contact is currently busy on another call.' });
       transitionToEnded(1000);
     });
 
@@ -426,6 +558,79 @@ export function useCallSignaling() {
       transitionToEnded(800);
     });
 
+    // 8. audio-call:answered_elsewhere — call answered on another tab/device (Phase 39)
+    const unsubAnsweredElsewhere = subscribe<AudioCallAnsweredElsewherePayload>(
+      'audio-call:answered_elsewhere',
+      (payload) => {
+        if (!payload) return;
+        const active = callDataRef.current;
+        if (active && active.callId === payload.callId) {
+          stopRingtoneSound();
+          transitionToEnded(0);
+        }
+      }
+    );
+
+    // 9. audio-call:mute — peer muted or unmuted mic (Phase 39)
+    const unsubMute = subscribe<AudioCallMutePayload>('audio-call:mute', (payload) => {
+      if (!payload) return;
+      const active = callDataRef.current;
+      if (active && active.callId === payload.callId) {
+        setIsRemoteMuted(Boolean(payload.isMuted));
+      }
+    });
+
+    // 10. audio-call:ice-restart — peer initiated renegotiation for network handover (Phase 41)
+    const unsubIceRestart = subscribe<AudioCallIceRestartPayload>('audio-call:ice-restart', async (payload) => {
+      if (!payload || !user) return;
+      const active = callDataRef.current;
+      if (active && active.callId === payload.callId) {
+        try {
+          setCallState('reconnecting');
+          const offerSdp = payload.offerSdp || payload.sdpOffer;
+          const answer = await webRTC.createAnswer(offerSdp);
+          const targetPeerId = active.isCaller ? active.receiver.id : active.caller.id;
+          send<AudioCallIceRestartAnswerPayload>({
+            type: 'audio-call:ice-restart-answer',
+            payload: {
+              callId: active.callId,
+              chatId: active.chatId,
+              callerId: active.caller.id,
+              receiverId: targetPeerId,
+              answerSdp: answer,
+              sdpAnswer: answer,
+            },
+          });
+        } catch (err) {
+          console.warn('[useCallSignaling] Failed to answer ICE restart:', err);
+        }
+      }
+    });
+
+    // 11. audio-call:ice-restart-answer — peer acknowledged ICE restart with answer (Phase 41)
+    const unsubIceRestartAnswer = subscribe<AudioCallIceRestartAnswerPayload>(
+      'audio-call:ice-restart-answer',
+      async (payload) => {
+        if (!payload) return;
+        const active = callDataRef.current;
+        if (active && active.callId === payload.callId) {
+          try {
+            const answerSdp = payload.answerSdp || payload.sdpAnswer;
+            if (answerSdp) {
+              await webRTC.setRemoteAnswer(answerSdp);
+              if (reconnectGraceTimerRef.current) {
+                clearTimeout(reconnectGraceTimerRef.current);
+                reconnectGraceTimerRef.current = null;
+              }
+              setCallState('connected');
+            }
+          } catch (err) {
+            console.warn('[useCallSignaling] Failed to apply ICE restart answer:', err);
+          }
+        }
+      }
+    );
+
     return () => {
       unsubIncoming();
       unsubRing();
@@ -434,6 +639,10 @@ export function useCallSignaling() {
       unsubBusy();
       unsubCandidate();
       unsubEnded();
+      unsubAnsweredElsewhere();
+      unsubMute();
+      unsubIceRestart();
+      unsubIceRestartAnswer();
     };
   }, [user, send, subscribe, stopRingtoneSound, transitionToEnded, webRTC]);
 
@@ -442,6 +651,7 @@ export function useCallSignaling() {
     callData,
     callDuration,
     isMuted: webRTC.isMuted,
+    isRemoteMuted,
     isAudioConnected: webRTC.isAudioConnected,
     remoteVolume: webRTC.remoteVolume,
     audioDevices: webRTC.audioDevices,
@@ -450,7 +660,7 @@ export function useCallSignaling() {
     acceptCall,
     rejectCall,
     endCall: handleEndCall,
-    toggleMute: webRTC.toggleMute,
+    toggleMute: handleToggleMute,
     switchOutputDevice: webRTC.switchOutputDevice,
   };
 }

@@ -12,6 +12,7 @@ import SafetyNumberModal from '@/components/security/SafetyNumberModal';
 import LocationPickerModal from '@/components/location/LocationPickerModal';
 import OfflineStatusBar from '@/components/chat/OfflineStatusBar';
 import ConnectionToast from '@/components/ui/ConnectionToast';
+import { showToast } from '@/components/ui/Toast';
 import WebhooksManagementDrawer from '@/components/settings/WebhooksManagementDrawer';
 import LegalHoldBanner from '@/components/chat/LegalHoldBanner';
 import ExportChatModal from '@/components/chat/ExportChatModal';
@@ -217,12 +218,12 @@ export default function ChatArea({
   const handleStartCall = () => {
     if (!activeChat) return;
     if (activeChat.isGroup) {
-      alert('Voice calling is only available for 1-on-1 private conversations.');
+      showToast({ type: 'info', message: 'Voice calling is only available for 1-on-1 private conversations.' });
       return;
     }
     const targetUserId = activeChat.otherUser?.id || recipientId;
     if (!targetUserId) {
-      alert('Cannot start call: Recipient could not be determined.');
+      showToast({ type: 'error', message: 'Cannot start call: Recipient could not be determined.' });
       return;
     }
 
@@ -297,7 +298,7 @@ export default function ChatArea({
       setCompressionResult(result);
     } catch (err) {
       console.error('[ChatArea] Error compressing image:', err);
-      alert('Failed to process image. Please try another file.');
+      showToast({ type: 'error', message: 'Failed to process image. Please try another file.' });
     }
   };
 
@@ -339,7 +340,7 @@ export default function ChatArea({
       setCompressionResult(null);
     } catch (err: any) {
       console.error('[ChatArea] Error uploading image:', err);
-      alert(`Image upload failed: ${err.message || 'Unknown error'}`);
+      showToast({ type: 'error', message: `Image upload failed: ${err.message || 'Unknown error'}` });
     } finally {
       setIsUploadingImage(false);
     }
@@ -385,7 +386,7 @@ export default function ChatArea({
       setReplyingToMessage(null);
     } catch (err: any) {
       console.error('[ChatArea] Error uploading voice note:', err);
-      alert(`Voice message upload failed: ${err.message || 'Unknown error'}`);
+      showToast({ type: 'error', message: `Voice message upload failed: ${err.message || 'Unknown error'}` });
     }
   };
 
@@ -411,7 +412,7 @@ export default function ChatArea({
     if (!activeChatId) return;
 
     if (typeof navigator === 'undefined' || !navigator.geolocation) {
-      alert('Geolocation is not supported by your browser.');
+      showToast({ type: 'warning', message: 'Geolocation is not supported by your browser.' });
       return;
     }
 
@@ -462,7 +463,7 @@ export default function ChatArea({
       },
       (err) => {
         console.error('GPS permission error:', err);
-        alert('Could not acquire your current location to start live sharing.');
+        showToast({ type: 'error', message: 'Could not acquire your current location to start live sharing.' });
       },
       { enableHighAccuracy: true, timeout: 10000 }
     );
@@ -694,6 +695,8 @@ export default function ChatArea({
           isE2EE={!activeChat.isGroup}
           isEphemeral={Boolean(ephemeralDuration)}
           ephemeralDuration={ephemeralDuration}
+          isGroup={Boolean(activeChat.isGroup)}
+          isChannel={Boolean((activeChat as any).isChannel)}
           onBack={onBack}
           onStartCall={handleStartCall}
           onSearch={() => setIsSearchOpen(true)}

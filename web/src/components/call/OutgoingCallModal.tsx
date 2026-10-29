@@ -57,7 +57,7 @@ export default function OutgoingCallModal({
         </div>
 
         <p className="text-xs text-wa-light-text-muted dark:text-wa-dark-text-muted mt-2">
-          End-to-end encrypted voice call
+          Direct Encrypted Voice Call (P2P)
         </p>
 
         {/* Red End Call Action */}

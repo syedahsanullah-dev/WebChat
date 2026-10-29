@@ -15,7 +15,7 @@ export declare class RoomManager {
     registerUser(userId: string, socket: AuthenticatedWebSocket): void;
     isUserOnline(userId: string): boolean;
     broadcastToRoom(room: string, data: any, excludeSocket?: AuthenticatedWebSocket): void;
-    sendToUser(userId: string, data: any): void;
+    sendToUser(userId: string, data: any, excludeSocket?: AuthenticatedWebSocket): void;
     kickUser(userId: string, reason?: string): void;
     broadcastAll(data: any, excludeSocket?: AuthenticatedWebSocket): void;
     getActiveRoomCount(): number;

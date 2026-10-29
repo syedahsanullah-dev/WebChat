@@ -5,7 +5,7 @@ import { getEphemeralSystemMessageText } from '@/lib/ephemeralUtils';
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ chatId: string }> }
 ) {
   try {
     const authUser = getAuthUserFromRequest(request);
@@ -13,7 +13,7 @@ export async function PATCH(
       return NextResponse.json({ error: 'Unauthorized: Session required' }, { status: 401 });
     }
 
-    const { id: chatId } = await params;
+    const { chatId } = await params;
     if (!chatId) {
       return NextResponse.json({ error: 'Chat ID is required' }, { status: 400 });
     }

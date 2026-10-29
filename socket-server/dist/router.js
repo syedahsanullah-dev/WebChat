@@ -90,6 +90,16 @@ function routeWebSocketEnvelope(socket, envelope) {
                 logger_js_1.logger.error('Error executing handleCallEnd:', err);
             });
             break;
+        case 'audio-call:mute':
+        case 'audio-call:unmute':
+            (0, callSignalingHandler_js_1.handleCallMute)(socket, envelope.payload);
+            break;
+        case 'audio-call:ice-restart':
+            (0, callSignalingHandler_js_1.handleCallIceRestart)(socket, envelope.payload);
+            break;
+        case 'audio-call:ice-restart-answer':
+            (0, callSignalingHandler_js_1.handleCallIceRestartAnswer)(socket, envelope.payload);
+            break;
         case 'poll:vote':
             (0, pollHandler_js_1.handlePollVote)(socket, envelope.payload).catch((err) => {
                 logger_js_1.logger.error('Error executing handlePollVote:', err);

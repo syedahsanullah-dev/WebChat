@@ -8,6 +8,7 @@ import { logger } from './lib/logger.js';
 import { roomManager, AuthenticatedWebSocket } from './lib/roomManager.js';
 import { authenticateUpgrade } from './middleware/auth.js';
 import { handleUserConnect, handleUserDisconnect } from './handlers/presenceHandler.js';
+import { handleInternalCallReject } from './handlers/callSignalingHandler.js';
 import { routeWebSocketEnvelope } from './router.js';
 import { prisma } from './lib/prisma.js';
 import { WsEnvelope } from './types/index.js';
@@ -24,7 +25,7 @@ const PORT = parseInt(process.env.PORT || '4000', 10);
 const HOST = process.env.HOST || '0.0.0.0';
 const CORS_ORIGIN = process.env.CORS_ORIGIN || 'http://localhost:3000';
 const JWT_SECRET = process.env.JWT_SECRET || 'your_ultra_secure_256_bit_jwt_secret_key_change_in_production';
-const PING_INTERVAL_MS = parseInt(process.env.PING_INTERVAL_MS || '30000', 10);
+const PING_INTERVAL_MS = parseInt(process.env.PING_INTERVAL_MS || '25000', 10);
 
 export const fastify = Fastify({
   logger: false, // We use Winston logger
@@ -128,6 +129,18 @@ fastify.post('/internal/broadcast/dismiss', async (request, reply) => {
   logger.info(`📢 System broadcast dismiss dispatched: ${payload?.id}`);
 
   return { success: true };
+});
+
+// Phase 40: Internal Call Reject Route (triggered by Server #1 /api/calls/reject from Service Worker decline)
+fastify.post('/internal/call-reject', async (request, reply) => {
+  const body = request.body as any;
+  const callId = body?.callId;
+  const reason = body?.reason || 'declined';
+  if (!callId) {
+    return reply.status(400).send({ error: 'callId is required' });
+  }
+  const handled = await handleInternalCallReject(callId, reason);
+  return reply.send({ success: true, handled, callId });
 });
 
 // Phase 36: Internal Maintenance Mode Manager
@@ -260,6 +273,8 @@ wss.on('connection', (ws: WebSocket, _req: IncomingMessage, user?: { userId: str
   });
 
   authWs.on('message', (rawData) => {
+    // Phase 41: Keep-alive hardening to prevent Hostinger reverse proxy timeout
+    authWs.isAlive = true;
     try {
       const data = JSON.parse(rawData.toString()) as WsEnvelope;
       routeWebSocketEnvelope(authWs, data);

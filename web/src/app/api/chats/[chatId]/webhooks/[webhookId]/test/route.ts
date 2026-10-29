@@ -7,7 +7,7 @@ import { logger } from '@/lib/logger';
 export const dynamic = 'force-dynamic';
 
 interface RouteContext {
-  params: Promise<{ id: string; webhookId: string }>;
+  params: Promise<{ chatId: string; webhookId: string }>;
 }
 
 export async function POST(request: NextRequest, context: RouteContext) {
@@ -17,7 +17,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { id: chatId, webhookId } = await context.params;
+    const { chatId, webhookId } = await context.params;
 
     const webhook = await prisma.webhook.findUnique({
       where: { id: webhookId },

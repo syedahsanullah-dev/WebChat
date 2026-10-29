@@ -126,6 +126,7 @@ MAX_DOC_SIZE_BYTES=26214400    # 25 MB
 # WebRTC STUN & TURN Relay (Metered.ca Free Tier 50 GB/mo)
 NEXT_PUBLIC_STUN_URL="stun:stun.l.google.com:19302"
 NEXT_PUBLIC_TURN_URL="turn:relay.metered.ca:80"
+NEXT_PUBLIC_TURN_TLS_URL="turns:relay.metered.ca:443?transport=tcp"
 NEXT_PUBLIC_TURN_USERNAME="your_metered_turn_username"
 NEXT_PUBLIC_TURN_PASSWORD="your_metered_turn_credential"
 ```

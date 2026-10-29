@@ -134,7 +134,7 @@ self.addEventListener('fetch', (event) => {
   );
 });
 
-// 4. Background Web Push Notification Handlers (Phase 23 VAPID)
+// 4. Background Web Push Notification Handlers (Phase 23 VAPID & Phase 40 High-Priority Calls)
 self.addEventListener('push', (event) => {
   if (!event.data) return;
 
@@ -145,18 +145,30 @@ self.addEventListener('push', (event) => {
     data = { title: 'WebChat', body: event.data.text() };
   }
 
-  const title = data.title || data.senderName || 'WebChat';
+  const isCall = data.type === 'call_invite' || Boolean(data.callId);
+  const title = data.title || (isCall ? '📞 Incoming Voice Call' : data.senderName || 'WebChat');
   const options = {
-    body: data.body || 'New message',
-    icon: data.avatarUrl || data.icon || '/icons/icon-192x192.png',
+    body: data.body || (isCall ? `Incoming voice call from ${data.callerName || 'a contact'}` : 'New message'),
+    icon: data.callerAvatar || data.avatarUrl || data.icon || '/icons/icon-192x192.png',
     badge: data.badge || '/icons/badge-72x72.png',
-    vibrate: [100, 50, 100],
-    data: {
-      url: data.url || (data.chatId ? `/chat/${data.chatId}` : '/chat'),
-      chatId: data.chatId,
-    },
-    tag: data.tag || data.chatId || 'webchat-msg',
+    vibrate: isCall ? [500, 250, 500, 250, 500, 250, 500] : [100, 50, 100],
+    requireInteraction: isCall ? true : false,
+    tag: data.tag || (isCall ? `incoming-call-${data.callId}` : data.chatId || 'webchat-msg'),
     renotify: true,
+    data: {
+      type: data.type,
+      callId: data.callId,
+      chatId: data.chatId,
+      url: isCall
+        ? `/chat?callId=${data.callId}&chatId=${data.chatId || ''}`
+        : data.url || (data.chatId ? `/chat/${data.chatId}` : '/chat'),
+    },
+    actions: isCall
+      ? [
+          { action: 'accept', title: 'Accept' },
+          { action: 'decline', title: 'Decline' },
+        ]
+      : undefined,
   };
 
   event.waitUntil(self.registration.showNotification(title, options));
@@ -164,7 +176,28 @@ self.addEventListener('push', (event) => {
 
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
-  const targetUrl = event.notification.data?.url || '/chat';
+  const notificationData = event.notification.data || {};
+  const { action } = event;
+
+  // Phase 40: Handle "Decline" notification action without opening the app
+  if (action === 'decline' && notificationData.callId) {
+    event.waitUntil(
+      fetch('/api/calls/reject', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ callId: notificationData.callId, reason: 'declined' }),
+      }).catch((err) => {
+        console.warn('[SW] Failed to send call reject from notification decline:', err);
+      })
+    );
+    return;
+  }
+
+  // Phase 40: Handle "Accept" notification action or regular notification click
+  let targetUrl = notificationData.url || '/chat';
+  if (action === 'accept' && notificationData.callId) {
+    targetUrl = `/chat?autoAcceptCall=${encodeURIComponent(notificationData.callId)}&chatId=${encodeURIComponent(notificationData.chatId || '')}`;
+  }
 
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {

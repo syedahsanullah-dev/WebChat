@@ -9,7 +9,7 @@ import path from 'path';
 export const dynamic = 'force-dynamic';
 
 interface RouteContext {
-  params: Promise<{ id: string }>;
+  params: Promise<{ chatId: string }>;
 }
 
 export async function GET(request: NextRequest, context: RouteContext) {
@@ -19,7 +19,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { id: chatId } = await context.params;
+    const { chatId } = await context.params;
 
     // Verify user is participant or admin
     const chat = await prisma.chat.findUnique({

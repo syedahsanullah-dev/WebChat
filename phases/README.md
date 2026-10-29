@@ -1,5 +1,5 @@
-﻿# WebChat Implementation Phases Master Index
-## Autonomous Multi-Agent Vibe Coding Guide (38-Phase Master Blueprint)
+# WebChat Implementation Phases Master Index
+## Autonomous Multi-Agent Vibe Coding Guide (43-Phase Master Blueprint)
 
 This directory contains the self-contained phase specifications for developing the WhatsApp Web clone on Hostinger ($0 / month added cost) using **Next.js 15 Standalone** and **Fastify 4+ & Native `ws`**, scaled for reliable production deployment.
 
@@ -11,7 +11,7 @@ Each phase file is authored so an autonomous agent needs **only the current phas
 
 When multiple autonomous agents (e.g. Antigravity Team Preview Agents) work on this project:
 
-1. **Sequential Progression**: Phases must be executed in order (01 ➔ 38).
+1. **Sequential Progression**: Phases must be executed in order (01 ➔ 43).
 2. **Context Window Optimization**:
    - When an agent is assigned to **Phase N**, it should read:
      1. [`phases/README.md`](README.md) (This file, for global rules).
@@ -30,10 +30,10 @@ When multiple autonomous agents (e.g. Antigravity Team Preview Agents) work on t
 
 ---
 
-## 2. Master Phase Directory (38 Phases)
+## 2. Master Phase Directory (43 Phases)
 
-> **Overall Progress: 37 / 38 Phases Completed (97.4%)**
-> - **Completed**: Phases 01, 02, 03, 04, 05, 06, 07, 08, 09, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 34, 35, 36, 37, 38
+> **Overall Progress: 42 / 43 Phases Completed (97.7%)**
+> - **Completed**: Phases 01, 02, 03, 04, 05, 06, 07, 08, 09, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43
 > - **Pending**: Phase 33
 
 ### Part I: Core Production Platform (Phases 01 – 14)
@@ -120,6 +120,18 @@ When multiple autonomous agents (e.g. Antigravity Team Preview Agents) work on t
 | :---: | :--- | :--- | :---: | :---: |
 | **37** | [`37_CURRENT_STATIC_LOCATION_SHARING.md`](37_CURRENT_STATIC_LOCATION_SHARING.md) | Static GPS location sharing, Leaflet map card, OpenStreetMap Nominatim reverse geocoding with server LRU cache | Server #1 (`web/`) | **COMPLETED** |
 | **38** | [`38_REALTIME_LIVE_LOCATION_TRACKING.md`](38_REALTIME_LIVE_LOCATION_TRACKING.md) | Real-time live GPS streaming (15m, 1h, 8h), battery throttling (8s / 10m displacement), collaborative group maps | Server #1 & #2 | **COMPLETED** |
+
+---
+
+### Part VIII: Voice Platform Reliability, Mobile PWA & Infrastructure Hardening (Phases 39 – 43)
+
+| Phase | File | Primary Responsibility | Target Server | Status |
+| :---: | :--- | :--- | :---: | :---: |
+| **39** | [`39_VOICE_CALL_SIGNALING_HARDENING_AND_ZOMBIE_CLEANUP.md`](39_VOICE_CALL_SIGNALING_HARDENING_AND_ZOMBIE_CLEANUP.md) | Zombie session auto-cleanup on disconnect, multi-device answering sync (`answered_elsewhere`), callee 45s timeout, peer mute signaling | Server #1 & #2 | **COMPLETED** |
+| **40** | [`40_MOBILE_PWA_VOICE_WAKELOCK_AND_BACKGROUND_ALERTS.md`](40_MOBILE_PWA_VOICE_WAKELOCK_AND_BACKGROUND_ALERTS.md) | Mobile Chrome Screen Wake Lock API, MediaSession API lock-screen controls, high-priority background Web Push call alerts | Server #1 & Service Worker | **COMPLETED** |
+| **41** | [`41_WEBRTC_NETWORK_RESILIENCE_AND_TLS_TURN_TRAVERSAL.md`](41_WEBRTC_NETWORK_RESILIENCE_AND_TLS_TURN_TRAVERSAL.md) | TLS TURN over TCP port 443 (`turns:`), automated ICE restart on network handovers, client relayed byte telemetry | Server #1 & #2 | **COMPLETED** |
+| **42** | [`42_VOICE_CALL_UI_UX_MODERNIZATION_AND_PERFORMANCE.md`](42_VOICE_CALL_UI_UX_MODERNIZATION_AND_PERFORMANCE.md) | Corrected P2P DTLS encryption badges, 10 FPS volume meter throttling (zero React jank), group chat call guards, toast alerts | Server #1 (`web/`) | **COMPLETED** |
+| **43** | [`43_AUTOMATED_VOICE_CALL_QA_AND_WEBRTC_LOAD_SIMULATION.md`](43_AUTOMATED_VOICE_CALL_QA_AND_WEBRTC_LOAD_SIMULATION.md) | Vitest unit tests for RTCPeerConnection hooks, Playwright 2-user headless WebRTC E2E suite, k6 100-user call load simulation | Tooling / QA | **COMPLETED** |
 
 ---
 

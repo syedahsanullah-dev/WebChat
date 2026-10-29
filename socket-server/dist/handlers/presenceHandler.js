@@ -5,6 +5,7 @@ exports.handleUserDisconnect = handleUserDisconnect;
 const roomManager_js_1 = require("../lib/roomManager.js");
 const prisma_js_1 = require("../lib/prisma.js");
 const logger_js_1 = require("../lib/logger.js");
+const callSignalingHandler_js_1 = require("./callSignalingHandler.js");
 /**
  * Handles incoming connection presence setup and broadcast
  */
@@ -44,11 +45,20 @@ async function handleUserConnect(socket) {
             logger_js_1.logger.debug(`Could not update isOnline in DB (non-fatal): ${err.message}`);
         });
     }
+    // Phase 40: Check and deliver any pending incoming calls to waking recipient
+    (0, callSignalingHandler_js_1.checkPendingCallsForUser)(socket);
 }
 /**
  * Handles disconnection, cleanup, and offline broadcast when all tabs close
  */
 async function handleUserDisconnect(socket) {
+    // Phase 39: Clean up active call sessions immediately upon socket disconnection
+    try {
+        await (0, callSignalingHandler_js_1.handleSocketDisconnectForCalls)(socket);
+    }
+    catch (err) {
+        logger_js_1.logger.error(`Call disconnect cleanup error for user ${socket.userId}:`, err);
+    }
     // Remove socket from all rooms and user sockets map
     roomManager_js_1.roomManager.leaveAll(socket);
     // Check if the user still has other open tabs/devices

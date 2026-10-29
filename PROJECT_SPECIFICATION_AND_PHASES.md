@@ -1,5 +1,5 @@
 # WhatsApp Web Clone: Technical Specification & Implementation Plan
-## Hostinger Dual Node.js Architecture ($0 / Month Additional Cost) | 38-Phase Master Blueprint
+## Hostinger Dual Node.js Architecture ($0 / Month Additional Cost) | 43-Phase Master Blueprint
 
 ---
 
@@ -607,7 +607,7 @@ model LiveLocation {
 
 ---
 
-## 5. Master 38-Phase Implementation Roadmap
+## 5. Master 43-Phase Implementation Roadmap
 
 > [!IMPORTANT]
 > **DEVELOPMENT RULE**: **DO NOT START CODING APPLICATION FILES UNTIL EXPLICITLY INSTRUCTED BY THE USER.**
@@ -664,6 +664,13 @@ model LiveLocation {
 ### Part VII: Advanced Geolocation & Mobility (Phases 37 – 38)
 - **Phase 37**: [`phases/37_CURRENT_STATIC_LOCATION_SHARING.md`](phases/37_CURRENT_STATIC_LOCATION_SHARING.md) — Static GPS location sharing, Leaflet map card, OpenStreetMap Nominatim reverse geocoding with server LRU cache.
 - **Phase 38**: [`phases/38_REALTIME_LIVE_LOCATION_TRACKING.md`](phases/38_REALTIME_LIVE_LOCATION_TRACKING.md) — Real-time live GPS streaming (15m, 1h, 8h), battery throttling (8s / 10m displacement), collaborative group maps.
+
+### Part VIII: Voice Platform Reliability, Mobile PWA & Infrastructure Hardening (Phases 39 – 43)
+- **Phase 39**: [`phases/39_VOICE_CALL_SIGNALING_HARDENING_AND_ZOMBIE_CLEANUP.md`](phases/39_VOICE_CALL_SIGNALING_HARDENING_AND_ZOMBIE_CLEANUP.md) — Zombie session auto-cleanup on disconnect, multi-device answering sync (`answered_elsewhere`), callee 45s timeout, peer mute signaling.
+- **Phase 40**: [`phases/40_MOBILE_PWA_VOICE_WAKELOCK_AND_BACKGROUND_ALERTS.md`](phases/40_MOBILE_PWA_VOICE_WAKELOCK_AND_BACKGROUND_ALERTS.md) — Mobile Chrome Screen Wake Lock API, MediaSession API lock-screen controls, high-priority background Web Push call alerts.
+- **Phase 41**: [`phases/41_WEBRTC_NETWORK_RESILIENCE_AND_TLS_TURN_TRAVERSAL.md`](phases/41_WEBRTC_NETWORK_RESILIENCE_AND_TLS_TURN_TRAVERSAL.md) — TLS TURN over TCP port 443 (`turns:`), automated ICE restart on network handovers, client relayed byte telemetry.
+- **Phase 42**: [`phases/42_VOICE_CALL_UI_UX_MODERNIZATION_AND_PERFORMANCE.md`](phases/42_VOICE_CALL_UI_UX_MODERNIZATION_AND_PERFORMANCE.md) — Corrected P2P DTLS encryption badges, 10 FPS volume meter throttling (zero React jank), group chat call guards, toast alerts.
+- **Phase 43**: [`phases/43_AUTOMATED_VOICE_CALL_QA_AND_WEBRTC_LOAD_SIMULATION.md`](phases/43_AUTOMATED_VOICE_CALL_QA_AND_WEBRTC_LOAD_SIMULATION.md) — Vitest unit tests for RTCPeerConnection hooks, Playwright 2-user headless WebRTC E2E suite, k6 100-user call load simulation.
 
 ---
 

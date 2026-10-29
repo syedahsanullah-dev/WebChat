@@ -1,5 +1,5 @@
 import { Message, MessageStatus, MessageType } from './types';
-export type WsEventType = 'ping' | 'pong' | 'presence:init' | 'user:online' | 'user:offline' | 'typing:start' | 'typing:stop' | 'message:send' | 'message:ack' | 'message:new' | 'message:read' | 'message:status' | 'message:reaction' | 'message:delete' | 'group:created' | 'group:member_update' | 'group:join' | 'group:leave' | 'audio-call:invite' | 'audio-call:incoming' | 'audio-call:ring' | 'audio-call:accept' | 'audio-call:accepted' | 'audio-call:reject' | 'audio-call:busy' | 'audio-call:ice-candidate' | 'audio-call:end' | 'audio-call:ended' | 'session:revoked' | 'error' | 'system:broadcast' | 'system:broadcast_dismiss' | 'system:maintenance' | 'poll:vote' | 'poll:update' | 'chat:pin' | 'chat:pin_updated' | 'chat:ephemeral_updated' | 'location:live_start' | 'location:live_started' | 'location:live_update' | 'location:live_updated' | 'location:live_stop' | 'location:live_stopped' | 'location:live_ended' | 'user:kick' | 'user:mute' | 'user:warn';
+export type WsEventType = 'ping' | 'pong' | 'presence:init' | 'user:online' | 'user:offline' | 'typing:start' | 'typing:stop' | 'message:send' | 'message:ack' | 'message:new' | 'message:read' | 'message:status' | 'message:reaction' | 'message:delete' | 'group:created' | 'group:member_update' | 'group:join' | 'group:leave' | 'audio-call:invite' | 'audio-call:incoming' | 'audio-call:ring' | 'audio-call:accept' | 'audio-call:accepted' | 'audio-call:reject' | 'audio-call:busy' | 'audio-call:ice-candidate' | 'audio-call:end' | 'audio-call:ended' | 'audio-call:answered_elsewhere' | 'audio-call:mute' | 'audio-call:unmute' | 'audio-call:ice-restart' | 'audio-call:ice-restart-answer' | 'session:revoked' | 'error' | 'system:broadcast' | 'system:broadcast_dismiss' | 'system:maintenance' | 'poll:vote' | 'poll:update' | 'chat:pin' | 'chat:pin_updated' | 'chat:ephemeral_updated' | 'location:live_start' | 'location:live_started' | 'location:live_update' | 'location:live_updated' | 'location:live_stop' | 'location:live_stopped' | 'location:live_ended' | 'user:kick' | 'user:mute' | 'user:warn';
 export interface WsEnvelope<T = any> {
     type: WsEventType;
     payload: T;
@@ -198,6 +198,32 @@ export interface AudioCallEndedPayload {
     duration?: number;
     status?: string;
     reason?: string;
+}
+export interface AudioCallAnsweredElsewherePayload {
+    callId: string;
+    chatId?: string;
+}
+export interface AudioCallMutePayload {
+    callId: string;
+    chatId?: string;
+    userId: string;
+    isMuted: boolean;
+}
+export interface AudioCallIceRestartPayload {
+    callId: string;
+    chatId?: string;
+    callerId?: string;
+    receiverId?: string;
+    offerSdp: any;
+    sdpOffer?: any;
+}
+export interface AudioCallIceRestartAnswerPayload {
+    callId: string;
+    chatId?: string;
+    callerId?: string;
+    receiverId?: string;
+    answerSdp: any;
+    sdpAnswer?: any;
 }
 export interface SessionRevokedPayload {
     sessionId?: string;

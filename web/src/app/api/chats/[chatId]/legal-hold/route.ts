@@ -6,7 +6,7 @@ import { recordAuditLog } from '@/lib/auditLogger';
 export const dynamic = 'force-dynamic';
 
 interface RouteContext {
-  params: Promise<{ id: string }>;
+  params: Promise<{ chatId: string }>;
 }
 
 const SOCKET_SERVER_URL =
@@ -21,7 +21,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { id: chatId } = await context.params;
+    const { chatId } = await context.params;
 
     const chat = await prisma.chat.findUnique({
       where: { id: chatId },
@@ -50,7 +50,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { id: chatId } = await context.params;
+    const { chatId } = await context.params;
 
     // Check permission: SUPER_ADMIN, ADMIN, or group admin
     const chat = await prisma.chat.findUnique({

@@ -54,13 +54,13 @@ class RoomManager {
             }
         }
     }
-    sendToUser(userId, data) {
+    sendToUser(userId, data, excludeSocket) {
         const sockets = this.userSockets.get(userId);
         if (!sockets)
             return;
         const message = typeof data === 'string' ? data : JSON.stringify(data);
         for (const socket of sockets) {
-            if (socket.readyState === ws_1.WebSocket.OPEN) {
+            if (socket !== excludeSocket && socket.readyState === ws_1.WebSocket.OPEN) {
                 socket.send(message);
             }
         }

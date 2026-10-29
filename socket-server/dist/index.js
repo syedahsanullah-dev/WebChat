@@ -14,6 +14,7 @@ const logger_js_1 = require("./lib/logger.js");
 const roomManager_js_1 = require("./lib/roomManager.js");
 const auth_js_1 = require("./middleware/auth.js");
 const presenceHandler_js_1 = require("./handlers/presenceHandler.js");
+const callSignalingHandler_js_1 = require("./handlers/callSignalingHandler.js");
 const router_js_1 = require("./router.js");
 const prisma_js_1 = require("./lib/prisma.js");
 const maintenanceGuard_js_1 = require("./middleware/maintenanceGuard.js");
@@ -27,7 +28,7 @@ const PORT = parseInt(process.env.PORT || '4000', 10);
 const HOST = process.env.HOST || '0.0.0.0';
 const CORS_ORIGIN = process.env.CORS_ORIGIN || 'http://localhost:3000';
 const JWT_SECRET = process.env.JWT_SECRET || 'your_ultra_secure_256_bit_jwt_secret_key_change_in_production';
-const PING_INTERVAL_MS = parseInt(process.env.PING_INTERVAL_MS || '30000', 10);
+const PING_INTERVAL_MS = parseInt(process.env.PING_INTERVAL_MS || '25000', 10);
 exports.fastify = (0, fastify_1.default)({
     logger: false, // We use Winston logger
 });
@@ -118,6 +119,17 @@ exports.fastify.post('/internal/broadcast/dismiss', async (request, reply) => {
     roomManager_js_1.roomManager.broadcastAll(dismissEnvelope);
     logger_js_1.logger.info(`📢 System broadcast dismiss dispatched: ${payload?.id}`);
     return { success: true };
+});
+// Phase 40: Internal Call Reject Route (triggered by Server #1 /api/calls/reject from Service Worker decline)
+exports.fastify.post('/internal/call-reject', async (request, reply) => {
+    const body = request.body;
+    const callId = body?.callId;
+    const reason = body?.reason || 'declined';
+    if (!callId) {
+        return reply.status(400).send({ error: 'callId is required' });
+    }
+    const handled = await (0, callSignalingHandler_js_1.handleInternalCallReject)(callId, reason);
+    return reply.send({ success: true, handled, callId });
 });
 // Phase 36: Internal Maintenance Mode Manager
 exports.fastify.post('/internal/maintenance', async (request) => {
@@ -231,6 +243,8 @@ exports.wss.on('connection', (ws, _req, user) => {
         authWs.isAlive = true;
     });
     authWs.on('message', (rawData) => {
+        // Phase 41: Keep-alive hardening to prevent Hostinger reverse proxy timeout
+        authWs.isAlive = true;
         try {
             const data = JSON.parse(rawData.toString());
             (0, router_js_1.routeWebSocketEnvelope)(authWs, data);

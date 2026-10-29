@@ -66,12 +66,12 @@ export class RoomManager {
     }
   }
 
-  sendToUser(userId: string, data: any): void {
+  sendToUser(userId: string, data: any, excludeSocket?: AuthenticatedWebSocket): void {
     const sockets = this.userSockets.get(userId);
     if (!sockets) return;
     const message = typeof data === 'string' ? data : JSON.stringify(data);
     for (const socket of sockets) {
-      if (socket.readyState === WebSocket.OPEN) {
+      if (socket !== excludeSocket && socket.readyState === WebSocket.OPEN) {
         socket.send(message);
       }
     }

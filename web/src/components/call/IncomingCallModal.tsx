@@ -53,7 +53,7 @@ export default function IncomingCallModal({
         </div>
 
         <p className="text-xs text-wa-light-text-muted dark:text-wa-dark-text-muted mt-2">
-          End-to-end encrypted audio call
+          Direct Encrypted Voice Call (P2P)
         </p>
 
         {/* Action Buttons: Decline (Red) and Accept (Green) */}

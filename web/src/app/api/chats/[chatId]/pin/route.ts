@@ -8,7 +8,7 @@ import { getAuthUserFromRequest } from '@/lib/auth';
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ chatId: string }> }
 ) {
   try {
     const authUser = getAuthUserFromRequest(request);
@@ -16,7 +16,7 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { id: chatId } = await params;
+    const { chatId } = await params;
 
     const pinnedMessages = await prisma.pinnedMessage.findMany({
       where: {
@@ -70,7 +70,7 @@ export async function GET(
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ chatId: string }> }
 ) {
   try {
     const authUser = getAuthUserFromRequest(request);
@@ -78,7 +78,7 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { id: chatId } = await params;
+    const { chatId } = await params;
     const body = await request.json();
     const { messageId, durationDays = 7 } = body;
 
@@ -198,7 +198,7 @@ export async function POST(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ chatId: string }> }
 ) {
   try {
     const authUser = getAuthUserFromRequest(request);
@@ -206,7 +206,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { id: chatId } = await params;
+    const { chatId } = await params;
     const { searchParams } = new URL(request.url);
     const messageId = searchParams.get('messageId');
 

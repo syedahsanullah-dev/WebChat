@@ -6,7 +6,7 @@ import crypto from 'crypto';
 export const dynamic = 'force-dynamic';
 
 interface RouteContext {
-  params: Promise<{ id: string }>;
+  params: Promise<{ chatId: string }>;
 }
 
 export async function GET(request: NextRequest, context: RouteContext) {
@@ -16,7 +16,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { id: chatId } = await context.params;
+    const { chatId } = await context.params;
 
     // Verify user is in the chat
     const participant = await prisma.chatParticipant.findFirst({
@@ -71,7 +71,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { id: chatId } = await context.params;
+    const { chatId } = await context.params;
 
     // Verify chat exists and user is participant (or group admin)
     const chat = await prisma.chat.findUnique({

@@ -2,6 +2,7 @@ import { AuthenticatedWebSocket, roomManager } from '../lib/roomManager.js';
 import { prisma } from '../lib/prisma.js';
 import { logger } from '../lib/logger.js';
 import { WsEnvelope, UserOnlinePayload, UserOfflinePayload } from '../types/index.js';
+import { handleSocketDisconnectForCalls, checkPendingCallsForUser } from './callSignalingHandler.js';
 
 /**
  * Handles incoming connection presence setup and broadcast
@@ -48,12 +49,22 @@ export async function handleUserConnect(socket: AuthenticatedWebSocket): Promise
         logger.debug(`Could not update isOnline in DB (non-fatal): ${err.message}`);
       });
   }
+
+  // Phase 40: Check and deliver any pending incoming calls to waking recipient
+  checkPendingCallsForUser(socket);
 }
 
 /**
  * Handles disconnection, cleanup, and offline broadcast when all tabs close
  */
 export async function handleUserDisconnect(socket: AuthenticatedWebSocket): Promise<void> {
+  // Phase 39: Clean up active call sessions immediately upon socket disconnection
+  try {
+    await handleSocketDisconnectForCalls(socket);
+  } catch (err) {
+    logger.error(`Call disconnect cleanup error for user ${socket.userId}:`, err);
+  }
+
   // Remove socket from all rooms and user sockets map
   roomManager.leaveAll(socket);
 

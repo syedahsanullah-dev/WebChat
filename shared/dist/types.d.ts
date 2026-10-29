@@ -167,6 +167,7 @@ export interface AdminUserView {
         initiatedCalls?: number;
     };
 }
+export type UserAdminProfile = AdminUserView;
 export type DlpAction = 'BLOCK' | 'WARN' | 'LOG';
 export interface DlpRuleDefinition {
     id: string;

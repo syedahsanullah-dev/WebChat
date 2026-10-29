@@ -19,6 +19,9 @@ import {
   handleCallReject,
   handleCallIceCandidate,
   handleCallEnd,
+  handleCallMute,
+  handleCallIceRestart,
+  handleCallIceRestartAnswer,
 } from './handlers/callSignalingHandler.js';
 import { WsEnvelope } from './types/index.js';
 
@@ -121,6 +124,19 @@ export function routeWebSocketEnvelope(
       handleCallEnd(socket, envelope.payload).catch((err) => {
         logger.error('Error executing handleCallEnd:', err);
       });
+      break;
+
+    case 'audio-call:mute':
+    case 'audio-call:unmute':
+      handleCallMute(socket, envelope.payload);
+      break;
+
+    case 'audio-call:ice-restart':
+      handleCallIceRestart(socket, envelope.payload);
+      break;
+
+    case 'audio-call:ice-restart-answer':
+      handleCallIceRestartAnswer(socket, envelope.payload);
       break;
 
     case 'poll:vote':

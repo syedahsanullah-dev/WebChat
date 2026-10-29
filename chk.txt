@@ -1,4 +1,4 @@
-# WhatsApp Web Clone (Next.js & Fastify + ws) - 38-Phase Master Checklist
+# WhatsApp Web Clone (Next.js & Fastify + ws) - 43-Phase Master Checklist
 ## Architecture: Hostinger Dual Node.js Servers ($0 Extra Cost) | Identity: @username & Email
 ## Calling: High-Definition Audio Only | Mobile: Chrome PWA Installable | Full SDLC Implementation
 
@@ -297,3 +297,45 @@
 - [x] Live location bubble with moving avatar pin, directional heading arrow, and live countdown timer
 - [x] Collaborative multi-user group map automatically adjusting bounds to fit all sharing members
 - [x] Fastify 60-second auto-expiration daemon terminating expired live locations
+
+---
+
+### Part VIII: Voice Platform Reliability, Mobile PWA & Infrastructure Hardening (Phases 39 – 43)
+
+## Phase 39: [Voice Call Signaling Hardening, Multi-Device Synchronization & Zombie Cleanup](phases/39_VOICE_CALL_SIGNALING_HARDENING_AND_ZOMBIE_CLEANUP.md)
+- [x] Automated cleanup of Fastify `activeSessions` on client socket disconnect preventing memory leaks
+- [x] Multi-device answering synchronization (`audio-call:answered_elsewhere`) dismissing ringing across auxiliary tabs
+- [x] Callee-side 45-second incoming ringing timeout preventing infinite modal loops on caller drop
+- [x] RFC 8829 WebRTC simultaneous dialing glare tie-breaker
+- [x] Peer microphone mute state synchronization (`audio-call:mute` / `unmute`) and ActiveCallBar badge
+- [x] Fallback direct chat auto-creation resolving Prisma foreign key violations on missing `chatId`
+
+## Phase 40: [Mobile PWA Voice Ergonomics, WakeLock, MediaSession & Background Call Alerts](phases/40_MOBILE_PWA_VOICE_WAKELOCK_AND_BACKGROUND_ALERTS.md)
+- [x] High-priority W3C VAPID Web Push dispatch (`call_invite`) with inline "Accept" and "Decline" notification actions
+- [x] Service worker background push listener waking device and opening active call window
+- [x] Screen Wake Lock API (`navigator.wakeLock`) preventing mobile display sleep and CPU throttling
+- [x] MediaSession API integration (`navigator.mediaSession`) for lock-screen and notification shade controls
+- [x] Graceful Android Chrome `setSinkId` feature detection hiding broken device menus
+- [x] Silent audio unlock pattern and visual fallback recovering from browser autoplay restrictions
+
+## Phase 41: [WebRTC Network Resilience, TLS TURN Traversal & ICE Connection Recovery](phases/41_WEBRTC_NETWORK_RESILIENCE_AND_TLS_TURN_TRAVERSAL.md)
+- [x] TLS TURN over TCP port 443 (`turns:relay.metered.ca:443?transport=tcp`) traversing strict corporate firewalls
+- [x] Automated WebRTC ICE restart (`pc.restartIce()`) recovering active calls during Wi-Fi/LTE network handovers
+- [x] Extended `CallState` enum with `'reconnecting'` and 10-second grace window in `ActiveCallBar`
+- [x] Client-side WebRTC stats inspector tracking cumulative relayed bytes against Metered.ca 50 GB/month quota
+- [x] Fastify 25-second adaptive keep-alive ping preventing Hostinger LiteSpeed/Apache reverse proxy drops
+
+## Phase 42: [Voice Call UI/UX Modernization, Group Guards & Audio Performance Optimization](phases/42_VOICE_CALL_UI_UX_MODERNIZATION_AND_PERFORMANCE.md)
+- [x] Web Audio Analyser throttling from 60–120 FPS to 10 FPS (100ms interval) eliminating React re-render thrashing
+- [x] Cryptographic wording correction replacing "Opus Encrypted" with "P2P Encrypted Audio (DTLS-SRTP)"
+- [x] Group chat & channel call button guard hiding/disabling phone icon in non-1-on-1 conversations
+- [x] Replacement of native browser `window.alert()` popups with accessible WhatsApp-style toasts
+- [x] Unified call status ontology aligning Prisma schema (`"rejected"`) with in-chat badges
+
+## Phase 43: [Automated Voice Call QA, Playwright WebRTC Testing & Load Simulation](phases/43_AUTOMATED_VOICE_CALL_QA_AND_WEBRTC_LOAD_SIMULATION.md)
+- [x] Vitest unit test suite mocking RTCPeerConnection, ICE candidates, and audio tracks with 100% pass rate
+- [x] Playwright 2-user headless WebRTC E2E suite (`voice-call-flow.spec.ts`) using synthetic media streams
+- [x] Complete E2E call lifecycle verification: invite, ring, accept, mute, end call, and verify CallLogBadge in DOM
+- [x] k6 virtual user load simulation (`call-signaling-load-test.js`) testing 100 concurrent call sessions
+- [x] Verified Server #2 memory footprint remains strictly within Hostinger CloudLinux ceiling (~25–35 MB RAM)
+

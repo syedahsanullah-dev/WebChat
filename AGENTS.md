@@ -48,7 +48,7 @@
 
 ## 3. SDLC Compliance
 
-The development roadmap is governed by a **38-Phase Master Blueprint**:
+The development roadmap is governed by a **43-Phase Master Blueprint**:
 - Master Index: [`phases/README.md`](phases/README.md)
   - **Part I: Core Production Platform (Phases 01 – 14)**
   - **Part II: Security, Data & Communications (Phases 15 – 22)**
@@ -57,6 +57,7 @@ The development roadmap is governed by a **38-Phase Master Blueprint**:
   - **Part V: Administration & Operations (Phases 29 – 34)**
   - **Part VI: Platform Reliability & Emergency Operations (Phases 35 – 36)**
   - **Part VII: Advanced Geolocation & Mobility (Phases 37 – 38)**
+  - **Part VIII: Voice Platform Reliability, Mobile PWA & Infrastructure Hardening (Phases 39 – 43)**
 - Master Specification: [`PROJECT_SPECIFICATION_AND_PHASES.md`](PROJECT_SPECIFICATION_AND_PHASES.md)
 - Checklist: [`chk.txt`](chk.txt)
 - Phased testing: Vitest unit tests, Playwright E2E chat flow, and k6 virtual user load simulation (100–500 users).
