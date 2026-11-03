@@ -60,6 +60,29 @@ export async function GET(request: NextRequest) {
       },
     });
 
+    // Helper to format snippet preview for different message types
+    const formatMessagePreview = (msg: any) => {
+      if (!msg) return '';
+      switch (msg.messageType) {
+        case 'system':
+          return msg.content || '';
+        case 'image':
+          return '📷 Photo';
+        case 'voice':
+          return '🎤 Voice note';
+        case 'document':
+          return `📄 ${msg.documentName || 'Document'}`;
+        case 'location':
+          return '📍 Location';
+        case 'live_location':
+          return '📍 Live location';
+        case 'poll':
+          return '📊 Poll';
+        default:
+          return msg.content || '';
+      }
+    };
+
     // Calculate unread count for each chat
     const formattedChats = await Promise.all(
       chats.map(async (chat) => {
@@ -94,19 +117,11 @@ export async function GET(request: NextRequest) {
             groupDescription: chat.channelMetadata?.description || chat.groupDescription,
             groupAdminId: chat.groupAdminId,
             otherUser: null,
-            lastMessage: latestMsg
-              ? latestMsg.messageType === 'system'
-                ? latestMsg.content
-                : latestMsg.messageType === 'image'
-                ? '📷 Photo'
-                : latestMsg.messageType === 'voice'
-                ? '🎤 Voice note'
-                : latestMsg.messageType === 'document'
-                ? `📄 ${latestMsg.documentName || 'Document'}`
-                : latestMsg.content || ''
-              : '',
+            lastMessage: formatMessagePreview(latestMsg),
             lastMessageSenderId: latestMsg ? latestMsg.senderId : null,
             lastMessageAt: chat.lastMessageAt.toISOString(),
+            isE2EE: latestMsg ? Boolean(latestMsg.isE2EE) : false,
+            e2eeIv: latestMsg ? latestMsg.e2eeIv || null : null,
             unreadCount,
             isOnline: false,
             ephemeralDuration: chat.ephemeralDuration ?? null,
@@ -139,19 +154,11 @@ export async function GET(request: NextRequest) {
                 lastSeen: otherUser.lastSeen,
               }
             : null,
-          lastMessage: latestMsg
-            ? latestMsg.messageType === 'system'
-              ? latestMsg.content
-              : latestMsg.messageType === 'image'
-              ? '📷 Photo'
-              : latestMsg.messageType === 'voice'
-              ? '🎤 Voice note'
-              : latestMsg.messageType === 'document'
-              ? `📄 ${latestMsg.documentName || 'Document'}`
-              : latestMsg.content || ''
-            : '',
+          lastMessage: formatMessagePreview(latestMsg),
           lastMessageSenderId: latestMsg ? latestMsg.senderId : null,
           lastMessageAt: chat.lastMessageAt.toISOString(),
+          isE2EE: latestMsg ? Boolean(latestMsg.isE2EE) : false,
+          e2eeIv: latestMsg ? latestMsg.e2eeIv || null : null,
           unreadCount,
           isOnline: otherUser ? otherUser.isOnline : false,
           ephemeralDuration: chat.ephemeralDuration ?? null,

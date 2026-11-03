@@ -13,6 +13,16 @@ export interface ConversationSnippetProps {
   className?: string;
 }
 
+function cleanMessageSnippet(text: string): string {
+  if (!text) return '';
+  const trimmed = text.trim();
+  // Detect undecrypted Base64 AES-GCM ciphertext strings (24+ characters with Base64 chars only)
+  if (trimmed.length >= 24 && !trimmed.includes(' ') && /^[A-Za-z0-9+/]+={0,2}$/.test(trimmed)) {
+    return '🔒 Encrypted message';
+  }
+  return trimmed;
+}
+
 export default function ConversationSnippet({
   lastMessage,
   isGroup = false,
@@ -34,6 +44,8 @@ export default function ConversationSnippet({
     );
   }
 
+  const displayText = cleanMessageSnippet(lastMessage);
+
   return (
     <p
       className={cn(
@@ -44,7 +56,7 @@ export default function ConversationSnippet({
       {!isGroup && (
         <CheckCheck className="w-3.5 h-3.5 text-wa-blue-tick flex-shrink-0" />
       )}
-      <span className="truncate">{lastMessage}</span>
+      <span className="truncate">{displayText}</span>
     </p>
   );
 }

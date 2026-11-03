@@ -121,6 +121,21 @@ export async function handleLiveLocationStart(
     roomManager.broadcastToRoom(`chat:${chatId}`, startedEnvelope);
     roomManager.broadcastToRoom(chatId, startedEnvelope);
 
+    // Direct delivery to all online chat participants (ensures delivery even without room join)
+    try {
+      const participants = await prisma.chatParticipant.findMany({
+        where: { chatId, userId: { not: userId } },
+        select: { userId: true },
+      });
+      participants.forEach((p) => {
+        if (roomManager.isUserOnline(p.userId)) {
+          roomManager.sendToUser(p.userId, startedEnvelope);
+        }
+      });
+    } catch (partErr) {
+      logger.debug(`Could not look up participants for live location notification: ${(partErr as Error).message}`);
+    }
+
     logger.info(`Live location started by user ${userId} in chat ${chatId} (${validMinutes}m)`);
   } catch (error) {
     logger.error('Failed to handle location:live_start:', error);

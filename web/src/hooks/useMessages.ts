@@ -36,7 +36,10 @@ export interface MessageItem {
   e2eeIv?: string | null;
   latitude?: number | null;
   longitude?: number | null;
+  heading?: number | null;
   locationAddress?: string | null;
+  liveLocationId?: string | null;
+  senderAvatarUrl?: string | null;
   documentName?: string | null;
   documentSize?: number | null;
   documentMime?: string | null;
@@ -173,6 +176,7 @@ export function useMessages({ chatId, recipientId }: UseMessagesOptions) {
                 id: m.id,
                 senderId: m.senderId,
                 senderName: m.sender?.displayName || m.sender?.username || undefined,
+                senderAvatarUrl: m.senderAvatarUrl || m.sender?.avatarUrl || null,
                 content: textContent,
                 messageType: m.messageType || 'text',
                 mediaUrl: m.mediaUrl || null,
@@ -184,7 +188,10 @@ export function useMessages({ chatId, recipientId }: UseMessagesOptions) {
                 e2eeIv,
                 latitude: m.latitude ?? null,
                 longitude: m.longitude ?? null,
+                heading: m.heading ?? null,
                 locationAddress: m.locationAddress ?? null,
+                liveLocationId: m.liveLocationId ?? null,
+                expiresAt: m.expiresAt ?? null,
                 status: m.status || 'sent',
                 createdAt: m.createdAt,
               };
@@ -257,6 +264,7 @@ export function useMessages({ chatId, recipientId }: UseMessagesOptions) {
               id: m.id,
               senderId: m.senderId,
               senderName: m.sender?.displayName || m.sender?.username || undefined,
+              senderAvatarUrl: m.senderAvatarUrl || m.sender?.avatarUrl || null,
               content: textContent,
               messageType: m.messageType || 'text',
               mediaUrl: m.mediaUrl || null,
@@ -268,7 +276,10 @@ export function useMessages({ chatId, recipientId }: UseMessagesOptions) {
               e2eeIv,
               latitude: m.latitude ?? null,
               longitude: m.longitude ?? null,
+              heading: m.heading ?? null,
               locationAddress: m.locationAddress ?? null,
+              liveLocationId: m.liveLocationId ?? null,
+              expiresAt: m.expiresAt ?? null,
               status: m.status || 'sent',
               createdAt: m.createdAt,
             };
@@ -510,7 +521,9 @@ export function useMessages({ chatId, recipientId }: UseMessagesOptions) {
           e2eeIv,
           latitude: (payload as any).latitude ?? null,
           longitude: (payload as any).longitude ?? null,
+          heading: (payload as any).heading ?? null,
           locationAddress: (payload as any).locationAddress ?? null,
+          liveLocationId: (payload as any).liveLocationId ?? null,
           documentName: (payload as any).documentName ?? null,
           documentSize: (payload as any).documentSize ?? null,
           documentMime: (payload as any).documentMime ?? null,
@@ -593,12 +606,62 @@ export function useMessages({ chatId, recipientId }: UseMessagesOptions) {
       }
     });
 
+    // 6. location:live_started — live location session started
+    const unsubLiveStarted = subscribe<any>('location:live_started', (payload) => {
+      if (!payload?.message || payload.message.chatId !== currentChatIdRef.current) return;
+      const m = payload.message;
+      const liveLoc = payload.liveLocation;
+
+      const newMsgItem: MessageItem = {
+        id: m.id,
+        senderId: m.senderId,
+        senderName:
+          m.sender?.displayName ||
+          m.sender?.username ||
+          (user && m.senderId === user.id ? 'You' : 'User'),
+        senderAvatarUrl: m.sender?.avatarUrl || liveLoc?.userAvatarUrl || null,
+        content: m.content || 'Live Location',
+        messageType: 'live_location',
+        mediaUrl: null,
+        latitude: m.latitude ?? liveLoc?.latitude ?? null,
+        longitude: m.longitude ?? liveLoc?.longitude ?? null,
+        heading: liveLoc?.heading ?? null,
+        locationAddress: m.locationAddress || 'Live Location Sharing',
+        liveLocationId: m.liveLocationId || liveLoc?.id || null,
+        expiresAt: liveLoc?.expiresAt || m.expiresAt || null,
+        status: 'sent',
+        createdAt:
+          m.createdAt instanceof Date
+            ? m.createdAt.toISOString()
+            : String(m.createdAt || new Date().toISOString()),
+      };
+
+      if (user && m.senderId !== user.id) {
+        playReceive();
+        markAsRead(m.chatId);
+      }
+
+      setMessages((prev) => {
+        if (
+          prev.some(
+            (item) =>
+              item.id === newMsgItem.id ||
+              (newMsgItem.liveLocationId && item.liveLocationId === newMsgItem.liveLocationId)
+          )
+        ) {
+          return prev;
+        }
+        return [...prev, newMsgItem];
+      });
+    });
+
     return () => {
       unsubAck();
       unsubNew();
       unsubStatus();
       unsubDelete();
       unsubError();
+      unsubLiveStarted();
     };
   }, [chatId, user, subscribe, playReceive, markAsRead]);
 

@@ -39,6 +39,8 @@ import {
 } from 'lucide-react';
 import ChannelsSidebarTab from '@/components/channels/ChannelsSidebarTab';
 import StarredMessagesDrawer from '@/components/starred/StarredMessagesDrawer';
+import { getOrDeriveSharedKey } from '@/lib/crypto/keyExchange';
+import { decryptMessage } from '@/lib/crypto/e2eeCipher';
 
 export interface ChatItemData {
   id: string;
@@ -92,7 +94,7 @@ export default function Sidebar({
   const [sidebarTab, setSidebarTab] = useState<'chats' | 'channels'>('chats');
   const [isStarredOpen, setIsStarredOpen] = useState(false);
 
-  // Fetch chats from REST API
+  // Fetch chats from REST API and decrypt previews
   const refreshChats = useCallback(async () => {
     try {
       const res = await fetch('/api/chats', {
@@ -102,16 +104,64 @@ export default function Sidebar({
         const data = await res.json();
         if (Array.isArray(data.chats)) {
           setChats(data.chats);
+
+          // Asynchronously decrypt any E2EE last messages in the sidebar
+          if (user?.id) {
+            Promise.all(
+              data.chats.map(async (c: ConversationItemData) => {
+                if (c.isE2EE && c.e2eeIv && c.lastMessage && c.otherUser?.id) {
+                  try {
+                    const sharedKey = await getOrDeriveSharedKey(user.id, c.otherUser.id);
+                    if (sharedKey) {
+                      const decrypted = await decryptMessage(c.lastMessage, c.e2eeIv, sharedKey);
+                      return { ...c, lastMessage: decrypted };
+                    }
+                  } catch (err) {
+                    console.debug('[Sidebar] Could not decrypt preview for chat:', c.id, err);
+                  }
+                }
+                return c;
+              })
+            ).then((decryptedChats) => {
+              setChats(decryptedChats);
+            });
+          }
         }
       }
     } catch {
       // Swallowed safely in dev
     }
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     refreshChats();
-  }, [refreshChats, user]);
+  }, [refreshChats]);
+
+  // Listen to local messages sent by current user to immediately reflect in sidebar
+  useEffect(() => {
+    const handleLocalSent = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      if (!detail?.chatId) return;
+
+      setChats((prev) => {
+        const targetIndex = prev.findIndex((c) => c.id === detail.chatId);
+        if (targetIndex !== -1) {
+          const target = prev[targetIndex];
+          const updatedChat: ConversationItemData = {
+            ...target,
+            lastMessage: detail.lastMessage || target.lastMessage,
+            lastMessageAt: detail.lastMessageAt || new Date().toISOString(),
+          };
+          const remaining = prev.filter((_, idx) => idx !== targetIndex);
+          return [updatedChat, ...remaining];
+        }
+        return prev;
+      });
+    };
+
+    window.addEventListener('webchat:message_sent', handleLocalSent);
+    return () => window.removeEventListener('webchat:message_sent', handleLocalSent);
+  }, []);
 
   // Subscribe to typing indicators
   useEffect(() => {
@@ -142,8 +192,41 @@ export default function Sidebar({
 
   // Subscribe to real-time message updates to re-order conversations to top
   useEffect(() => {
-    const unsubNew = subscribe<MessageNewPayload>('message:new', (payload) => {
+    const unsubNew = subscribe<MessageNewPayload>('message:new', async (payload) => {
       if (!payload?.chatId) return;
+
+      const msgType = (payload as any).messageType || payload.type;
+      let displayContent =
+        payload.content ||
+        (msgType === 'image'
+          ? '📷 Photo'
+          : msgType === 'voice'
+          ? '🎤 Voice note'
+          : msgType === 'document'
+          ? `📄 ${(payload as any).documentName || 'Document'}`
+          : msgType === 'location'
+          ? '📍 Location'
+          : msgType === 'live_location'
+          ? '📍 Live location'
+          : 'New message');
+
+      // Decrypt incoming E2EE message for sidebar snippet
+      if (payload.isE2EE && payload.e2eeIv && payload.content && user?.id) {
+        try {
+          const peerId =
+            payload.senderId === user.id
+              ? (payload as any).recipientId
+              : payload.senderId;
+          if (peerId) {
+            const sharedKey = await getOrDeriveSharedKey(user.id, peerId);
+            if (sharedKey) {
+              displayContent = await decryptMessage(payload.content, payload.e2eeIv, sharedKey);
+            }
+          }
+        } catch (decErr) {
+          console.debug('[Sidebar] Error decrypting incoming live message snippet:', decErr);
+        }
+      }
 
       setChats((prev) => {
         const targetIndex = prev.findIndex((c) => c.id === payload.chatId);
@@ -152,12 +235,14 @@ export default function Sidebar({
           const isNotActive = payload.chatId !== activeChatId;
           const updatedChat: ConversationItemData = {
             ...target,
-            lastMessage: payload.content || (payload.type === 'image' ? 'Photo' : 'Audio'),
+            lastMessage: displayContent,
             lastMessageAt:
               payload.createdAt instanceof Date
                 ? payload.createdAt.toISOString()
                 : String(payload.createdAt || new Date().toISOString()),
             unreadCount: isNotActive ? (target.unreadCount || 0) + 1 : 0,
+            isE2EE: payload.isE2EE,
+            e2eeIv: payload.e2eeIv,
           };
 
           const remaining = prev.filter((_, idx) => idx !== targetIndex);
@@ -188,11 +273,33 @@ export default function Sidebar({
       });
     });
 
+    const unsubLiveStarted = subscribe<any>('location:live_started', (payload) => {
+      const targetChatId = payload?.liveLocation?.chatId || payload?.message?.chatId;
+      if (!targetChatId) return;
+
+      setChats((prev) => {
+        const targetIndex = prev.findIndex((c) => c.id === targetChatId);
+        if (targetIndex !== -1) {
+          const target = prev[targetIndex];
+          const updatedChat: ConversationItemData = {
+            ...target,
+            lastMessage: '📍 Live location',
+            lastMessageAt: new Date().toISOString(),
+          };
+          const remaining = prev.filter((_, idx) => idx !== targetIndex);
+          return [updatedChat, ...remaining];
+        }
+        refreshChats();
+        return prev;
+      });
+    });
+
     return () => {
       unsubNew();
       unsubAck();
+      unsubLiveStarted();
     };
-  }, [subscribe, activeChatId, refreshChats]);
+  }, [subscribe, activeChatId, refreshChats, user]);
 
   // Handle open direct 1-on-1 chat
   const handleOpenDirectChat = async (targetUserId: string, existingChatId?: string | null) => {

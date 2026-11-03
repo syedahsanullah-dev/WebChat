@@ -124,6 +124,8 @@ async function handleMessageSend(socket, payload) {
                     documentMime,
                     isCodeBlock,
                     codeLanguage,
+                    isE2EE,
+                    e2eeIv,
                     expiresAt,
                 },
                 include: {

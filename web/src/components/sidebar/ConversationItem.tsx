@@ -17,6 +17,8 @@ export interface ConversationItemData {
   unreadCount?: number;
   isOnline?: boolean;
   isGroup?: boolean;
+  isE2EE?: boolean;
+  e2eeIv?: string | null;
   ephemeralDuration?: number | null;
   otherUser?: {
     id: string;

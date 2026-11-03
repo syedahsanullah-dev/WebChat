@@ -203,10 +203,37 @@ export default function ChatArea({
       unsub?.();
     };
   }, [activeChatId, subscribe]);
+
   const [activeLiveSession, setActiveLiveSession] = useState<{
     liveLocationId: string | null;
     isSharing: boolean;
   }>({ liveLocationId: null, isSharing: false });
+
+  // Synchronize live location session with WebSocket events
+  useEffect(() => {
+    if (!activeChatId) return;
+
+    const unsubStart = subscribe<any>('location:live_started', (payload) => {
+      const liveLoc = payload?.liveLocation;
+      if (liveLoc && liveLoc.chatId === activeChatId && user?.id && liveLoc.userId === user.id) {
+        setActiveLiveSession({
+          liveLocationId: liveLoc.id,
+          isSharing: true,
+        });
+      }
+    });
+
+    const unsubStop = subscribe<any>('location:live_stopped', (payload) => {
+      if (payload?.liveLocationId && payload.liveLocationId === activeLiveSession.liveLocationId) {
+        setActiveLiveSession({ liveLocationId: null, isSharing: false });
+      }
+    });
+
+    return () => {
+      unsubStart();
+      unsubStop();
+    };
+  }, [activeChatId, subscribe, user?.id, activeLiveSession.liveLocationId]);
 
   useLiveLocationTracker({
     chatId: activeChatId || '',
@@ -269,6 +296,18 @@ export default function ChatArea({
       e2eeIv,
     });
     setReplyingToMessage(null);
+
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(
+        new CustomEvent('webchat:message_sent', {
+          detail: {
+            chatId: activeChatId,
+            lastMessage: trimmed,
+            lastMessageAt: new Date().toISOString(),
+          },
+        })
+      );
+    }
   };
 
   const handleReplyMessage = (msg: MessageItem) => {
@@ -334,6 +373,18 @@ export default function ChatArea({
       });
       setReplyingToMessage(null);
 
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(
+          new CustomEvent('webchat:message_sent', {
+            detail: {
+              chatId: activeChatId,
+              lastMessage: caption ? caption : '📷 Photo',
+              lastMessageAt: new Date().toISOString(),
+            },
+          })
+        );
+      }
+
       if (compressionResult.previewUrl) {
         URL.revokeObjectURL(compressionResult.previewUrl);
       }
@@ -384,6 +435,18 @@ export default function ChatArea({
         replyToId: replyingToMessage?.id || null,
       });
       setReplyingToMessage(null);
+
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(
+          new CustomEvent('webchat:message_sent', {
+            detail: {
+              chatId: activeChatId,
+              lastMessage: '🎤 Voice note',
+              lastMessageAt: new Date().toISOString(),
+            },
+          })
+        );
+      }
     } catch (err: any) {
       console.error('[ChatArea] Error uploading voice note:', err);
       showToast({ type: 'error', message: `Voice message upload failed: ${err.message || 'Unknown error'}` });
@@ -406,6 +469,18 @@ export default function ChatArea({
       replyToId: replyingToMessage?.id || null,
     });
     setReplyingToMessage(null);
+
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(
+        new CustomEvent('webchat:message_sent', {
+          detail: {
+            chatId: activeChatId,
+            lastMessage: '📍 Location',
+            lastMessageAt: new Date().toISOString(),
+          },
+        })
+      );
+    }
   };
 
   const handleShareLiveLocation = async (durationMinutes: number, comment?: string) => {
@@ -417,49 +492,20 @@ export default function ChatArea({
     }
 
     navigator.geolocation.getCurrentPosition(
-      async (pos) => {
-        try {
-          const res = await fetch('/api/location/live/start', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              chatId: activeChatId,
-              latitude: pos.coords.latitude,
-              longitude: pos.coords.longitude,
-              heading: pos.coords.heading,
-              speed: pos.coords.speed,
-              accuracy: pos.coords.accuracy,
-              durationMinutes,
-              comment,
-            }),
-          });
-
-          if (res.ok) {
-            const data = await res.json();
-            if (data.liveLocation?.id) {
-              setActiveLiveSession({
-                liveLocationId: data.liveLocation.id,
-                isSharing: true,
-              });
-
-              send({
-                type: 'location:live_start',
-                payload: {
-                  chatId: activeChatId,
-                  latitude: pos.coords.latitude,
-                  longitude: pos.coords.longitude,
-                  durationMinutes,
-                  comment,
-                  heading: pos.coords.heading,
-                  speed: pos.coords.speed,
-                  accuracy: pos.coords.accuracy,
-                },
-              });
-            }
-          }
-        } catch (err) {
-          console.error('Failed to start live location sharing:', err);
-        }
+      (pos) => {
+        send({
+          type: 'location:live_start',
+          payload: {
+            chatId: activeChatId,
+            latitude: pos.coords.latitude,
+            longitude: pos.coords.longitude,
+            heading: pos.coords.heading ?? null,
+            speed: pos.coords.speed ?? null,
+            accuracy: pos.coords.accuracy ?? null,
+            durationMinutes,
+            comment,
+          },
+        });
       },
       (err) => {
         console.error('GPS permission error:', err);
@@ -483,6 +529,18 @@ export default function ChatArea({
       replyToId: replyingToMessage?.id || null,
     });
     setReplyingToMessage(null);
+
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(
+        new CustomEvent('webchat:message_sent', {
+          detail: {
+            chatId: activeChatId,
+            lastMessage: `📄 ${doc.name}`,
+            lastMessageAt: new Date().toISOString(),
+          },
+        })
+      );
+    }
   };
 
   const handleDragOver = (e: React.DragEvent) => {

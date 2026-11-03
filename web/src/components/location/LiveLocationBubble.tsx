@@ -96,9 +96,9 @@ export default function LiveLocationBubble({
     });
 
     return () => {
-      unsubUpdate();
-      unsubStop();
-      unsubEnded();
+      unsubUpdate?.();
+      unsubStop?.();
+      unsubEnded?.();
     };
   }, [liveLocationId, subscribe]);
 
@@ -171,7 +171,11 @@ export default function LiveLocationBubble({
         },
       });
 
-      await fetch('/api/location/live/stop', {
+      const baseUrl =
+        typeof window !== 'undefined' && window.location?.origin && window.location.origin !== 'null'
+          ? window.location.origin
+          : '';
+      await fetch(`${baseUrl}/api/location/live/stop`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ liveLocationId }),

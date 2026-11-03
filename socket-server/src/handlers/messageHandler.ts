@@ -146,6 +146,8 @@ export async function handleMessageSend(
           documentMime,
           isCodeBlock,
           codeLanguage,
+          isE2EE,
+          e2eeIv,
           expiresAt,
         },
         include: {
