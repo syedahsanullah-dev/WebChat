@@ -280,9 +280,7 @@ export default function ProfileDrawer({ isOpen, onClose }: ProfileDrawerProps) {
             </p>
           )}
 
-          <p className="text-[11px] text-wa-light-text-muted dark:text-wa-dark-text-muted pt-1">
-            This name will be visible to your contacts in WebChat.
-          </p>
+ 
         </div>
 
         {/* Read-Only Identity (Username & Email) */}
@@ -290,7 +288,7 @@ export default function ProfileDrawer({ isOpen, onClose }: ProfileDrawerProps) {
           <div>
             <div className="flex items-center gap-1.5 text-xs font-medium text-wa-light-text-secondary dark:text-wa-dark-text-secondary mb-1">
               <Lock className="w-3.5 h-3.5 text-wa-light-text-muted dark:text-wa-dark-text-muted" />
-              <span>Username (@handle)</span>
+              <span>Username</span>
             </div>
             <p className="text-sm font-mono text-wa-light-text-primary dark:text-wa-dark-text-primary font-medium">
               @{user?.username}

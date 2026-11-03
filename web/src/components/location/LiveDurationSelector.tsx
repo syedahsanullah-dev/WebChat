@@ -91,13 +91,7 @@ export default function LiveDurationSelector({
           />
         </div>
 
-        {/* Privacy Note */}
-        <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 text-[11px] flex items-start gap-2">
-          <Shield className="w-4 h-4 shrink-0 mt-0.5" />
-          <p className="leading-snug">
-            Participants in this chat will be able to view your live moving location on their map for the selected duration. You can stop sharing at any time.
-          </p>
-        </div>
+    
       </div>
 
       {/* Action Buttons */}

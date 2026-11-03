@@ -76,7 +76,7 @@ export default function AttachmentMenu({
             Photos & Videos
           </p>
           <p className="text-xs text-wa-light-text-muted dark:text-wa-dark-text-muted">
-            Compressed WebP images
+            Share images and Videos
           </p>
         </div>
       </button>

@@ -22,7 +22,7 @@ export default function E2EEHeaderBadge({
       >
         <Lock className="w-3.5 h-3.5 text-[#00a884] flex-shrink-0 group-hover:scale-110 transition-transform" />
         <span className="leading-snug">
-          Messages and calls are end-to-end encrypted. No one outside of this chat, not even WebChat, can read or listen to them. <span className="underline font-medium text-[#00a884]">Click to verify</span>.
+          Messages and calls are end-to-end encrypted. <span className="underline font-medium text-[#00a884]">Click to verify</span>.
         </span>
       </button>
     </div>

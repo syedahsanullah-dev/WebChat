@@ -633,17 +633,12 @@ export default function ChatArea({
           </div>
 
           <h1 className="text-2xl sm:text-3xl font-light text-wa-light-text-primary dark:text-wa-dark-text-primary mb-3">
-            WebChat for Web
+            WebChat for Mobile and Web
           </h1>
-
-          <p className="text-sm text-wa-light-text-secondary dark:text-wa-dark-text-secondary leading-relaxed mb-8">
-            Send and receive messages with audio-only WebRTC calling.
-            Experience lightning-fast communication powered by Next.js and Fastify native WebSockets.
-          </p>
 
           <div className="inline-flex items-center gap-1.5 text-xs text-wa-light-text-muted dark:text-wa-dark-text-muted">
             <Lock className="w-3.5 h-3.5" />
-            <span>End-to-end encrypted identity (@username)</span>
+            <span>End-to-end encrypted</span>
           </div>
         </div>
 

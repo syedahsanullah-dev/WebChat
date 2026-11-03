@@ -113,7 +113,7 @@ export default function NewChatModal({
       <Modal
         isOpen={isOpen}
         onClose={onClose}
-        title="New Chat / Find Users"
+        title="Find Users"
         maxWidth="lg"
       >
         <div className="space-y-4">
@@ -124,7 +124,7 @@ export default function NewChatModal({
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search by @username, name, or email..."
+              placeholder="Search by @username or email..."
               className="w-full pl-10 pr-9 py-2.5 rounded-xl bg-wa-light-input dark:bg-wa-dark-input border border-wa-light-border dark:border-wa-dark-border text-base sm:text-sm text-wa-light-text-primary dark:text-wa-dark-text-primary placeholder:text-wa-light-text-muted focus:outline-none focus:ring-2 focus:ring-wa-green transition-all"
               autoFocus
             />
@@ -140,9 +140,7 @@ export default function NewChatModal({
             ) : null}
           </div>
 
-          <p className="text-[11px] text-wa-light-text-muted dark:text-wa-dark-text-muted">
-            Tip: Type <span className="font-mono text-wa-green font-semibold">@</span> to search exclusively by username handle.
-          </p>
+
 
           {/* Results List */}
           <div className="min-h-[180px] sm:min-h-[220px] max-h-[calc(70dvh-120px)] sm:max-h-[380px] overflow-y-auto custom-scrollbar space-y-1 pr-1">
@@ -162,9 +160,9 @@ export default function NewChatModal({
             ) : !searchQuery.trim() ? (
               <div className="flex flex-col items-center justify-center py-12 text-wa-light-text-muted dark:text-wa-dark-text-muted text-center px-4">
                 <Search className="w-8 h-8 mb-2 opacity-40 text-wa-green" />
-                <p className="text-sm font-medium">Search for friends or colleagues</p>
+                <p className="text-sm font-medium">Search</p>
                 <p className="text-xs mt-1">
-                  Find people by their unique @username or email address.
+                  Find people by their @username or email address.
                 </p>
               </div>
             ) : (

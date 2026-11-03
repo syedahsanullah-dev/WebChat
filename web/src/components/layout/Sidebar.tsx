@@ -581,7 +581,7 @@ export default function Sidebar({
         }}
       />
 
-      {/* New Chat / Find Users Modal */}
+      {/* Find Users Modal */}
       <NewChatModal
         isOpen={isNewChatModalOpen}
         onClose={() => setIsNewChatModalOpen(false)}
