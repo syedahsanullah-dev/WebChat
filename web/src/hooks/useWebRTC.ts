@@ -15,6 +15,28 @@ const DEFAULT_ICE_SERVERS: RTCIceServer[] = [
   { urls: 'stun:stun.cloudflare.com:3478' },
 ];
 
+export function getOrCreateRemoteAudioElement(): HTMLAudioElement | null {
+  if (typeof document === 'undefined') return null;
+  let audio = document.getElementById('webchat-remote-audio') as HTMLAudioElement;
+  if (!audio) {
+    audio = document.createElement('audio');
+    audio.id = 'webchat-remote-audio';
+    audio.autoplay = true;
+    (audio as any).playsInline = true;
+    audio.setAttribute('playsinline', 'true');
+    audio.setAttribute('webkit-playsinline', 'true');
+    audio.style.position = 'fixed';
+    audio.style.top = '-9999px';
+    audio.style.left = '-9999px';
+    audio.style.width = '1px';
+    audio.style.height = '1px';
+    audio.style.opacity = '0';
+    audio.style.pointerEvents = 'none';
+    document.body.appendChild(audio);
+  }
+  return audio;
+}
+
 export function useWebRTC(options: UseWebRTCOptions = {}) {
   const optionsRef = useRef<UseWebRTCOptions>(options);
   optionsRef.current = options;
@@ -212,7 +234,11 @@ export function useWebRTC(options: UseWebRTCOptions = {}) {
           audio.autoplay = true;
           (audio as any).playsInline = true;
           audio.setAttribute('playsinline', 'true');
-          audio.className = 'hidden';
+          audio.style.position = 'fixed';
+          audio.style.top = '-9999px';
+          audio.style.left = '-9999px';
+          audio.style.opacity = '0';
+          audio.style.pointerEvents = 'none';
           document.body.appendChild(audio);
         }
 
@@ -220,9 +246,16 @@ export function useWebRTC(options: UseWebRTCOptions = {}) {
           audio.muted = false;
           audio.volume = 1.0;
           audio.srcObject = remoteStream;
-          audio.play().catch((err) => {
+          try {
+            const p = audio.play();
+            if (p && typeof p.catch === 'function') {
+              p.catch((err) => {
+                console.warn('[useWebRTC] audio.play() deferred:', err);
+              });
+            }
+          } catch (err) {
             console.warn('[useWebRTC] audio.play() deferred:', err);
-          });
+          }
           remoteAudioRef.current = audio;
         }
 

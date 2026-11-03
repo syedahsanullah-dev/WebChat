@@ -43,6 +43,10 @@ export default function ChatLayout({
 
   // Mobile hardware/gesture back button listener
   useEffect(() => {
+    if (typeof window !== 'undefined' && window.history.state?.chatOpen && !activeChatIdRef.current) {
+      window.history.replaceState({ ...window.history.state, chatOpen: false }, '');
+    }
+
     const handlePopState = () => {
       if (activeChatIdRef.current) {
         setActiveChatId(null);

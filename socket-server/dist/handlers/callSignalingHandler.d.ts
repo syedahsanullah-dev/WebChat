@@ -32,6 +32,10 @@ export declare function handleCallAccept(socket: AuthenticatedWebSocket, payload
  * 4. audio-call:reject
  * Dispatched when receiver declines call.
  */
+/**
+ * 4. audio-call:reject
+ * Dispatched when receiver declines call.
+ */
 export declare function handleCallReject(socket: AuthenticatedWebSocket, payload: AudioCallRejectPayload): Promise<void>;
 /**
  * 5. audio-call:ice-candidate

@@ -168,8 +168,13 @@ async function recordCallOutcome(
             messageType: message.messageType,
             type: message.messageType,
             status: 'sent',
-            createdAt: message.createdAt.toISOString(),
-            sender: message.sender,
+            createdAt:
+              message.createdAt instanceof Date
+                ? message.createdAt.toISOString()
+                : message.createdAt
+                ? String(message.createdAt)
+                : new Date().toISOString(),
+            sender: message.sender || null,
           },
         });
 
@@ -533,7 +538,7 @@ export async function handleCallReject(
   if (targetCallerId && (targetCallerId.startsWith('@') || targetCallerId.length < 15 || !roomManager.isUserOnline(targetCallerId))) {
     try {
       const cleanUsername = targetCallerId.replace(/^@/, '');
-      const user = await prisma.user.findFirst({
+      const user = await prisma.user?.findFirst({
         where: { username: cleanUsername },
         select: { id: true },
       });
@@ -645,7 +650,7 @@ export async function handleCallEnd(
   if (callerId && (callerId.startsWith('@') || callerId.length < 15 || !roomManager.isUserOnline(callerId))) {
     try {
       const cleanUsername = callerId.replace(/^@/, '');
-      const user = await prisma.user.findFirst({
+      const user = await prisma.user?.findFirst({
         where: { username: cleanUsername },
         select: { id: true },
       });
@@ -661,7 +666,7 @@ export async function handleCallEnd(
   if (receiverId && (receiverId.startsWith('@') || receiverId.length < 15 || !roomManager.isUserOnline(receiverId))) {
     try {
       const cleanUsername = receiverId.replace(/^@/, '');
-      const user = await prisma.user.findFirst({
+      const user = await prisma.user?.findFirst({
         where: { username: cleanUsername },
         select: { id: true },
       });

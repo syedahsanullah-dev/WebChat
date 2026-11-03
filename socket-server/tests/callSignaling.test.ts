@@ -26,8 +26,15 @@ vi.mock('../src/lib/prisma.js', () => ({
     callLog: {
       create: vi.fn().mockResolvedValue({ id: 'call-log-1' }),
     },
+    user: {
+      findFirst: vi.fn().mockResolvedValue(null),
+    },
     message: {
-      create: vi.fn().mockResolvedValue({ id: 'msg-call-1' }),
+      create: vi.fn().mockResolvedValue({
+        id: 'msg-call-1',
+        createdAt: new Date(),
+        sender: null,
+      }),
     },
   },
 }));

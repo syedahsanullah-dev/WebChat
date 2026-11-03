@@ -160,13 +160,13 @@ export default function MessageBubble({
           />
         )}
 
-        {/* Bot Author and Badge Header */}
-        {messageType === 'system_bot' && !isDeleted && (
+        {/* Author Header & Bot Badge */}
+        {((!isMe && authorName) || messageType === 'system_bot') && !isDeleted && (
           <div className="flex items-center gap-1.5 mb-1 pb-0.5 border-b border-black/5 dark:border-white/5">
             <span className="text-xs font-semibold text-wa-light-text-primary dark:text-wa-dark-text-primary">
               {authorName || 'Bot'}
             </span>
-            <BotMessageBadge size="sm" />
+            {messageType === 'system_bot' && <BotMessageBadge size="sm" />}
           </div>
         )}
 

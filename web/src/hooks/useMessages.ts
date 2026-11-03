@@ -170,16 +170,14 @@ export function useMessages({ chatId, recipientId }: UseMessagesOptions) {
                         decrypted = true;
                       }
                     }
-                    if (!decrypted && m.senderId !== user.id) {
+                    if (!decrypted) {
                       textContent = '[Encrypted message - key unavailable on this device]';
                     }
                   } catch (decErr) {
                     console.debug('[useMessages] Could not decrypt message:', decErr);
-                    if (m.senderId !== user.id) {
-                      textContent = '[Encrypted message - key unavailable on this device]';
-                    }
+                    textContent = '[Encrypted message - key unavailable on this device]';
                   }
-                } else if (m.senderId !== user.id) {
+                } else {
                   textContent = '[Encrypted message - key unavailable on this device]';
                 }
               }
@@ -270,16 +268,14 @@ export function useMessages({ chatId, recipientId }: UseMessagesOptions) {
                       decrypted = true;
                     }
                   }
-                  if (!decrypted && m.senderId !== user.id) {
+                  if (!decrypted) {
                     textContent = '[Encrypted message - key unavailable on this device]';
                   }
                 } catch (decErr) {
                   console.debug('[useMessages] Could not decrypt older message:', decErr);
-                  if (m.senderId !== user.id) {
-                    textContent = '[Encrypted message - key unavailable on this device]';
-                  }
+                  textContent = '[Encrypted message - key unavailable on this device]';
                 }
-              } else if (m.senderId !== user.id) {
+              } else {
                 textContent = '[Encrypted message - key unavailable on this device]';
               }
             }

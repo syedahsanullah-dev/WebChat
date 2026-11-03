@@ -127,8 +127,11 @@ export default function MessageList({
         const timerId = setTimeout(() => {
           if (bottomRef.current && !userHasScrolledRef.current) {
             bottomRef.current.scrollIntoView({ behavior: 'auto' });
+          } else if (container && !userHasScrolledRef.current) {
+            container.scrollTop = container.scrollHeight;
           }
-        }, 100);
+          isInitialLoadRef.current = false;
+        }, 120);
 
         return () => {
           cancelAnimationFrame(frameId);
@@ -160,11 +163,19 @@ export default function MessageList({
     if (isNearBottom) {
       userHasScrolledRef.current = false;
       isInitialLoadRef.current = false;
-    } else {
+    } else if (!isInitialLoadRef.current) {
       userHasScrolledRef.current = true;
     }
 
-    if (container.scrollTop < 60 && hasMore && !isLoadingOlder && onLoadMore) {
+    // Only fetch older messages if initial load is complete and user intentionally scrolled up to top
+    if (
+      !isInitialLoadRef.current &&
+      userHasScrolledRef.current &&
+      container.scrollTop < 60 &&
+      hasMore &&
+      !isLoadingOlder &&
+      onLoadMore
+    ) {
       prevScrollHeightRef.current = container.scrollHeight;
       onLoadMore();
     }

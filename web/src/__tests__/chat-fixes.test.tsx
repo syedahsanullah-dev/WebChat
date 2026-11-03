@@ -4,6 +4,7 @@ import { render, screen, fireEvent, act } from '@testing-library/react';
 import ConversationSnippet from '@/components/sidebar/ConversationSnippet';
 import Lightbox from '@/components/chat/Lightbox';
 import LiveLocationBubble from '@/components/location/LiveLocationBubble';
+import MessageBubble from '@/components/chat/MessageBubble';
 
 // Mock Leaflet for LiveLocationBubble
 vi.mock('leaflet', () => {
@@ -231,6 +232,59 @@ describe('Chat Bug Fixes: Verification Suite', () => {
       );
 
       expect(container.firstChild).toBeNull();
+    });
+  });
+
+  describe('Issue 4: Bot Badge Isolation on MessageBubble', () => {
+    it('does NOT render BotMessageBadge or "Bot" label for regular user messages with authorName', () => {
+      render(
+        <MessageBubble
+          id="msg-regular-user"
+          content="Hey, are we having the sync today?"
+          isMe={false}
+          createdAt={new Date().toISOString()}
+          authorName="Charlie"
+          messageType="text"
+        />
+      );
+
+      expect(screen.getByText('Hey, are we having the sync today?')).toBeDefined();
+      expect(screen.getByText('Charlie')).toBeDefined();
+      expect(screen.queryByText('BOT')).toBeNull();
+    });
+
+    it('DOES render BotMessageBadge when messageType is system_bot', () => {
+      render(
+        <MessageBubble
+          id="msg-system-bot"
+          content="Task automated successfully."
+          isMe={false}
+          createdAt={new Date().toISOString()}
+          authorName="Deploy Bot"
+          messageType="system_bot"
+        />
+      );
+
+      expect(screen.getByText('Task automated successfully.')).toBeDefined();
+      expect(screen.getByText('Deploy Bot')).toBeDefined();
+      expect(screen.getByText('BOT')).toBeDefined();
+    });
+  });
+
+  describe('Issue 5: Encrypted Message Fallback Handling', () => {
+    it('renders user-friendly placeholder when key is unavailable instead of raw cipher hash', () => {
+      const placeholder = '[Encrypted message - key unavailable on this device]';
+      render(
+        <MessageBubble
+          id="msg-e2ee-fallback"
+          content={placeholder}
+          isMe={false}
+          createdAt={new Date().toISOString()}
+          isE2EE={true}
+        />
+      );
+
+      expect(screen.getByText(placeholder)).toBeDefined();
     });
   });
 });

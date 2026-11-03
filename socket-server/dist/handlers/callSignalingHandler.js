@@ -141,8 +141,12 @@ async function recordCallOutcome(callId, chatId, callerId, receiverId, status, d
                         messageType: message.messageType,
                         type: message.messageType,
                         status: 'sent',
-                        createdAt: message.createdAt.toISOString(),
-                        sender: message.sender,
+                        createdAt: message.createdAt instanceof Date
+                            ? message.createdAt.toISOString()
+                            : message.createdAt
+                                ? String(message.createdAt)
+                                : new Date().toISOString(),
+                        sender: message.sender || null,
                     },
                 });
                 break;
@@ -432,31 +436,63 @@ function handleCallAccept(socket, payload) {
  * 4. audio-call:reject
  * Dispatched when receiver declines call.
  */
+/**
+ * 4. audio-call:reject
+ * Dispatched when receiver declines call.
+ */
 async function handleCallReject(socket, payload) {
     const { callId, reason = 'declined' } = payload;
-    const session = exports.activeSessions.get(callId);
+    let session = exports.activeSessions.get(callId);
+    if (!session) {
+        for (const s of exports.activeSessions.values()) {
+            if (s.callerId === socket.userId || s.receiverId === socket.userId) {
+                session = s;
+                break;
+            }
+        }
+    }
+    const effectiveCallId = session?.callId || callId;
     // Clear any pending offline wake timer
-    const wakeTimer = offlineWakeTimers.get(callId);
+    const wakeTimer = offlineWakeTimers.get(effectiveCallId);
     if (wakeTimer) {
         clearTimeout(wakeTimer);
-        offlineWakeTimers.delete(callId);
+        offlineWakeTimers.delete(effectiveCallId);
     }
     // If call is already connected, ignore late rejection envelopes from secondary tabs
     if (session && session.status === 'connected') {
-        logger_js_1.logger.warn(`[CallSignaling] Ignoring reject envelope for already connected call ${callId}`);
+        logger_js_1.logger.warn(`[CallSignaling] Ignoring reject envelope for already connected call ${effectiveCallId}`);
         return;
     }
-    const targetCallerId = session?.callerId || payload.callerId;
+    let targetCallerId = session?.callerId || payload.callerId;
     const chatId = session?.chatId || payload.chatId || '';
     const startedAt = session?.startedAt || new Date();
+    // Resolve targetCallerId if username
+    if (targetCallerId && (targetCallerId.startsWith('@') || targetCallerId.length < 15 || !roomManager_js_1.roomManager.isUserOnline(targetCallerId))) {
+        try {
+            const cleanUsername = targetCallerId.replace(/^@/, '');
+            const user = await prisma_js_1.prisma.user?.findFirst({
+                where: { username: cleanUsername },
+                select: { id: true },
+            });
+            if (user) {
+                targetCallerId = user.id;
+            }
+        }
+        catch (err) {
+            logger_js_1.logger.debug(`Could not resolve targetCallerId by username: ${err.message}`);
+        }
+    }
     if (session) {
+        exports.activeSessions.delete(session.callId);
+    }
+    if (callId) {
         exports.activeSessions.delete(callId);
     }
     if (targetCallerId) {
         const rejectEnvelope = {
             type: 'audio-call:reject',
             payload: {
-                callId,
+                callId: effectiveCallId,
                 chatId,
                 callerId: targetCallerId,
                 receiverId: socket.userId,
@@ -464,10 +500,11 @@ async function handleCallReject(socket, payload) {
             },
         };
         roomManager_js_1.roomManager.sendToUser(targetCallerId, rejectEnvelope);
+        logger_js_1.logger.info(`[CallSignaling] Dispatched audio-call:reject immediately to caller ${targetCallerId} for call ${effectiveCallId}`);
     }
     const status = reason === 'busy' ? 'busy' : reason === 'timeout' ? 'missed' : 'rejected';
     if (targetCallerId && chatId) {
-        await recordCallOutcome(callId, chatId, targetCallerId, socket.userId, status, 0, startedAt);
+        await recordCallOutcome(effectiveCallId, chatId, targetCallerId, socket.userId, status, 0, startedAt);
     }
 }
 /**
@@ -503,17 +540,77 @@ function handleCallIceCandidate(socket, payload) {
  */
 async function handleCallEnd(socket, payload) {
     const { callId, reason } = payload;
-    const session = exports.activeSessions.get(callId);
+    let session = exports.activeSessions.get(callId);
+    // If session not found by callId, fallback to searching for active session involving this socket
+    if (!session) {
+        for (const s of exports.activeSessions.values()) {
+            if (s.callerId === socket.userId || s.receiverId === socket.userId) {
+                session = s;
+                break;
+            }
+        }
+    }
+    const effectiveCallId = session?.callId || callId;
     // Clear any pending offline wake timer
-    const wakeTimer = offlineWakeTimers.get(callId);
+    const wakeTimer = offlineWakeTimers.get(effectiveCallId);
     if (wakeTimer) {
         clearTimeout(wakeTimer);
-        offlineWakeTimers.delete(callId);
+        offlineWakeTimers.delete(effectiveCallId);
     }
-    const callerId = session?.callerId || payload.callerId || socket.userId;
-    const receiverId = session?.receiverId || payload.receiverId || '';
+    let callerId = session?.callerId || payload.callerId || socket.userId;
+    let receiverId = session?.receiverId || payload.receiverId || '';
     const chatId = session?.chatId || payload.chatId || '';
     const startedAt = session?.startedAt || new Date();
+    // Resolve callerId if it's a username or starts with @
+    if (callerId && (callerId.startsWith('@') || callerId.length < 15 || !roomManager_js_1.roomManager.isUserOnline(callerId))) {
+        try {
+            const cleanUsername = callerId.replace(/^@/, '');
+            const user = await prisma_js_1.prisma.user?.findFirst({
+                where: { username: cleanUsername },
+                select: { id: true },
+            });
+            if (user) {
+                callerId = user.id;
+            }
+        }
+        catch (err) {
+            logger_js_1.logger.debug(`Could not resolve callerId by username in handleCallEnd: ${err.message}`);
+        }
+    }
+    // Resolve receiverId if it's a username or starts with @
+    if (receiverId && (receiverId.startsWith('@') || receiverId.length < 15 || !roomManager_js_1.roomManager.isUserOnline(receiverId))) {
+        try {
+            const cleanUsername = receiverId.replace(/^@/, '');
+            const user = await prisma_js_1.prisma.user?.findFirst({
+                where: { username: cleanUsername },
+                select: { id: true },
+            });
+            if (user) {
+                receiverId = user.id;
+            }
+        }
+        catch (err) {
+            logger_js_1.logger.debug(`Could not resolve receiverId by username in handleCallEnd: ${err.message}`);
+        }
+    }
+    // Fallback to chat participant if receiverId is missing/offline
+    if ((!receiverId || !roomManager_js_1.roomManager.isUserOnline(receiverId)) && chatId) {
+        try {
+            const participant = await prisma_js_1.prisma.chatParticipant.findFirst({
+                where: {
+                    chatId,
+                    userId: { not: callerId },
+                },
+                select: { userId: true },
+            });
+            if (participant) {
+                receiverId = participant.userId;
+            }
+        }
+        catch (err) {
+            logger_js_1.logger.debug(`Could not resolve receiverId from chat participants in handleCallEnd: ${err.message}`);
+        }
+    }
     // Calculate duration
     let duration = payload.duration || 0;
     if (!duration && session?.connectedAt) {
@@ -522,14 +619,17 @@ async function handleCallEnd(socket, payload) {
     // Identify remote peer to notify
     const remotePeerId = socket.userId === callerId ? receiverId : callerId;
     if (session) {
+        exports.activeSessions.delete(session.callId);
+    }
+    if (callId) {
         exports.activeSessions.delete(callId);
     }
-    // Notify remote peer
+    // Notify remote peer immediately
     if (remotePeerId) {
         const endedEnvelope = {
             type: 'audio-call:ended',
             payload: {
-                callId,
+                callId: effectiveCallId,
                 chatId,
                 duration,
                 status: duration > 0 ? 'completed' : 'missed',
@@ -537,11 +637,12 @@ async function handleCallEnd(socket, payload) {
             },
         };
         roomManager_js_1.roomManager.sendToUser(remotePeerId, endedEnvelope);
+        logger_js_1.logger.info(`[CallSignaling] Dispatched audio-call:ended immediately to peer ${remotePeerId} for call ${effectiveCallId}`);
     }
     // Record outcome in DB
     const outcomeStatus = duration > 0 ? 'completed' : 'missed';
     if (callerId && receiverId && chatId) {
-        await recordCallOutcome(callId, chatId, callerId, receiverId, outcomeStatus, duration, startedAt);
+        await recordCallOutcome(effectiveCallId, chatId, callerId, receiverId, outcomeStatus, duration, startedAt);
     }
 }
 /**

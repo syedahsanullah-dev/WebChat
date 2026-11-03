@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useWebSocket } from '@/context/WebSocketContext';
 import { useAuth } from '@/context/AuthContext';
-import { useWebRTC } from './useWebRTC';
+import { useWebRTC, getOrCreateRemoteAudioElement } from './useWebRTC';
 import { useScreenWakeLock } from './useScreenWakeLock';
 import { useMediaSessionCall } from './useMediaSessionCall';
 import { startRingtone } from '@/lib/audio';
@@ -221,10 +221,11 @@ export function useCallSignaling() {
       if (callStateRef.current !== 'idle') return;
 
       // Unlock mobile audio element on user tap
-      if (typeof document !== 'undefined') {
-        const el = document.getElementById('webchat-remote-audio') as HTMLAudioElement;
-        if (el) el.play().catch(() => {});
-      }
+      try {
+        const el = getOrCreateRemoteAudioElement();
+        const p = el?.play();
+        if (p && typeof p.catch === 'function') p.catch(() => {});
+      } catch {}
 
       const callId = typeof crypto !== 'undefined' && crypto.randomUUID
         ? crypto.randomUUID()
@@ -305,10 +306,11 @@ export function useCallSignaling() {
     }
 
     // Unlock mobile audio element on user gesture
-    if (typeof document !== 'undefined') {
-      const el = document.getElementById('webchat-remote-audio') as HTMLAudioElement;
-      if (el) el.play().catch(() => {});
-    }
+    try {
+      const el = getOrCreateRemoteAudioElement();
+      const p = el?.play();
+      if (p && typeof p.catch === 'function') p.catch(() => {});
+    } catch {}
 
     setCallState('connecting');
 
@@ -531,7 +533,7 @@ export function useCallSignaling() {
       const answerSdp = payload.sdpAnswer || payload.answerSdp;
       if (answerSdp) {
         await webRTCRef.current.setRemoteAnswer(answerSdp);
-        // Connection state listener handles transition to 'connected' when ICE completes
+        setCallState('connected');
       }
     });
 
