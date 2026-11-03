@@ -113,7 +113,7 @@ export function useCallSignaling() {
           // Trigger automated ICE restart renegotiation
           const active = callDataRef.current;
           if (active) {
-            webRTC
+            webRTCRef.current
               .restartIce()
               .then((restartOffer) => {
                 const targetPeerId = active.isCaller ? active.receiver.id : active.caller.id;
@@ -145,6 +145,9 @@ export function useCallSignaling() {
       }
     },
   });
+
+  const webRTCRef = useRef(webRTC);
+  webRTCRef.current = webRTC;
 
   // Stop Ringtone audio loop safely
   const stopRingtoneSound = useCallback(() => {
@@ -182,7 +185,7 @@ export function useCallSignaling() {
     if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
       try { navigator.vibrate(0); } catch {}
     }
-    webRTC.cleanup();
+    webRTCRef.current.cleanup();
     if (callTimeoutRef.current) {
       clearTimeout(callTimeoutRef.current);
       callTimeoutRef.current = null;
@@ -203,7 +206,7 @@ export function useCallSignaling() {
       setCallData(null);
       setCallDuration(0);
     }, delayMs);
-  }, [stopRingtoneSound, webRTC]);
+  }, [stopRingtoneSound]);
 
   // 1. Start Outgoing Call
   const startCall = useCallback(
@@ -326,7 +329,7 @@ export function useCallSignaling() {
         },
       });
 
-      setCallState('connected');
+      // Keep in 'connecting' - wait for ICE connection state to establish 'connected'
     } catch (err) {
       console.error('[useCallSignaling] Error accepting call:', err);
       transitionToEnded(0);
@@ -527,8 +530,8 @@ export function useCallSignaling() {
 
       const answerSdp = payload.sdpAnswer || payload.answerSdp;
       if (answerSdp) {
-        await webRTC.setRemoteAnswer(answerSdp);
-        setCallState('connected');
+        await webRTCRef.current.setRemoteAnswer(answerSdp);
+        // Connection state listener handles transition to 'connected' when ICE completes
       }
     });
 
@@ -549,7 +552,7 @@ export function useCallSignaling() {
     // 6. audio-call:ice-candidate — relay ICE candidate to peer connection
     const unsubCandidate = subscribe<AudioCallIceCandidatePayload>('audio-call:ice-candidate', (payload) => {
       if (!payload?.candidate) return;
-      webRTC.addIceCandidate(payload.candidate);
+      webRTCRef.current.addIceCandidate(payload.candidate);
     });
 
     // 7. audio-call:ended — remote peer hung up
@@ -588,7 +591,7 @@ export function useCallSignaling() {
         try {
           setCallState('reconnecting');
           const offerSdp = payload.offerSdp || payload.sdpOffer;
-          const answer = await webRTC.createAnswer(offerSdp);
+          const answer = await webRTCRef.current.createAnswer(offerSdp);
           const targetPeerId = active.isCaller ? active.receiver.id : active.caller.id;
           send<AudioCallIceRestartAnswerPayload>({
             type: 'audio-call:ice-restart-answer',
@@ -617,7 +620,7 @@ export function useCallSignaling() {
           try {
             const answerSdp = payload.answerSdp || payload.sdpAnswer;
             if (answerSdp) {
-              await webRTC.setRemoteAnswer(answerSdp);
+              await webRTCRef.current.setRemoteAnswer(answerSdp);
               if (reconnectGraceTimerRef.current) {
                 clearTimeout(reconnectGraceTimerRef.current);
                 reconnectGraceTimerRef.current = null;
@@ -644,7 +647,7 @@ export function useCallSignaling() {
       unsubIceRestart();
       unsubIceRestartAnswer();
     };
-  }, [user, send, subscribe, stopRingtoneSound, transitionToEnded, webRTC]);
+  }, [user, send, subscribe, stopRingtoneSound, transitionToEnded]);
 
   return {
     callState,

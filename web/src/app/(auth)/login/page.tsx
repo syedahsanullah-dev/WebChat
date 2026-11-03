@@ -38,7 +38,7 @@ function LoginForm() {
     try {
       const result = await login(identifier.trim(), password);
       if (result.success) {
-        router.push(callbackUrl);
+        router.replace(callbackUrl);
       } else {
         setError(result.error || 'Invalid credentials');
       }

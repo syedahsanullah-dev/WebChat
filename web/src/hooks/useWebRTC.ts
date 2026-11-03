@@ -16,7 +16,8 @@ const DEFAULT_ICE_SERVERS: RTCIceServer[] = [
 ];
 
 export function useWebRTC(options: UseWebRTCOptions = {}) {
-  const { onIceCandidate, onRemoteStream, onConnectionStateChange } = options;
+  const optionsRef = useRef<UseWebRTCOptions>(options);
+  optionsRef.current = options;
 
   const [isMuted, setIsMuted] = useState(false);
   const [isAudioConnected, setIsAudioConnected] = useState(false);
@@ -39,6 +40,10 @@ export function useWebRTC(options: UseWebRTCOptions = {}) {
   // Initialize or fetch ICE servers (Phase 41: Redundant Google & Cloudflare STUN + TLS TURN port 443)
   const getIceServers = useCallback((): RTCIceServer[] => {
     const servers = [...DEFAULT_ICE_SERVERS];
+    const stunEnv = process.env.NEXT_PUBLIC_STUN_URL;
+    if (stunEnv && !servers.some((s) => s.urls === stunEnv)) {
+      servers.unshift({ urls: stunEnv });
+    }
     const turnUrl = process.env.NEXT_PUBLIC_TURN_URL || 'turn:relay.metered.ca:80';
     const turnTlsUrl =
       process.env.NEXT_PUBLIC_TURN_TLS_URL || 'turns:relay.metered.ca:443?transport=tcp';
@@ -155,13 +160,13 @@ export function useWebRTC(options: UseWebRTCOptions = {}) {
     });
 
     pc.onicecandidate = (event) => {
-      if (event.candidate && onIceCandidate) {
-        onIceCandidate(event.candidate);
+      if (event.candidate && optionsRef.current.onIceCandidate) {
+        optionsRef.current.onIceCandidate(event.candidate);
       }
     };
 
     pc.onconnectionstatechange = () => {
-      onConnectionStateChange?.(pc.connectionState);
+      optionsRef.current.onConnectionStateChange?.(pc.connectionState);
       if (pc.connectionState === 'connected') {
         setIsAudioConnected(true);
       } else if (
@@ -176,19 +181,23 @@ export function useWebRTC(options: UseWebRTCOptions = {}) {
     // Phase 41: Dedicated ICE connection state listener for mobile Wi-Fi/LTE network handovers
     pc.oniceconnectionstatechange = () => {
       if (pc.iceConnectionState === 'disconnected') {
-        onConnectionStateChange?.('disconnected' as RTCPeerConnectionState);
+        optionsRef.current.onConnectionStateChange?.('disconnected' as RTCPeerConnectionState);
       } else if (pc.iceConnectionState === 'failed') {
-        onConnectionStateChange?.('failed');
+        optionsRef.current.onConnectionStateChange?.('failed');
       } else if (pc.iceConnectionState === 'connected' || pc.iceConnectionState === 'completed') {
-        onConnectionStateChange?.('connected');
+        optionsRef.current.onConnectionStateChange?.('connected');
       }
     };
 
     pc.ontrack = (event) => {
-      const [remoteStream] = event.streams;
+      // W3C Unified Plan stream fallback when event.streams is empty
+      const remoteStream =
+        (event.streams && event.streams[0]) ||
+        (event.track ? new MediaStream([event.track]) : null);
+
       if (remoteStream) {
         remoteStreamRef.current = remoteStream;
-        onRemoteStream?.(remoteStream);
+        optionsRef.current.onRemoteStream?.(remoteStream);
 
         // Attach to DOM audio element for automatic playback on mobile Chrome & PWAs
         let audio =
@@ -208,6 +217,8 @@ export function useWebRTC(options: UseWebRTCOptions = {}) {
         }
 
         if (audio) {
+          audio.muted = false;
+          audio.volume = 1.0;
           audio.srcObject = remoteStream;
           audio.play().catch((err) => {
             console.warn('[useWebRTC] audio.play() deferred:', err);
@@ -221,7 +232,7 @@ export function useWebRTC(options: UseWebRTCOptions = {}) {
 
     peerConnectionRef.current = pc;
     return pc;
-  }, [getIceServers, onIceCandidate, onConnectionStateChange, onRemoteStream, setupVolumeAnalyser]);
+  }, [getIceServers, setupVolumeAnalyser]);
 
   // Create Offer (Caller)
   const createOffer = useCallback(async (): Promise<RTCSessionDescriptionInit> => {

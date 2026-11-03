@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Sidebar from '@/components/layout/Sidebar';
 import ChatArea from '@/components/layout/ChatArea';
 import GlobalBroadcastBanner from '@/components/layout/GlobalBroadcastBanner';
@@ -16,16 +16,45 @@ export default function ChatLayout({
 }) {
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
   const [activeChatData, setActiveChatData] = useState<any | null>(null);
+  const activeChatIdRef = useRef<string | null>(null);
+  activeChatIdRef.current = activeChatId;
 
   const handleSelectChat = (id: string, chatData?: any) => {
     setActiveChatId(id);
     setActiveChatData(chatData || null);
+
+    // On mobile devices, push state so hardware back button closes chat instead of leaving app
+    if (typeof window !== 'undefined' && window.innerWidth < 768) {
+      if (!window.history.state?.chatOpen) {
+        window.history.pushState({ chatOpen: true }, '');
+      }
+    }
   };
 
   const handleBack = () => {
     setActiveChatId(null);
     setActiveChatData(null);
+
+    // Cleanly pop the mobile history state if present
+    if (typeof window !== 'undefined' && window.history.state?.chatOpen) {
+      window.history.back();
+    }
   };
+
+  // Mobile hardware/gesture back button listener
+  useEffect(() => {
+    const handlePopState = () => {
+      if (activeChatIdRef.current) {
+        setActiveChatId(null);
+        setActiveChatData(null);
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, []);
 
   return (
     <ChatProvider>

@@ -127,7 +127,7 @@ export default function RegisterPage() {
       });
 
       if (result.success) {
-        router.push('/chat');
+        router.replace('/chat');
       } else {
         setError(result.error || 'Registration failed');
       }

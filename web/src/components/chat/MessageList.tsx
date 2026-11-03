@@ -88,6 +88,7 @@ export default function MessageList({
   const bottomRef = useRef<HTMLDivElement>(null);
   const prevScrollHeightRef = useRef<number>(0);
   const isInitialLoadRef = useRef<boolean>(true);
+  const userHasScrolledRef = useRef<boolean>(false);
   const [lightboxData, setLightboxData] = useState<{
     src: string;
     caption?: string | null;
@@ -96,20 +97,43 @@ export default function MessageList({
   // Auto-scroll to bottom on initial load and when new messages arrive at the bottom
   useEffect(() => {
     const container = containerRef.current;
-    if (!container) return;
+    if (!container || messages.length === 0) return;
 
-    if (isInitialLoadRef.current && messages.length > 0) {
-      container.scrollTop = container.scrollHeight;
-      isInitialLoadRef.current = false;
-    } else {
-      const isNearBottom =
-        container.scrollHeight - container.scrollTop - container.clientHeight < 150;
-      if (isNearBottom) {
-        if (typeof container.scrollTo === 'function') {
-          container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' });
-        } else {
-          container.scrollTop = container.scrollHeight;
-        }
+    // Do not scroll to bottom if older messages are being prepended via pagination
+    if (prevScrollHeightRef.current > 0) return;
+
+    const isNearBottom =
+      container.scrollHeight - container.scrollTop - container.clientHeight < 200;
+
+    // Auto-scroll on initial mount, when cached messages transition to API messages, or when near bottom
+    if (isInitialLoadRef.current || !userHasScrolledRef.current || isNearBottom) {
+      if (bottomRef.current) {
+        bottomRef.current.scrollIntoView({
+          behavior: isInitialLoadRef.current ? 'auto' : 'smooth',
+        });
+      } else {
+        container.scrollTop = container.scrollHeight;
+      }
+
+      // Ensure that after DOM/image paints, scroll remains anchored at the bottom
+      if (isInitialLoadRef.current) {
+        const frameId = requestAnimationFrame(() => {
+          if (bottomRef.current && !userHasScrolledRef.current) {
+            bottomRef.current.scrollIntoView({ behavior: 'auto' });
+          } else if (container && !userHasScrolledRef.current) {
+            container.scrollTop = container.scrollHeight;
+          }
+        });
+        const timerId = setTimeout(() => {
+          if (bottomRef.current && !userHasScrolledRef.current) {
+            bottomRef.current.scrollIntoView({ behavior: 'auto' });
+          }
+        }, 100);
+
+        return () => {
+          cancelAnimationFrame(frameId);
+          clearTimeout(timerId);
+        };
       }
     }
   }, [messages.length]);
@@ -122,12 +146,23 @@ export default function MessageList({
       if (heightDifference > 0) {
         container.scrollTop += heightDifference;
       }
+      prevScrollHeightRef.current = 0;
     }
   }, [messages]);
 
   const handleScroll = () => {
     const container = containerRef.current;
     if (!container) return;
+
+    const isNearBottom =
+      container.scrollHeight - container.scrollTop - container.clientHeight < 150;
+
+    if (isNearBottom) {
+      userHasScrolledRef.current = false;
+      isInitialLoadRef.current = false;
+    } else {
+      userHasScrolledRef.current = true;
+    }
 
     if (container.scrollTop < 60 && hasMore && !isLoadingOlder && onLoadMore) {
       prevScrollHeightRef.current = container.scrollHeight;

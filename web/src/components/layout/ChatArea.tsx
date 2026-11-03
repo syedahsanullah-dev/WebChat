@@ -774,6 +774,7 @@ export default function ChatArea({
 
         {/* Messages Scroll Area with WhatsApp Doodle Wallpaper */}
         <MessageList
+          key={activeChatId}
           messages={messages}
           currentUserId={user?.id || 'me'}
           isGroup={Boolean(activeChat.isGroup)}

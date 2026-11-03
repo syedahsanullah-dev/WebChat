@@ -158,17 +158,29 @@ export function useMessages({ chatId, recipientId }: UseMessagesOptions) {
               const isE2EE = Boolean(m.isE2EE);
               const e2eeIv = m.e2eeIv || null;
 
-              if (isE2EE && e2eeIv && !m.isDeleted && textContent && user?.id) {
-                try {
-                  const targetPeerId = m.senderId === user.id ? recipientId : m.senderId;
-                  if (targetPeerId) {
-                    const sharedKey = await getOrDeriveSharedKey(user.id, targetPeerId);
-                    if (sharedKey) {
-                      textContent = await decryptMessage(textContent, e2eeIv, sharedKey);
+              if (isE2EE && !m.isDeleted && textContent && user?.id) {
+                if (e2eeIv) {
+                  try {
+                    const targetPeerId = m.senderId === user.id ? recipientId : m.senderId;
+                    let decrypted = false;
+                    if (targetPeerId) {
+                      const sharedKey = await getOrDeriveSharedKey(user.id, targetPeerId);
+                      if (sharedKey) {
+                        textContent = await decryptMessage(textContent, e2eeIv, sharedKey);
+                        decrypted = true;
+                      }
+                    }
+                    if (!decrypted && m.senderId !== user.id) {
+                      textContent = '[Encrypted message - key unavailable on this device]';
+                    }
+                  } catch (decErr) {
+                    console.debug('[useMessages] Could not decrypt message:', decErr);
+                    if (m.senderId !== user.id) {
+                      textContent = '[Encrypted message - key unavailable on this device]';
                     }
                   }
-                } catch (decErr) {
-                  console.debug('[useMessages] Could not decrypt message:', decErr);
+                } else if (m.senderId !== user.id) {
+                  textContent = '[Encrypted message - key unavailable on this device]';
                 }
               }
 
@@ -246,17 +258,29 @@ export function useMessages({ chatId, recipientId }: UseMessagesOptions) {
             const isE2EE = Boolean(m.isE2EE);
             const e2eeIv = m.e2eeIv || null;
 
-            if (isE2EE && e2eeIv && !m.isDeleted && textContent && user?.id) {
-              try {
-                const targetPeerId = m.senderId === user.id ? recipientId : m.senderId;
-                if (targetPeerId) {
-                  const sharedKey = await getOrDeriveSharedKey(user.id, targetPeerId);
-                  if (sharedKey) {
-                    textContent = await decryptMessage(textContent, e2eeIv, sharedKey);
+            if (isE2EE && !m.isDeleted && textContent && user?.id) {
+              if (e2eeIv) {
+                try {
+                  const targetPeerId = m.senderId === user.id ? recipientId : m.senderId;
+                  let decrypted = false;
+                  if (targetPeerId) {
+                    const sharedKey = await getOrDeriveSharedKey(user.id, targetPeerId);
+                    if (sharedKey) {
+                      textContent = await decryptMessage(textContent, e2eeIv, sharedKey);
+                      decrypted = true;
+                    }
+                  }
+                  if (!decrypted && m.senderId !== user.id) {
+                    textContent = '[Encrypted message - key unavailable on this device]';
+                  }
+                } catch (decErr) {
+                  console.debug('[useMessages] Could not decrypt older message:', decErr);
+                  if (m.senderId !== user.id) {
+                    textContent = '[Encrypted message - key unavailable on this device]';
                   }
                 }
-              } catch (decErr) {
-                console.debug('[useMessages] Could not decrypt older message:', decErr);
+              } else if (m.senderId !== user.id) {
+                textContent = '[Encrypted message - key unavailable on this device]';
               }
             }
 
@@ -467,15 +491,22 @@ export function useMessages({ chatId, recipientId }: UseMessagesOptions) {
       const e2eeIv = payload.e2eeIv || null;
 
       // Decrypt incoming E2EE message
-      if (isE2EE && e2eeIv && user?.id && payload.senderId !== user.id) {
-        try {
-          const peerId = payload.senderId;
-          const sharedKey = await getOrDeriveSharedKey(user.id, peerId);
-          if (sharedKey) {
-            displayContent = await decryptMessage(displayContent, e2eeIv, sharedKey);
+      if (isE2EE && user?.id && payload.senderId !== user.id) {
+        if (e2eeIv) {
+          try {
+            const peerId = payload.senderId;
+            const sharedKey = await getOrDeriveSharedKey(user.id, peerId);
+            if (sharedKey) {
+              displayContent = await decryptMessage(displayContent, e2eeIv, sharedKey);
+            } else {
+              displayContent = '[Encrypted message - key unavailable on this device]';
+            }
+          } catch (decErr) {
+            console.debug('[useMessages] Error decrypting incoming live message:', decErr);
+            displayContent = '[Encrypted message - key unavailable on this device]';
           }
-        } catch (decErr) {
-          console.debug('[useMessages] Error decrypting incoming live message:', decErr);
+        } else {
+          displayContent = '[Encrypted message - key unavailable on this device]';
         }
       }
 
